@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import { Building2, Users, Briefcase, MapPin, ArrowRight, Plus, UploadCloud } from 'lucide-react';
+import { Building2, Users, Briefcase, MapPin, ArrowRight, Plus, UploadCloud, Download } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -115,15 +115,27 @@ export default async function ClientsPage() {
                   href={`/clients/${c.id}`}
                   className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
                 >
-                  <span>Deschide Dosar Client</span>
+                  <span>Deschide Dosar</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
-                <Link
-                  href={`/imports/new?clientId=${c.id}`}
-                  className="text-[11px] text-slate-400 hover:text-slate-700 bg-slate-50 px-2.5 py-1 rounded border border-slate-200"
-                >
-                  Import Excel
-                </Link>
+                <div className="flex items-center gap-1.5">
+                  <a
+                    href={`/api/clients/${c.id}/export`}
+                    className="text-[11px] text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded border border-emerald-200 inline-flex items-center gap-1 font-medium transition"
+                    download
+                    title="Exportă registrul complet în Excel"
+                  >
+                    <Download className="w-3 h-3" />
+                    <span>Export</span>
+                  </a>
+                  <Link
+                    href={`/imports/new?clientId=${c.id}`}
+                    className="text-[11px] text-slate-500 hover:text-slate-800 bg-slate-50 hover:bg-slate-100 px-2 py-1 rounded border border-slate-200"
+                    title="Actualizează datele firmei prin import Excel"
+                  >
+                    Import
+                  </Link>
+                </div>
               </div>
             </div>
           ))}

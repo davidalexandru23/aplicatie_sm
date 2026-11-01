@@ -30,7 +30,7 @@ export function maskDocNumber(num: string | null | undefined): string {
 export async function logAuditEvent(params: {
   actorName: string;
   actorEmail?: string;
-  action: 'create' | 'update' | 'delete' | 'import' | 'generate' | 'approve' | 'reveal_cnp';
+  action: 'create' | 'update' | 'delete' | 'import' | 'generate' | 'approve' | 'reveal_cnp' | 'export';
   entityType: string;
   entityId?: string;
   details?: Record<string, unknown> | string;
