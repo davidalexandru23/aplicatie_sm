@@ -861,13 +861,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         type: 'string',
       },
       {
-        key: 'PLACEHOLDER_LOCALITATE_DOMICILIU',
-        label: 'Localitate domiciliu',
-        source: 'residence.locality',
-        required: true,
-        type: 'string',
-      },
-      {
         key: 'PLACEHOLDER_NUMAR_ACT',
         label: 'Număr act identitate',
         source: 'identity.number',

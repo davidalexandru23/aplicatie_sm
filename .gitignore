@@ -19,6 +19,8 @@ next-env.d.ts
 storage/private/
 storage/documents/
 storage/uploads/
+storage/test_documents/
+template-mapping-audit.json
 
 # Python (if helper scripts used)
 __pycache__/

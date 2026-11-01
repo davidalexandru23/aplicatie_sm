@@ -133,9 +133,61 @@ function placeholderLabel(token: string): string {
   return base === token ? token : `${base} (rânduri cursanți)`;
 }
 
+export function parseBirthInfo(birthDate: unknown, cnp?: unknown): {
+  year: string;
+  month: string;
+  day: string;
+  dateFormatted: string;
+} {
+  let year = '';
+  let month = '';
+  let day = '';
+  let dateObj: Date | null = null;
+
+  if (birthDate instanceof Date && !isNaN(birthDate.getTime())) {
+    dateObj = birthDate;
+  } else if (typeof birthDate === 'string') {
+    const trimmed = birthDate.trim();
+    const dmy = trimmed.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/);
+    if (dmy) {
+      day = dmy[1].padStart(2, '0');
+      month = dmy[2].padStart(2, '0');
+      year = dmy[3];
+      dateObj = new Date(Number(year), Number(month) - 1, Number(day));
+    } else {
+      const parsed = new Date(trimmed);
+      if (!isNaN(parsed.getTime())) {
+        dateObj = parsed;
+      }
+    }
+  }
+
+  if (dateObj && !isNaN(dateObj.getTime())) {
+    year = String(dateObj.getFullYear());
+    month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    day = String(dateObj.getDate()).padStart(2, '0');
+  } else if (cnp && /^[1-8]\d{12}$/.test(String(cnp))) {
+    const s = String(cnp);
+    const sDigit = Number(s[0]);
+    let century = 1900;
+    if (sDigit === 3 || sDigit === 4) century = 1800;
+    else if (sDigit === 5 || sDigit === 6) century = 2000;
+    year = String(century + Number(s.substring(1, 3)));
+    month = s.substring(3, 5);
+    day = s.substring(5, 7);
+  }
+
+  return {
+    year,
+    month,
+    day,
+    dateFormatted: day && month && year ? `${day}.${month}.${year}` : '',
+  };
+}
+
 function formatParticipantValue(token: string, participant: Record<string, unknown>): string | undefined {
   const key = token.replace(/_\d{2,3}$/, '').replace(/^PLACEHOLDER_/, '');
-  const birth = participant.birthDate ? new Date(String(participant.birthDate)) : null;
+  const birth = parseBirthInfo(participant.birthDate, participant.cnp);
   const fullName = [participant.lastName, participant.firstName].filter(Boolean).join(' ');
   const identity = [
     participant.docType,
@@ -144,19 +196,16 @@ function formatParticipantValue(token: string, participant: Record<string, unkno
   ]
     .filter(Boolean)
     .join(' ');
-  const month = birth ? String(birth.getMonth() + 1).padStart(2, '0') : '';
-  const day = birth ? String(birth.getDate()).padStart(2, '0') : '';
-  const year = birth ? String(birth.getFullYear()) : '';
 
   const map: Record<string, unknown> = {
     NUMAR_ORDINE: participant.rowNumber,
     NUME_COMPLET: participant.fullName || fullName,
     CNP: participant.cnp,
     ACT_IDENTITATE: participant.identityDocument || identity,
-    DATA_LOC_NASTERII: [birth ? birth.toLocaleDateString('ro-RO') : '', participant.birthPlace].filter(Boolean).join(', '),
-    DATA_NASTERII: birth ? birth.toLocaleDateString('ro-RO') : '',
+    DATA_LOC_NASTERII: [birth.dateFormatted, participant.birthPlace].filter(Boolean).join(', '),
+    DATA_NASTERII: birth.dateFormatted,
     LOCALITATE_NASTERII: participant.birthPlace,
-    MODUL_NIVEL: [participant.module, participant.level].filter(Boolean).join(' - '),
+    MODUL_NIVEL: [participant.module, participant.level].filter(Boolean).join(' - ') || participant.module,
     NOTA_EXAMEN: participant.examGrade || '10',
     REZULTAT_EXAMEN: participant.examResult || 'Admis',
     DATA_SESIUNE: participant.sessionDate,
@@ -164,9 +213,9 @@ function formatParticipantValue(token: string, participant: Record<string, unkno
     MODUL_ABSOLVIT: participant.module,
     PERIOADA_CURS: participant.coursePeriod || participant.sessionDate,
     PRESTATOR_SSM: participant.providerName,
-    AN_NASTERII: year,
-    LUNA_NASTERII: month,
-    ZIUA_NASTERII: day,
+    AN_NASTERII: birth.year,
+    LUNA_NASTERII: birth.month,
+    ZIUA_NASTERII: birth.day,
     LOC_NASTERII: participant.birthPlace,
     DATA_ELIBERARE: participant.sessionDate || participant.examDate,
   };

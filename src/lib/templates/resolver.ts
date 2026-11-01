@@ -35,6 +35,86 @@ export function joinAddressParts(parts: Array<string | null | undefined>): strin
     .join(', ');
 }
 
+export function formatRomanianAddress(residence: {
+  county?: string | null;
+  locality?: string | null;
+  street?: string | null;
+  number?: string | null;
+  building?: string | null;
+  entrance?: string | null;
+  floor?: string | null;
+  apartment?: string | null;
+} | null | undefined): string {
+  if (!residence) return '';
+  const parts: string[] = [];
+
+  const loc = (residence.locality || '').trim();
+  const cty = (residence.county || '').trim();
+
+  if (loc && cty) {
+    if (loc.toLowerCase() === cty.toLowerCase()) {
+      parts.push(loc);
+    } else if (cty.toLowerCase().startsWith('sector')) {
+      parts.push(`${loc}, ${cty}`);
+    } else if (loc.toLowerCase().startsWith('sector') && cty.toLowerCase() === 'bucurești') {
+      parts.push(`București, ${loc}`);
+    } else {
+      const ctyFormatted = cty.toLowerCase().startsWith('jud') ? cty : `jud. ${cty}`;
+      parts.push(`${loc}, ${ctyFormatted}`);
+    }
+  } else if (loc) {
+    parts.push(loc);
+  } else if (cty) {
+    parts.push(cty);
+  }
+
+  if (residence.street) {
+    const s = residence.street.trim();
+    if (/^(str|strada|bd|b-dul|bulevard|bulevardul|calea|cal\.|sos|sos\.|soseaua|alee|aleea|intr|intr\.|intrarea|piata|splai|splaiul)\b/i.test(s)) {
+      parts.push(s);
+    } else {
+      parts.push(`str. ${s}`);
+    }
+  }
+
+  if (residence.number) {
+    const nr = residence.number.trim();
+    parts.push(/^nr\.?/i.test(nr) ? nr : `nr. ${nr}`);
+  }
+
+  if (residence.building) {
+    const b = residence.building.trim();
+    parts.push(/^bl\.?/i.test(b) ? b : `bl. ${b}`);
+  }
+
+  if (residence.entrance) {
+    const sc = residence.entrance.trim();
+    parts.push(/^sc\.?/i.test(sc) ? sc : `sc. ${sc}`);
+  }
+
+  if (residence.floor) {
+    const et = residence.floor.trim();
+    parts.push(/^et\.?/i.test(et) ? et : `et. ${et}`);
+  }
+
+  if (residence.apartment) {
+    const ap = residence.apartment.trim();
+    parts.push(/^ap\.?/i.test(ap) ? ap : `ap. ${ap}`);
+  }
+
+  return parts.join(', ');
+}
+
+export function formatStreetName(street?: string | null): string | undefined {
+  if (!street) return undefined;
+  const s = street.trim();
+  if (!s) return undefined;
+  if (/^(str|strada|bd|b-dul|bulevard|bulevardul|calea|cal\.|sos|sos\.|soseaua|alee|aleea|intr|intr\.|intrarea|piata|splai|splaiul)\b/i.test(s)) {
+    return s;
+  }
+  return `Str. ${s}`;
+}
+
 export async function resolveTemplatePlaceholders(ctx: TemplateResolutionContext): Promise<{
   template: TemplateDefinition;
   fields: ResolvedPlaceholderItem[];
@@ -88,18 +168,7 @@ export async function resolveTemplatePlaceholders(ctx: TemplateResolutionContext
   const fullName = employee ? `${employee.lastName} ${employee.firstName}`.trim() : '';
   const participantFullName = participant ? `${participant.lastName} ${participant.firstName}`.trim() : '';
 
-  const addressFull = residence
-    ? joinAddressParts([
-        residence.county,
-        residence.locality,
-        residence.street ? `str. ${residence.street}` : '',
-        residence.number ? `nr. ${residence.number}` : '',
-        residence.building ? `bl. ${residence.building}` : '',
-        residence.entrance ? `sc. ${residence.entrance}` : '',
-        residence.floor ? `et. ${residence.floor}` : '',
-        residence.apartment ? `ap. ${residence.apartment}` : '',
-      ])
-    : '';
+  const addressFull = residence ? formatRomanianAddress(residence) : '';
 
   const workplaceAddress = selectedWorksite?.address || client.address;
 
@@ -114,6 +183,8 @@ export async function resolveTemplatePlaceholders(ctx: TemplateResolutionContext
     PLACEHOLDER_ADRESA: addressFull || client.address,
     // Administratorul legal al firmei (exclusiv din client.legalRepresentative, niciodată salariatul!)
     PLACEHOLDER_REPREZENTANT_LEGAL: client.legalRepresentative || undefined,
+    PLACEHOLDER_DIRECTOR: client.legalRepresentative || undefined,
+    PLACEHOLDER_CALITATE_REPREZENTANT: (ctx.customOverrides?.PLACEHOLDER_CALITATE_REPREZENTANT as string) || (client.legalRepresentative ? 'Administrator' : undefined),
     PLACEHOLDER_TELEFON_CONTACT: client.contactPhone || undefined,
     PLACEHOLDER_EMAIL_CONTACT: client.contactEmail || undefined,
 
@@ -122,6 +193,9 @@ export async function resolveTemplatePlaceholders(ctx: TemplateResolutionContext
     PLACEHOLDER_DATA_DOCUMENT: currentDateRo,
     PLACEHOLDER_DATA_APROBARE: currentDateRo,
     PLACEHOLDER_DATA_APLICARE: currentDateRo,
+    PLACEHOLDER_DATA_DECIZIE: currentDateRo,
+    PLACEHOLDER_DATA_INTOCMIRE: currentDateRo,
+    PLACEHOLDER_DATA_SEMNARE: (employee?.hireDate ? formatDateRo(employee.hireDate) : currentDateRo),
     PLACEHOLDER_DATA: currentDateRo,
 
     // 3. Salariat (doar dacă există salariat selectat)
@@ -151,7 +225,7 @@ export async function resolveTemplatePlaceholders(ctx: TemplateResolutionContext
       PLACEHOLDER_JUDET: residence?.county || undefined,
       PLACEHOLDER_LOCALITATE_DOMICILIU: residence?.locality || undefined,
       PLACEHOLDER_LOCALITATE: residence?.locality || undefined,
-      PLACEHOLDER_STRADA_DOMICILIU: residence?.street || undefined,
+      PLACEHOLDER_STRADA_DOMICILIU: formatStreetName(residence?.street),
       PLACEHOLDER_NUMAR_DOMICILIU: residence?.number || undefined,
       PLACEHOLDER_NR: residence?.number || undefined,
       PLACEHOLDER_BLOC: residence?.building || undefined,
