@@ -800,15 +800,15 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
   },
   {
     code: 'hr-cerere-angajare',
-    name: 'Cerere de angajare (Formular PDF)',
+    name: 'Cerere de angajare',
     family: 'hr',
     originalFilename: 'Cerere angajare.pdf',
-    normalizedFilename: 'Cerere angajare.pdf',
-    format: 'pdf',
+    normalizedFilename: 'Cerere angajare.docx',
+    format: 'docx',
     contextLevel: 'employee',
     status: 'mapped',
     version: 2,
-    description: 'Formular interactiv PDF AcroForm pentru solicitarea încadrării în muncă a candidatului.',
+    description: 'Cerere tipizată pentru solicitarea încadrării în muncă a candidatului.',
     reviewer: 'Operator HR',
     fields: [
       {
@@ -1443,12 +1443,12 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
     name: 'Declarație luare la cunoștință Regulament Intern',
     family: 'hr',
     originalFilename: 'Declaratie luare cunostinta RI.pdf',
-    normalizedFilename: 'Declaratie luare cunostinta RI.pdf',
-    format: 'pdf',
+    normalizedFilename: 'Declaratie luare cunostinta RI.docx',
+    format: 'docx',
     contextLevel: 'employee',
     status: 'mapped',
     version: 2,
-    description: 'Formular interactiv PDF AcroForm pentru confirmarea luării la cunoștință a Regulamentului Intern al unității.',
+    description: 'Declarație pentru confirmarea luării la cunoștință a Regulamentului Intern al unității.',
     reviewer: 'Operator HR',
     fields: [
       {
@@ -1577,12 +1577,12 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
     name: 'Declarație pe proprie răspundere la angajare (CIM)',
     family: 'hr',
     originalFilename: 'Declaratie pe proprie raspundere CIM.pdf',
-    normalizedFilename: 'Declaratie pe proprie raspundere CIM.pdf',
-    format: 'pdf',
+    normalizedFilename: 'Declaratie pe proprie raspundere CIM.docx',
+    format: 'docx',
     contextLevel: 'employee',
     status: 'mapped',
     version: 2,
-    description: 'Formular PDF AcroForm privind deducerile personale, cumulul de funcții, stagiul de cotizare și persoanele în întreținere.',
+    description: 'Declarație pe proprie răspundere privind deducerile personale, cumulul de funcții și persoanele în întreținere.',
     reviewer: 'Operator HR',
     fields: [
       {
