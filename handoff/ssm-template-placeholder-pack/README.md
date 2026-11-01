@@ -13,6 +13,8 @@ Conține 25 de șabloane normalizate, pregătite pentru integrare în aplicația
 - În Word, token-urile sunt în forma `{PLACEHOLDER_NUME_CAMP}`.
 - În PDF, câmpurile AcroForm sunt numite `PLACEHOLDER_NUME_CAMP`.
 - În Excel, token-urile sunt în celule. Câmpurile repetitive de cursanți au sufix numeric, de exemplu `_001`, `_002`.
+- În Word, numele semnatarilor sunt puse în câmpurile de nume existente sau imediat sub rolul din blocul de aprobare. Celulele/zonele de semnătură olografă rămân goale.
+- Token-urile înlocuiesc conținut variabil existent; nu se adaugă linii de antet sau subtitluri pentru a găzdui date.
 - Dacă valoarea nu există în datele aplicației, token-ul trebuie să rămână vizibil, iar documentul generat să fie marcat ca incomplet.
 - Evaluările de risc, scorurile, măsurile și concluziile cer date profesionale validate; nu se deduc automat din funcția angajatului.
 

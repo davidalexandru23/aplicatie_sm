@@ -51,19 +51,17 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
     fields: [
       {
         key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
-        label: 'Reprezentant Legal',
+        label: 'Reprezentant Legal / Administrator',
         source: 'client.legalRepresentative',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_SPECIALIST_SSM',
         label: 'Specialist / Serviciu Desemnat SSM',
-        source: 'client.externalService',
+        source: 'manual',
         required: true,
         type: 'string',
-        defaultValue: "Ing. Popescu Ion - Specialist SSM",
       }
     ],
   },
@@ -86,23 +84,20 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.name',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
-        label: 'Reprezentant Legal',
+        label: 'Reprezentant Legal / Administrator',
         source: 'client.legalRepresentative',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_SPECIALIST_SSM',
         label: 'Specialist / Serviciu Desemnat SSM',
-        source: 'client.externalService',
+        source: 'manual',
         required: true,
         type: 'string',
-        defaultValue: "Ing. Popescu Ion - Specialist SSM",
       }
     ],
   },
@@ -121,19 +116,17 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
     fields: [
       {
         key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
-        label: 'Reprezentant Legal',
+        label: 'Reprezentant Legal / Administrator',
         source: 'client.legalRepresentative',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_SPECIALIST_SSM',
         label: 'Specialist / Serviciu Desemnat SSM',
-        source: 'client.externalService',
+        source: 'manual',
         required: true,
         type: 'string',
-        defaultValue: "Ing. Popescu Ion - Specialist SSM",
       }
     ],
   },
@@ -156,7 +149,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'hygieneSession.meAuthorization',
         required: true,
         type: 'string',
-        defaultValue: "Aviz ME nr. 55/2024",
       },
       {
         key: 'PLACEHOLDER_AVIZ_MS',
@@ -164,7 +156,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'hygieneSession.msAuthorization',
         required: true,
         type: 'string',
-        defaultValue: "Aviz MS nr. 102/2024",
       },
       {
         key: 'PLACEHOLDER_CNP',
@@ -172,7 +163,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.cnp',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_ELIBERARE',
@@ -180,7 +170,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'hygieneSession.examDate',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_NASTERII',
@@ -188,15 +177,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.birthDate',
         required: true,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FUNCTIE_PRESTATOR',
-        label: 'Funcție reprezentant prestator',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        defaultValue: "Director Formare / Specialist SSM",
       },
       {
         key: 'PLACEHOLDER_JUDET_NASTERII',
@@ -204,7 +184,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.birthCounty',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_LOCALITATE_NASTERII',
@@ -212,7 +191,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.birthPlace',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_MODUL_IGIENA',
@@ -220,15 +198,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'hygiene.module',
         required: true,
         type: 'string',
-        defaultValue: "Nivelul 1 - Servicii de curățenie și alimentație",
       },
       {
         key: 'PLACEHOLDER_NIVEL_IGIENA',
         label: 'Nivel curs igienă',
         source: 'manual',
-        required: true,
+        required: false,
         type: 'string',
-        defaultValue: "Nivelul 1",
       },
       {
         key: 'PLACEHOLDER_NUMAR_ADEVERINTA',
@@ -236,7 +212,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'participant.certificateNumber',
         required: true,
         type: 'string',
-        defaultValue: "101",
       },
       {
         key: 'PLACEHOLDER_NUME_COMPLET',
@@ -244,15 +219,20 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.fullName',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_PRESTATOR_SSM',
         label: 'Prestator servicii SSM / Formare',
-        source: 'manual',
+        source: 'hygieneSession.providerName',
         required: true,
         type: 'string',
-        defaultValue: "SC EXPERT SSM TRAINING SRL",
+      },
+      {
+        key: 'PLACEHOLDER_REPREZENTANT_PRESTATOR',
+        label: 'Nume reprezentant prestator',
+        source: 'manual',
+        required: false,
+        type: 'string',
       },
       {
         key: 'PLACEHOLDER_SERIE_ADEVERINTA',
@@ -260,15 +240,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'participant.certificateSeries',
         required: true,
         type: 'string',
-        defaultValue: "IGI",
-      },
-      {
-        key: 'PLACEHOLDER_SPECIALIST_SSM',
-        label: 'Specialist / Serviciu Desemnat SSM',
-        source: 'client.externalService',
-        required: true,
-        type: 'string',
-        defaultValue: "Ing. Popescu Ion - Specialist SSM",
       }
     ],
   },
@@ -286,28 +257,18 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
     reviewer: 'Specialist SSM',
     fields: [
       {
-        key: 'PLACEHOLDER_FIRMA',
-        label: 'Denumire firmă / Angajator',
-        source: 'client.name',
-        required: true,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FUNCTIE',
-        label: 'Funcție / Ocupație',
-        source: 'job.title',
-        required: true,
-        type: 'string',
-        
-      },
-      {
         key: 'PLACEHOLDER_NUME_COMPLET',
         label: 'Nume și prenume salariat',
         source: 'employee.fullName',
         required: true,
         type: 'string',
-        
+      },
+      {
+        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
+        label: 'Reprezentant Legal / Administrator',
+        source: 'client.legalRepresentative',
+        required: true,
+        type: 'string',
       }
     ],
   },
@@ -325,12 +286,11 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
     reviewer: 'Specialist SSM',
     fields: [
       {
-        key: 'PLACEHOLDER_ACT_IDENTITATE',
-        label: 'Act Identitate',
+        key: 'PLACEHOLDER_ACT_IDENTITATE_{001–100}',
+        label: 'Act Identitate {001–100}',
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_ACT_REPREZENTANT',
@@ -338,7 +298,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "Decizia AGA nr. 1/2020",
       },
       {
         key: 'PLACEHOLDER_APARTAMENT_FURNIZOR',
@@ -346,7 +305,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "8",
       },
       {
         key: 'PLACEHOLDER_AUTORITATE_EMITENTA',
@@ -354,7 +312,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "DSP București",
       },
       {
         key: 'PLACEHOLDER_AVIZ_ME',
@@ -362,7 +319,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'hygieneSession.meAuthorization',
         required: true,
         type: 'string',
-        defaultValue: "Aviz ME nr. 55/2024",
       },
       {
         key: 'PLACEHOLDER_AVIZ_MS',
@@ -370,7 +326,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'hygieneSession.msAuthorization',
         required: true,
         type: 'string',
-        defaultValue: "Aviz MS nr. 102/2024",
       },
       {
         key: 'PLACEHOLDER_BLOC_FURNIZOR',
@@ -378,15 +333,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "B1",
       },
       {
         key: 'PLACEHOLDER_CALITATE_REPREZENTANT',
         label: 'Calitate reprezentant legal',
-        source: 'client.legalRepresentativeRole',
-        required: true,
+        source: 'manual',
+        required: false,
         type: 'string',
-        defaultValue: "Administrator",
       },
       {
         key: 'PLACEHOLDER_CERTIFICAT_FURNIZOR',
@@ -394,7 +347,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "Certificat seria IG nr. 889",
       },
       {
         key: 'PLACEHOLDER_CNP',
@@ -402,7 +354,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.cnp',
         required: true,
         type: 'string',
-        
+      },
+      {
+        key: 'PLACEHOLDER_CNP_{001–195}',
+        label: 'Cnp {001–195}',
+        source: 'manual',
+        required: false,
+        type: 'string',
       },
       {
         key: 'PLACEHOLDER_COD_POSTAL_FURNIZOR',
@@ -410,15 +368,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "010101",
       },
       {
         key: 'PLACEHOLDER_COMISIE_EXAMEN',
         label: 'Membri comisie examinare',
-        source: 'manual',
-        required: true,
+        source: 'hygieneSession.commission',
+        required: false,
         type: 'string',
-        defaultValue: "Președinte, Membru 1, Secretar",
       },
       {
         key: 'PLACEHOLDER_CUI_PRESTATOR',
@@ -426,7 +382,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "RO30123456",
       },
       {
         key: 'PLACEHOLDER_DATA_AVIZ_ME',
@@ -434,7 +389,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "20.01.2024",
       },
       {
         key: 'PLACEHOLDER_DATA_AVIZ_MS',
@@ -442,7 +396,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "15.01.2024",
       },
       {
         key: 'PLACEHOLDER_DATA_CATALOG',
@@ -450,15 +403,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'hygieneSession.examDate',
         required: false,
         type: 'string',
-        
       },
       {
-        key: 'PLACEHOLDER_DATA_ELIBERARE',
-        label: 'Data eliberării adeverinței',
-        source: 'hygieneSession.examDate',
-        required: true,
+        key: 'PLACEHOLDER_DATA_ELIBERARE_{001–195}',
+        label: 'Data Eliberare {001–195}',
+        source: 'manual',
+        required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_EMITERE',
@@ -466,7 +417,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'meta.currentDateRo',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_EXAMEN',
@@ -474,7 +424,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'hygieneSession.examDate',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_INREGISTRARE',
@@ -482,15 +431,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'meta.currentDateRo',
         required: false,
         type: 'string',
-        
       },
       {
-        key: 'PLACEHOLDER_DATA_LOC_NASTERII',
-        label: 'Data Loc Nasterii',
+        key: 'PLACEHOLDER_DATA_LOC_NASTERII_{001–100}',
+        label: 'Data Loc Nasterii {001–100}',
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_NASTERII',
@@ -498,7 +445,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.birthDate',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_PV',
@@ -506,15 +452,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'hygieneSession.examDate',
         required: false,
         type: 'string',
-        
       },
       {
-        key: 'PLACEHOLDER_DATA_SESIUNE',
-        label: 'Data sesiunii de curs',
-        source: 'hygieneSession.sessionDate',
-        required: true,
+        key: 'PLACEHOLDER_DATA_SESIUNE_{001–195}',
+        label: 'Data Sesiune {001–195}',
+        source: 'manual',
+        required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_EMAIL_PRESTATOR',
@@ -522,7 +466,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "contact@expertssm.ro",
       },
       {
         key: 'PLACEHOLDER_ETAJ_FURNIZOR',
@@ -530,15 +473,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "2",
       },
       {
         key: 'PLACEHOLDER_FURNIZOR_SSM',
         label: 'Furnizor formare / igienă',
-        source: 'manual',
+        source: 'hygieneSession.providerName',
         required: true,
         type: 'string',
-        defaultValue: "SC EXPERT SSM TRAINING SRL",
       },
       {
         key: 'PLACEHOLDER_JUDET_EXAMEN',
@@ -546,7 +487,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "București",
       },
       {
         key: 'PLACEHOLDER_JUDET_FURNIZOR',
@@ -554,7 +494,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "Sector 1",
       },
       {
         key: 'PLACEHOLDER_LOCALITATE_EXAMEN',
@@ -562,7 +501,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "București",
       },
       {
         key: 'PLACEHOLDER_LOCALITATE_FURNIZOR',
@@ -570,7 +508,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "București",
       },
       {
         key: 'PLACEHOLDER_LOCALITATE_NASTERII',
@@ -578,7 +515,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.birthPlace',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_LOCATIE_EXAMEN',
@@ -586,39 +522,27 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'hygieneSession.location',
         required: true,
         type: 'string',
-        defaultValue: "Sediul Prestatorului",
       },
       {
         key: 'PLACEHOLDER_MEMBRU_COMISIE_1',
         label: 'Membru comisie 1',
-        source: 'manual',
-        required: true,
+        source: 'hygieneSession.commissionMember1',
+        required: false,
         type: 'string',
-        defaultValue: "As. Medical Mihai Elena",
       },
       {
         key: 'PLACEHOLDER_MEMBRU_COMISIE_2',
         label: 'Membru comisie 2',
+        source: 'hygieneSession.commissionMember2',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_MODUL_ABSOLVIT_{001–195}',
+        label: 'Modul Absolvit {001–195}',
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "Insp. DSP Popa Dan",
-      },
-      {
-        key: 'PLACEHOLDER_MODULE_IGIENA',
-        label: 'Module igienă',
-        source: 'hygiene.module',
-        required: true,
-        type: 'string',
-        defaultValue: "Modulul I",
-      },
-      {
-        key: 'PLACEHOLDER_MODUL_ABSOLVIT',
-        label: 'Modul Absolvit',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_MODUL_IGIENA',
@@ -626,39 +550,41 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'hygiene.module',
         required: true,
         type: 'string',
-        defaultValue: "Nivelul 1 - Servicii de curățenie și alimentație",
       },
       {
-        key: 'PLACEHOLDER_MODUL_NIVEL',
-        label: 'Modul Nivel',
+        key: 'PLACEHOLDER_MODUL_NIVEL_{001–100}',
+        label: 'Modul Nivel {001–100}',
         source: 'manual',
         required: false,
         type: 'string',
-        
+      },
+      {
+        key: 'PLACEHOLDER_MODULE_IGIENA',
+        label: 'Module igienă',
+        source: 'hygiene.module',
+        required: false,
+        type: 'string',
       },
       {
         key: 'PLACEHOLDER_NIVEL_IGIENA',
         label: 'Nivel curs igienă',
         source: 'manual',
-        required: true,
+        required: false,
         type: 'string',
-        defaultValue: "Nivelul 1",
       },
       {
-        key: 'PLACEHOLDER_NOTA_EXAMEN',
-        label: 'Nota Examen',
+        key: 'PLACEHOLDER_NOTA_EXAMEN_{001–100}',
+        label: 'Nota Examen {001–100}',
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUMAR_ADMISI',
         label: 'Număr candidați admiși',
-        source: 'manual',
+        source: 'hygieneSession.admittedCount',
         required: false,
         type: 'number',
-        defaultValue: 3,
       },
       {
         key: 'PLACEHOLDER_NUMAR_AVIZ_ME',
@@ -666,7 +592,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "55",
       },
       {
         key: 'PLACEHOLDER_NUMAR_AVIZ_MS',
@@ -674,15 +599,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "102",
       },
       {
         key: 'PLACEHOLDER_NUMAR_CANDIDATI',
         label: 'Număr total candidați',
-        source: 'manual',
+        source: 'hygieneSession.candidatesCount',
         required: false,
         type: 'number',
-        defaultValue: 3,
       },
       {
         key: 'PLACEHOLDER_NUMAR_CATALOG',
@@ -690,7 +613,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "CAT-2026-01",
       },
       {
         key: 'PLACEHOLDER_NUMAR_CERTIFICAT_FURNIZOR',
@@ -698,7 +620,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "CERT-889",
       },
       {
         key: 'PLACEHOLDER_NUMAR_DECIZIE_COMISIE',
@@ -706,7 +627,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "Decizia nr. 12/2026",
       },
       {
         key: 'PLACEHOLDER_NUMAR_FURNIZOR',
@@ -714,7 +634,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "12",
       },
       {
         key: 'PLACEHOLDER_NUMAR_INREGISTRARE_FURNIZOR',
@@ -722,23 +641,20 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "REG-1045",
       },
       {
-        key: 'PLACEHOLDER_NUMAR_ORDINE',
-        label: 'Numar Ordine',
+        key: 'PLACEHOLDER_NUMAR_ORDINE_{001–195}',
+        label: 'Numar Ordine {001–195}',
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUMAR_PREZENTI',
         label: 'Număr candidați prezenți',
-        source: 'manual',
+        source: 'hygieneSession.presentCount',
         required: false,
         type: 'number',
-        defaultValue: 3,
       },
       {
         key: 'PLACEHOLDER_NUMAR_PV',
@@ -746,15 +662,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'hygieneSession.pvSeriesNumber',
         required: false,
         type: 'string',
-        defaultValue: "15",
       },
       {
         key: 'PLACEHOLDER_NUMAR_RESPINSI',
         label: 'Număr candidați respinși',
-        source: 'manual',
+        source: 'hygieneSession.rejectedCount',
         required: false,
         type: 'number',
-        defaultValue: 0,
       },
       {
         key: 'PLACEHOLDER_NUME_COMPLET',
@@ -762,7 +676,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.fullName',
         required: true,
         type: 'string',
-        
+      },
+      {
+        key: 'PLACEHOLDER_NUME_COMPLET_{001–195}',
+        label: 'Nume Complet {001–195}',
+        source: 'manual',
+        required: false,
+        type: 'string',
       },
       {
         key: 'PLACEHOLDER_ORA_EXAMEN',
@@ -770,7 +690,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "10:00",
       },
       {
         key: 'PLACEHOLDER_ORDIN_APLICABIL',
@@ -778,31 +697,34 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "Ordinul MS/ME nr. 1225/5031/2003",
       },
       {
-        key: 'PLACEHOLDER_PERIOADA_CURS',
-        label: 'Perioada Curs',
+        key: 'PLACEHOLDER_PERIOADA_CURS_{001–195}',
+        label: 'Perioada Curs {001–195}',
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_PRESEDINTE_COMISIE',
         label: 'Președinte comisie examen',
-        source: 'manual',
-        required: true,
+        source: 'hygieneSession.commissionPresident',
+        required: false,
         type: 'string',
-        defaultValue: "Dr. Ionescu Radu",
       },
       {
         key: 'PLACEHOLDER_PRESTATOR_SSM',
         label: 'Prestator servicii SSM / Formare',
-        source: 'manual',
+        source: 'hygieneSession.providerName',
         required: true,
         type: 'string',
-        defaultValue: "SC EXPERT SSM TRAINING SRL",
+      },
+      {
+        key: 'PLACEHOLDER_PRESTATOR_SSM_{001–195}',
+        label: 'Prestator Ssm {001–195}',
+        source: 'manual',
+        required: false,
+        type: 'string',
       },
       {
         key: 'PLACEHOLDER_REPREZENTANT_PRESTATOR',
@@ -810,15 +732,20 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "Director General Popa Ion",
       },
       {
         key: 'PLACEHOLDER_REZULTAT_EXAMEN',
         label: 'Rezultat examen (Admis/Respins)',
+        source: 'participant.examResult',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_REZULTAT_EXAMEN_{001–100}',
+        label: 'Rezultat Examen {001–100}',
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "Admis",
       },
       {
         key: 'PLACEHOLDER_SALA_EXAMEN',
@@ -826,7 +753,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "Sala Curs 1",
       },
       {
         key: 'PLACEHOLDER_SCARA_FURNIZOR',
@@ -834,23 +760,20 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "A",
       },
       {
         key: 'PLACEHOLDER_SECRETAR_COMISIE',
         label: 'Secretar comisie examen',
-        source: 'manual',
-        required: true,
+        source: 'hygieneSession.commissionSecretary',
+        required: false,
         type: 'string',
-        defaultValue: "Secretar Georgescu Ana",
       },
       {
-        key: 'PLACEHOLDER_SERIE_NUMAR_CERTIFICAT',
-        label: 'Serie și număr certificat',
+        key: 'PLACEHOLDER_SERIE_NUMAR_CERTIFICAT_{001–195}',
+        label: 'Serie Numar Certificat {001–195}',
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "IGI 101",
       },
       {
         key: 'PLACEHOLDER_SERIE_PV',
@@ -858,7 +781,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "PV-EX",
       },
       {
         key: 'PLACEHOLDER_STRADA_FURNIZOR',
@@ -866,7 +788,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "Str. Formatorilor",
       },
       {
         key: 'PLACEHOLDER_TELEFON_PRESTATOR',
@@ -874,7 +795,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "0721.000.111",
       }
     ],
   },
@@ -892,36 +812,11 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
     reviewer: 'Operator HR',
     fields: [
       {
-        key: 'PLACEHOLDER_ADRESA',
-        label: 'Adresă',
-        source: 'client.address',
-        required: true,
-        type: 'string',
-        
-      },
-      {
         key: 'PLACEHOLDER_ADRESA_DOMICILIU',
         label: 'Adresă completă domiciliu',
         source: 'residence.addressFull',
         required: true,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_DATA_ACT',
-        label: 'Data eliberării actului',
-        source: 'identity.issueDate',
-        required: true,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_DATA_ANGAJ',
-        label: 'Data angajării',
-        source: 'employee.hireDate',
-        required: true,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_ANGAJARII',
@@ -929,15 +824,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.hireDate',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_CERERE',
         label: 'Data cererii de angajare',
         source: 'employee.hireDate',
-        required: true,
+        required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_EMITERII',
@@ -945,15 +838,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'identity.issueDate',
         required: true,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_EMITENT',
-        label: 'Emitent act identitate',
-        source: 'identity.issuedBy',
-        required: true,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_EMITENT_ACT',
@@ -961,7 +845,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'identity.issuedBy',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_FIRMA',
@@ -969,7 +852,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.name',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_FUNCTIE',
@@ -977,15 +859,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'job.title',
         required: true,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_LOCALITATE',
-        label: 'Localitate domiciliu',
-        source: 'residence.locality',
-        required: true,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_LOCALITATE_DOMICILIU',
@@ -993,15 +866,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'residence.locality',
         required: true,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NR_ACT',
-        label: 'Număr act identitate',
-        source: 'identity.number',
-        required: true,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUMAR_ACT',
@@ -1009,15 +873,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'identity.number',
         required: true,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NUME',
-        label: 'Nume familie salariat',
-        source: 'employee.lastName',
-        required: true,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUME_COMPLET',
@@ -1025,15 +880,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.fullName',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
-        label: 'Reprezentant Legal',
+        label: 'Reprezentant Legal / Administrator',
         source: 'client.legalRepresentative',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_SERIE_ACT',
@@ -1041,7 +894,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'identity.series',
         required: true,
         type: 'string',
-        
       }
     ],
   },
@@ -1064,7 +916,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'residence.addressFull',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_ADRESA_FIRMA',
@@ -1072,7 +923,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.address',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_ADRESA_PUNCT_LUCRU',
@@ -1080,7 +930,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'worksite.address',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_ALTE_DREPTURI_SALARIALE',
@@ -1088,7 +937,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "Conform CCM / decizii",
       },
       {
         key: 'PLACEHOLDER_ARTICOL_DURATA_DETERMINATA',
@@ -1096,15 +944,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "nedeterminată",
       },
       {
         key: 'PLACEHOLDER_CALITATE_REPREZENTANT',
         label: 'Calitate reprezentant legal',
-        source: 'client.legalRepresentativeRole',
-        required: true,
+        source: 'manual',
+        required: false,
         type: 'string',
-        defaultValue: "Administrator",
       },
       {
         key: 'PLACEHOLDER_CNP',
@@ -1112,7 +958,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.cnp',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_COD_COR',
@@ -1120,7 +965,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'job.corCode',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_CUI',
@@ -1128,7 +972,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.cui',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_INCEPERE',
@@ -1136,23 +979,20 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.hireDate',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_PLATA',
         label: 'Data plății salariului',
         source: 'manual',
-        required: true,
+        required: false,
         type: 'string',
-        defaultValue: "15 a fiecărei luni",
       },
       {
         key: 'PLACEHOLDER_DATA_SEMNARE',
         label: 'Data semnării CIM',
         source: 'meta.currentDateRo',
-        required: true,
+        required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_SFARSIT',
@@ -1160,7 +1000,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "-",
       },
       {
         key: 'PLACEHOLDER_FIRMA',
@@ -1168,7 +1007,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.name',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_FUNCTIE',
@@ -1176,7 +1014,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'job.title',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NR_REG_COM',
@@ -1184,7 +1021,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.regCom',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUMAR_ACT',
@@ -1192,15 +1028,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'identity.number',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUMAR_CIM',
         label: 'Număr contract individual de muncă',
         source: 'manual',
-        required: true,
+        required: false,
         type: 'string',
-        defaultValue: "101",
       },
       {
         key: 'PLACEHOLDER_NUME_COMPLET',
@@ -1208,15 +1042,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.fullName',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_ORE_PE_ZI',
         label: 'Număr ore de muncă pe zi',
-        source: 'job.dailyHours',
-        required: true,
+        source: 'manual',
+        required: false,
         type: 'number',
-        defaultValue: 8,
       },
       {
         key: 'PLACEHOLDER_PERMIS_MUNCA',
@@ -1224,31 +1056,27 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "Nu este cazul",
       },
       {
         key: 'PLACEHOLDER_PROGRAM_LUCRU',
         label: 'Interval program de lucru',
         source: 'manual',
-        required: true,
+        required: false,
         type: 'string',
-        defaultValue: "08:00 - 16:30",
       },
       {
         key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
-        label: 'Reprezentant Legal',
+        label: 'Reprezentant Legal / Administrator',
         source: 'client.legalRepresentative',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_SALARIU_BRUT',
         label: 'Salariu de bază lunar brut (lei)',
         source: 'manual',
-        required: true,
+        required: false,
         type: 'string',
-        defaultValue: "4050 lei",
       },
       {
         key: 'PLACEHOLDER_SERIE_ACT',
@@ -1256,7 +1084,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'identity.series',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_TELEFON_CONTACT',
@@ -1264,31 +1091,27 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.contactPhone',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_ZILE_CONCEDIU',
         label: 'Zile de concediu de odihnă anual',
         source: 'manual',
-        required: true,
+        required: false,
         type: 'number',
-        defaultValue: 21,
       },
       {
         key: 'PLACEHOLDER_ZILE_PREAVIZ_DEMISIONARE',
         label: 'Zile preaviz în caz de demisie',
         source: 'manual',
-        required: true,
+        required: false,
         type: 'number',
-        defaultValue: 20,
       },
       {
         key: 'PLACEHOLDER_ZILE_PROBA',
         label: 'Durată perioadă de probă (zile)',
         source: 'manual',
-        required: true,
+        required: false,
         type: 'number',
-        defaultValue: 90,
       }
     ],
   },
@@ -1311,7 +1134,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.address',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_AJUTOR_LUCRARE',
@@ -1319,7 +1141,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_CONTACT_ANUNTARE_INCIDENT',
@@ -1327,7 +1148,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_BULETIN_ANALIZA',
@@ -1335,15 +1155,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_DECIZIE',
         label: 'Data deciziei interne',
-        source: 'meta.currentDateRo',
+        source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_FINALIZARE_LUCRARE',
@@ -1351,7 +1169,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_INCEPERE_LUCRARE',
@@ -1359,7 +1176,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_INTOCMIRE',
@@ -1367,7 +1183,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_PERMIS_FOC',
@@ -1375,7 +1190,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DESCRIERE_LUCRARE',
@@ -1383,7 +1197,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DOMENIU_INSTRUIRE',
@@ -1391,7 +1204,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_EMITENT_BULETIN_ANALIZA',
@@ -1399,15 +1211,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_EVALUATOR_RISC',
         label: 'Nume evaluator riscuri profesionale',
         source: 'manual',
-        required: true,
+        required: false,
         type: 'string',
-        defaultValue: "Ing. Evaluator Risc Popescu Ion",
       },
       {
         key: 'PLACEHOLDER_EXECUTANT_LUCRARE',
@@ -1415,7 +1225,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_FIRMA',
@@ -1423,7 +1232,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.name',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_FUNCTIE_INSTRUCTOR',
@@ -1431,7 +1239,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_LUCRATOR_DESEMNAT_SSM',
@@ -1439,7 +1246,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_MASURI_PSI_SUPLIMENTARE',
@@ -1447,15 +1253,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_MEMBRU_COMISIE',
         label: 'Membru comisie',
-        source: 'manual',
-        required: true,
+        source: 'hygieneSession.commissionMember1',
+        required: false,
         type: 'string',
-        defaultValue: "As. Medical Mihai Elena",
       },
       {
         key: 'PLACEHOLDER_METODA_IZOLARE_INSTALATII',
@@ -1463,7 +1267,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_MIJLOACE_STINGERE',
@@ -1471,7 +1274,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUMAR_BULETIN_ANALIZA',
@@ -1479,7 +1281,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUMAR_DECIZIE_01',
@@ -1487,7 +1288,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUMAR_DECIZIE_02',
@@ -1495,7 +1295,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUMAR_DECIZIE_03',
@@ -1503,7 +1302,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUMAR_DECIZIE_04',
@@ -1511,7 +1309,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUMAR_DECIZIE_05',
@@ -1519,7 +1316,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUMAR_DECIZIE_06',
@@ -1527,7 +1323,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUMAR_DECIZIE_07',
@@ -1535,7 +1330,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUMAR_DECIZIE_08',
@@ -1543,7 +1337,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUMAR_DECIZIE_09',
@@ -1551,7 +1344,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUMAR_DECIZIE_11',
@@ -1559,7 +1351,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUMAR_PERMIS_FOC',
@@ -1567,7 +1358,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_ORA_FINALIZARE',
@@ -1575,7 +1365,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_ORA_INCEPERE',
@@ -1583,7 +1372,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_PROTECTIE_MATERIALE',
@@ -1591,7 +1379,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_RAZA_PROTECTIE_METRI',
@@ -1599,15 +1386,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
-        label: 'Reprezentant Legal',
+        label: 'Reprezentant Legal / Administrator',
         source: 'client.legalRepresentative',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_RESPONSABIL_CONTROL_PSI',
@@ -1615,7 +1400,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_RESPONSABIL_PRIM_AJUTOR',
@@ -1623,7 +1407,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_RESPONSABIL_PSI',
@@ -1631,7 +1414,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_RESPONSABIL_SUPRAVEGHERE_LUCRARI',
@@ -1639,7 +1421,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_TEHNOLOGIE_LUCRU',
@@ -1647,7 +1428,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_VENTILARE_SPATIU',
@@ -1655,7 +1435,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       }
     ],
   },
@@ -1678,7 +1457,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'residence.apartment',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_BLOC',
@@ -1686,7 +1464,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'residence.building',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_CNP',
@@ -1694,31 +1471,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.cnp',
         required: true,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_DATA',
-        label: 'Data',
-        source: 'meta.currentDateRo',
-        required: true,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_DATA_ACT',
-        label: 'Data eliberării actului',
-        source: 'identity.issueDate',
-        required: true,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_DECLARATIE',
         label: 'Data declarației',
         source: 'employee.hireDate',
-        required: true,
+        required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_EMITERII',
@@ -1726,15 +1485,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'identity.issueDate',
         required: true,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_EMITENT',
-        label: 'Emitent act identitate',
-        source: 'identity.issuedBy',
-        required: true,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_EMITENT_ACT',
@@ -1742,7 +1492,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'identity.issuedBy',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_ETAJ',
@@ -1750,7 +1499,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'residence.floor',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_FIRMA',
@@ -1758,15 +1506,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.name',
         required: true,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_JUDET',
-        label: 'Județ domiciliu',
-        source: 'residence.county',
-        required: true,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_JUDET_DOMICILIU',
@@ -1774,15 +1513,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'residence.county',
         required: true,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_LOCALITATE',
-        label: 'Localitate domiciliu',
-        source: 'residence.locality',
-        required: true,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_LOCALITATE_DOMICILIU',
@@ -1790,23 +1520,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'residence.locality',
         required: true,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NR',
-        label: 'Număr imobil',
-        source: 'residence.number',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NR_ACT',
-        label: 'Număr act identitate',
-        source: 'identity.number',
-        required: true,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUMAR_ACT',
@@ -1814,7 +1527,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'identity.number',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUMAR_DOMICILIU',
@@ -1822,15 +1534,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'residence.number',
         required: false,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NUME',
-        label: 'Nume familie salariat',
-        source: 'employee.lastName',
-        required: true,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUME_COMPLET',
@@ -1838,7 +1541,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.fullName',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_SCARA',
@@ -1846,7 +1548,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'residence.entrance',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_SERIE_ACT',
@@ -1854,7 +1555,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'identity.series',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_STRADA_DOMICILIU',
@@ -1862,7 +1562,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'residence.street',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_TIP_ACT',
@@ -1870,7 +1569,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'identity.docType',
         required: true,
         type: 'string',
-        defaultValue: "C.I.",
       }
     ],
   },
@@ -1888,68 +1586,25 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
     reviewer: 'Operator HR',
     fields: [
       {
-        key: 'PLACEHOLDER_CALITATE_01',
+        key: 'PLACEHOLDER_CALITATE_PERSOANA_01',
         label: 'Calitate persoană 1',
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "-",
       },
       {
-        key: 'PLACEHOLDER_CALITATE_02',
+        key: 'PLACEHOLDER_CALITATE_PERSOANA_02',
         label: 'Calitate persoană 2',
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "-",
-      },
-      {
-        key: 'PLACEHOLDER_CALITATE_PERSOANA_01',
-        label: 'Calitate persoană 1 (copil/soț)',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        defaultValue: "-",
-      },
-      {
-        key: 'PLACEHOLDER_CALITATE_PERSOANA_02',
-        label: 'Calitate persoană 2 (copil/soț)',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        defaultValue: "-",
-      },
-      {
-        key: 'PLACEHOLDER_CASA_SANAT',
-        label: 'Casa de Sănătate',
-        source: 'manual',
-        required: true,
-        type: 'string',
-        defaultValue: "CASMB București",
       },
       {
         key: 'PLACEHOLDER_CASA_SANATATE',
         label: 'Casa de Asigurări de Sănătate',
         source: 'manual',
-        required: true,
-        type: 'string',
-        defaultValue: "CASMB București",
-      },
-      {
-        key: 'PLACEHOLDER_CNP_01',
-        label: 'CNP persoană 1',
-        source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "-",
-      },
-      {
-        key: 'PLACEHOLDER_CNP_02',
-        label: 'CNP persoană 2',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        defaultValue: "-",
       },
       {
         key: 'PLACEHOLDER_CNP_PERSOANA_01',
@@ -1957,7 +1612,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "-",
       },
       {
         key: 'PLACEHOLDER_CNP_PERSOANA_02',
@@ -1965,47 +1619,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "-",
-      },
-      {
-        key: 'PLACEHOLDER_DATA',
-        label: 'Data',
-        source: 'meta.currentDateRo',
-        required: true,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_DATA_01',
-        label: 'Data 01',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_DATA_02',
-        label: 'Data 02',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_DATA_ACT',
-        label: 'Data eliberării actului',
-        source: 'identity.issueDate',
-        required: true,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_DECLARATIE',
         label: 'Data declarației',
         source: 'employee.hireDate',
-        required: true,
+        required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_EMITERII',
@@ -2013,7 +1633,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'identity.issueDate',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_INTRETINERE_01',
@@ -2021,7 +1640,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "-",
       },
       {
         key: 'PLACEHOLDER_DATA_INTRETINERE_02',
@@ -2029,15 +1647,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "-",
-      },
-      {
-        key: 'PLACEHOLDER_EMITENT',
-        label: 'Emitent act identitate',
-        source: 'identity.issuedBy',
-        required: true,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_EMITENT_ACT',
@@ -2045,23 +1654,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'identity.issuedBy',
         required: true,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_INVALIDITATE_01',
-        label: 'Invaliditate 01',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_INVALIDITATE_02',
-        label: 'Invaliditate 02',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_INVALIDITATE_PERSOANA_01',
@@ -2069,7 +1661,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "-",
       },
       {
         key: 'PLACEHOLDER_INVALIDITATE_PERSOANA_02',
@@ -2077,15 +1668,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "-",
-      },
-      {
-        key: 'PLACEHOLDER_NR_ACT',
-        label: 'Număr act identitate',
-        source: 'identity.number',
-        required: true,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUMAR_ACT',
@@ -2093,31 +1675,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'identity.number',
         required: true,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NUME',
-        label: 'Nume familie salariat',
-        source: 'employee.lastName',
-        required: true,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NUME_01',
-        label: 'Nume 01',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NUME_02',
-        label: 'Nume 02',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUME_COMPLET',
@@ -2125,7 +1682,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.fullName',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUME_COMPLET_PERSOANA_01',
@@ -2133,7 +1689,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "-",
       },
       {
         key: 'PLACEHOLDER_NUME_COMPLET_PERSOANA_02',
@@ -2141,7 +1696,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "-",
       },
       {
         key: 'PLACEHOLDER_SERIE_ACT',
@@ -2149,7 +1703,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'identity.series',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_TIP_PENSIE',
@@ -2157,23 +1710,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "Nu este cazul",
-      },
-      {
-        key: 'PLACEHOLDER_VENIT_01',
-        label: 'Venit 01',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_VENIT_02',
-        label: 'Venit 02',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_VENIT_PERSOANA_01',
@@ -2181,7 +1717,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "-",
       },
       {
         key: 'PLACEHOLDER_VENIT_PERSOANA_02',
@@ -2189,7 +1724,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "-",
       }
     ],
   },
@@ -2212,15 +1746,20 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.name',
         required: true,
         type: 'string',
-        
+      },
+      {
+        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
+        label: 'Reprezentant Legal / Administrator',
+        source: 'client.legalRepresentative',
+        required: true,
+        type: 'string',
       },
       {
         key: 'PLACEHOLDER_SPECIALIST_SSM',
         label: 'Specialist / Serviciu Desemnat SSM',
-        source: 'client.externalService',
+        source: 'manual',
         required: true,
         type: 'string',
-        defaultValue: "Ing. Popescu Ion - Specialist SSM",
       }
     ],
   },
@@ -2243,7 +1782,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.name',
         required: true,
         type: 'string',
-        
+      },
+      {
+        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
+        label: 'Reprezentant Legal / Administrator',
+        source: 'client.legalRepresentative',
+        required: true,
+        type: 'string',
       }
     ],
   },
@@ -2263,10 +1808,9 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
       {
         key: 'PLACEHOLDER_ACTIVITATE_PRINCIPALA',
         label: 'Activitate principală desfășurată',
-        source: 'client.mainActivity',
+        source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_ADRESA_FIRMA',
@@ -2274,47 +1818,41 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.address',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_AN_EVALUARE',
         label: 'An evaluare riscuri',
         source: 'meta.currentYear',
-        required: true,
+        required: false,
         type: 'number',
-        
       },
       {
         key: 'PLACEHOLDER_AN_INFIINTARE',
         label: 'An înființare societate',
-        source: 'client.fiscalYear',
+        source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "2020",
       },
       {
         key: 'PLACEHOLDER_CERTIFICAT_EVALUATOR',
         label: 'Certificat atestare evaluator risc',
         source: 'manual',
-        required: true,
+        required: false,
         type: 'string',
-        defaultValue: "Certificat Seria EV nr. 4521",
       },
       {
         key: 'PLACEHOLDER_COD_CAEN',
         label: 'Cod CAEN activitate',
-        source: 'client.caenCode',
+        source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_CONCLUZII_EVALUARE',
         label: 'Concluzii evaluare riscuri',
         source: 'manual',
-        required: true,
+        required: false,
         type: 'string',
-        defaultValue: "Securitatea se încadrează în limitele legale.",
       },
       {
         key: 'PLACEHOLDER_CUI',
@@ -2322,7 +1860,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.cui',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_EMAIL_PRESTATOR',
@@ -2330,7 +1867,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "contact@expertssm.ro",
       },
       {
         key: 'PLACEHOLDER_FIRMA',
@@ -2338,7 +1874,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.name',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_FUNCTIE',
@@ -2346,39 +1881,34 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'job.title',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NIVEL_RISC_GLOBAL',
         label: 'Nivel global de risc calculat',
         source: 'manual',
-        required: true,
+        required: false,
         type: 'string',
-        defaultValue: "2.84 (Nivel mic spre mediu)",
       },
       {
         key: 'PLACEHOLDER_NUMAR_LUCRATORI',
         label: 'Număr total lucrători',
-        source: 'client.employeeCount',
+        source: 'manual',
         required: false,
         type: 'number',
-        defaultValue: 3,
       },
       {
         key: 'PLACEHOLDER_PRESTATOR_SSM',
         label: 'Prestator servicii SSM / Formare',
-        source: 'manual',
+        source: 'hygieneSession.providerName',
         required: true,
         type: 'string',
-        defaultValue: "SC EXPERT SSM TRAINING SRL",
       },
       {
         key: 'PLACEHOLDER_PROGRAM_LUCRU',
         label: 'Interval program de lucru',
         source: 'manual',
-        required: true,
+        required: false,
         type: 'string',
-        defaultValue: "08:00 - 16:30",
       },
       {
         key: 'PLACEHOLDER_SITE_PRESTATOR',
@@ -2386,7 +1916,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "www.expertssm.ro",
       }
     ],
   },
@@ -2404,51 +1933,11 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
     reviewer: 'Operator HR',
     fields: [
       {
-        key: 'PLACEHOLDER_FIRMA',
-        label: 'Denumire firmă / Angajator',
-        source: 'client.name',
-        required: true,
+        key: '_Fără token-uri detectate._',
+        label: ' Fără token-uri detectate. ',
+        source: 'manual',
+        required: false,
         type: 'string',
-        
-      }
-    ],
-  },
-  {
-    code: 'ipssm-universale',
-    name: 'IPSSM 01-10 Generale / Universale',
-    family: 'ipssm',
-    originalFilename: '!IP 01 - 10 UNIVERSALE.doc',
-    normalizedFilename: 'IP 01-10 UNIVERSALE.docx',
-    format: 'docx',
-    contextLevel: 'client',
-    status: 'mapped',
-    version: 2,
-    description: 'Pachetul de instrucțiuni generale 01-10: electrosecuritate, incendiu, prim ajutor, circulație interioară.',
-    reviewer: 'Specialist SSM',
-    fields: [
-      {
-        key: 'PLACEHOLDER_FIRMA',
-        label: 'Denumire firmă / Angajator',
-        source: 'client.name',
-        required: true,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
-        label: 'Reprezentant Legal',
-        source: 'client.legalRepresentative',
-        required: true,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_SPECIALIST_SSM',
-        label: 'Specialist / Serviciu Desemnat SSM',
-        source: 'client.externalService',
-        required: true,
-        type: 'string',
-        defaultValue: "Ing. Popescu Ion - Specialist SSM",
       }
     ],
   },
@@ -2471,7 +1960,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'residence.addressFull',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_ADRESA_FIRMA',
@@ -2479,7 +1967,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.address',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_CNP',
@@ -2487,7 +1974,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.cnp',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_EMITERII',
@@ -2495,7 +1981,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'identity.issueDate',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_EMITENT_ACT',
@@ -2503,7 +1988,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'identity.issuedBy',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_FIRMA',
@@ -2511,15 +1995,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.name',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_LOCALITATE_SEMNARE',
         label: 'Localitate semnare',
         source: 'residence.locality',
-        required: true,
+        required: false,
         type: 'string',
-        defaultValue: "București",
       },
       {
         key: 'PLACEHOLDER_NUMAR_ACT',
@@ -2527,7 +2009,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'identity.number',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUME',
@@ -2535,7 +2016,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.lastName',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_NUME_COMPLET',
@@ -2543,7 +2023,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.fullName',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_PRENUME',
@@ -2551,15 +2030,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'employee.firstName',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
-        label: 'Reprezentant Legal',
+        label: 'Reprezentant Legal / Administrator',
         source: 'client.legalRepresentative',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_SERIE_ACT',
@@ -2567,7 +2044,42 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'identity.series',
         required: true,
         type: 'string',
-        
+      }
+    ],
+  },
+  {
+    code: 'ipssm-universale',
+    name: 'IPSSM 01-10 Generale / Universale',
+    family: 'ipssm',
+    originalFilename: '!IP 01 - 10 UNIVERSALE.doc',
+    normalizedFilename: 'IP 01-10 UNIVERSALE.docx',
+    format: 'docx',
+    contextLevel: 'client',
+    status: 'mapped',
+    version: 2,
+    description: 'Pachetul de instrucțiuni generale 01-10: electrosecuritate, incendiu, prim ajutor, circulație interioară.',
+    reviewer: 'Specialist SSM',
+    fields: [
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
+        label: 'Reprezentant Legal / Administrator',
+        source: 'client.legalRepresentative',
+        required: true,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_SPECIALIST_SSM',
+        label: 'Specialist / Serviciu Desemnat SSM',
+        source: 'manual',
+        required: true,
+        type: 'string',
       }
     ],
   },
@@ -2585,20 +2097,11 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
     reviewer: 'Specialist SSM',
     fields: [
       {
-        key: 'PLACEHOLDER_AN',
-        label: 'An calendaristic',
-        source: 'meta.currentYear',
-        required: true,
-        type: 'number',
-        
-      },
-      {
         key: 'PLACEHOLDER_EMAIL_PRESTATOR',
         label: 'Email prestator SSM',
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "contact@expertssm.ro",
       },
       {
         key: 'PLACEHOLDER_FIRMA',
@@ -2606,7 +2109,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.name',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_TELEFON_PRESTATOR',
@@ -2614,7 +2116,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "0721.000.111",
       }
     ],
   },
@@ -2632,28 +2133,11 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
     reviewer: 'Specialist SSM',
     fields: [
       {
-        key: 'PLACEHOLDER_ADRESA_FIRMA',
-        label: 'Adresă sediu social firmă',
-        source: 'client.address',
-        required: true,
-        type: 'string',
-        
-      },
-      {
         key: 'PLACEHOLDER_FIRMA',
         label: 'Denumire firmă / Angajator',
         source: 'client.name',
         required: true,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_TELEFON_CONTACT',
-        label: 'Telefon contact firmă',
-        source: 'client.contactPhone',
-        required: false,
-        type: 'string',
-        
       }
     ],
   },
@@ -2671,891 +2155,32 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
     reviewer: 'Specialist SSM',
     fields: [
       {
-        key: 'PLACEHOLDER_AN',
-        label: 'An calendaristic',
-        source: 'meta.currentYear',
-        required: true,
-        type: 'number',
-        
-      },
-      {
         key: 'PLACEHOLDER_FIRMA',
         label: 'Denumire firmă / Angajator',
         source: 'client.name',
         required: true,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FUNCTIE',
-        label: 'Funcție / Ocupație',
-        source: 'job.title',
-        required: true,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_PRESTATOR_SSM',
         label: 'Prestator servicii SSM / Formare',
-        source: 'manual',
+        source: 'hygieneSession.providerName',
         required: true,
         type: 'string',
-        defaultValue: "SC EXPERT SSM TRAINING SRL",
       },
       {
-        key: 'PLACEHOLDER_REVIZIE_SPECIALIST_SSM',
-        label: 'Revizie întocmită de specialist',
-        source: 'manual',
-        required: false,
+        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
+        label: 'Reprezentant Legal / Administrator',
+        source: 'client.legalRepresentative',
+        required: true,
         type: 'string',
-        defaultValue: "Revizia 1 / 2026",
       },
       {
         key: 'PLACEHOLDER_SPECIALIST_SSM',
         label: 'Specialist / Serviciu Desemnat SSM',
-        source: 'client.externalService',
-        required: true,
-        type: 'string',
-        defaultValue: "Ing. Popescu Ion - Specialist SSM",
-      }
-    ],
-  },
-  {
-    code: 'ipssm-tesa',
-    name: 'Fișă de Evaluare a Factorilor de Risc - Post TESA',
-    family: 'risk',
-    originalFilename: 'TESA.docx',
-    normalizedFilename: 'TESA.docx',
-    format: 'docx',
-    contextLevel: 'client',
-    status: 'mapped',
-    version: 2,
-    description: 'Grilă detaliată cu cei 17 factori de risc identificați pentru postul de lucru funcționar administrativ / TESA.',
-    reviewer: 'Evaluator Risc',
-    fields: [
-      {
-        key: 'PLACEHOLDER_DEPARTAMENT',
-        label: 'Departament / Birou',
-        source: 'worksite.activity',
-        required: true,
-        type: 'string',
-        defaultValue: "Administrativ / TESA",
-      },
-      {
-        key: 'PLACEHOLDER_DURATA_EXPUNERII',
-        label: 'Durată expunere (ore/zi)',
-        source: 'job.dailyHours',
-        required: true,
-        type: 'string',
-        defaultValue: "8 ore/zi",
-      },
-      {
-        key: 'PLACEHOLDER_EVALUATOR_RISC',
-        label: 'Nume evaluator riscuri profesionale',
         source: 'manual',
         required: true,
         type: 'string',
-        defaultValue: "Ing. Evaluator Risc Popescu Ion",
-      },
-      {
-        key: 'PLACEHOLDER_FIRMA',
-        label: 'Denumire firmă / Angajator',
-        source: 'client.name',
-        required: true,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_01',
-        label: 'Frecventa Risc 01',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_02',
-        label: 'Frecventa Risc 02',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_03',
-        label: 'Frecventa Risc 03',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_04',
-        label: 'Frecventa Risc 04',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_05',
-        label: 'Frecventa Risc 05',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_06',
-        label: 'Frecventa Risc 06',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_07',
-        label: 'Frecventa Risc 07',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_08',
-        label: 'Frecventa Risc 08',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_09',
-        label: 'Frecventa Risc 09',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_10',
-        label: 'Frecventa Risc 10',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_11',
-        label: 'Frecventa Risc 11',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_12',
-        label: 'Frecventa Risc 12',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_13',
-        label: 'Frecventa Risc 13',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_14',
-        label: 'Frecventa Risc 14',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_15',
-        label: 'Frecventa Risc 15',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_16',
-        label: 'Frecventa Risc 16',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_17',
-        label: 'Frecventa Risc 17',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_18',
-        label: 'Frecventa Risc 18',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_19',
-        label: 'Frecventa Risc 19',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_20',
-        label: 'Frecventa Risc 20',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_21',
-        label: 'Frecventa Risc 21',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_22',
-        label: 'Frecventa Risc 22',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_23',
-        label: 'Frecventa Risc 23',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_24',
-        label: 'Frecventa Risc 24',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_25',
-        label: 'Frecventa Risc 25',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_26',
-        label: 'Frecventa Risc 26',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_27',
-        label: 'Frecventa Risc 27',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_28',
-        label: 'Frecventa Risc 28',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_29',
-        label: 'Frecventa Risc 29',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FRECVENTA_RISC_30',
-        label: 'Frecventa Risc 30',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_FUNCTIE',
-        label: 'Funcție / Ocupație',
-        source: 'job.title',
-        required: true,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_01',
-        label: 'Gravitate Risc 01',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_02',
-        label: 'Gravitate Risc 02',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_03',
-        label: 'Gravitate Risc 03',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_04',
-        label: 'Gravitate Risc 04',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_05',
-        label: 'Gravitate Risc 05',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_06',
-        label: 'Gravitate Risc 06',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_07',
-        label: 'Gravitate Risc 07',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_08',
-        label: 'Gravitate Risc 08',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_09',
-        label: 'Gravitate Risc 09',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_10',
-        label: 'Gravitate Risc 10',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_11',
-        label: 'Gravitate Risc 11',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_12',
-        label: 'Gravitate Risc 12',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_13',
-        label: 'Gravitate Risc 13',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_14',
-        label: 'Gravitate Risc 14',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_15',
-        label: 'Gravitate Risc 15',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_16',
-        label: 'Gravitate Risc 16',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_17',
-        label: 'Gravitate Risc 17',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_18',
-        label: 'Gravitate Risc 18',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_19',
-        label: 'Gravitate Risc 19',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_20',
-        label: 'Gravitate Risc 20',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_21',
-        label: 'Gravitate Risc 21',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_22',
-        label: 'Gravitate Risc 22',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_23',
-        label: 'Gravitate Risc 23',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_24',
-        label: 'Gravitate Risc 24',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_25',
-        label: 'Gravitate Risc 25',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_26',
-        label: 'Gravitate Risc 26',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_27',
-        label: 'Gravitate Risc 27',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_28',
-        label: 'Gravitate Risc 28',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_29',
-        label: 'Gravitate Risc 29',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_GRAVITATE_RISC_30',
-        label: 'Gravitate Risc 30',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_01',
-        label: 'Nivel Partial Risc 01',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_02',
-        label: 'Nivel Partial Risc 02',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_03',
-        label: 'Nivel Partial Risc 03',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_04',
-        label: 'Nivel Partial Risc 04',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_05',
-        label: 'Nivel Partial Risc 05',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_06',
-        label: 'Nivel Partial Risc 06',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_07',
-        label: 'Nivel Partial Risc 07',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_08',
-        label: 'Nivel Partial Risc 08',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_09',
-        label: 'Nivel Partial Risc 09',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_10',
-        label: 'Nivel Partial Risc 10',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_11',
-        label: 'Nivel Partial Risc 11',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_12',
-        label: 'Nivel Partial Risc 12',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_13',
-        label: 'Nivel Partial Risc 13',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_14',
-        label: 'Nivel Partial Risc 14',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_15',
-        label: 'Nivel Partial Risc 15',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_16',
-        label: 'Nivel Partial Risc 16',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_17',
-        label: 'Nivel Partial Risc 17',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_18',
-        label: 'Nivel Partial Risc 18',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_19',
-        label: 'Nivel Partial Risc 19',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_20',
-        label: 'Nivel Partial Risc 20',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_21',
-        label: 'Nivel Partial Risc 21',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_22',
-        label: 'Nivel Partial Risc 22',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_23',
-        label: 'Nivel Partial Risc 23',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_24',
-        label: 'Nivel Partial Risc 24',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_25',
-        label: 'Nivel Partial Risc 25',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_26',
-        label: 'Nivel Partial Risc 26',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_27',
-        label: 'Nivel Partial Risc 27',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_28',
-        label: 'Nivel Partial Risc 28',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_29',
-        label: 'Nivel Partial Risc 29',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_30',
-        label: 'Nivel Partial Risc 30',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_NIVEL_RISC_GLOBAL',
-        label: 'Nivel global de risc calculat',
-        source: 'manual',
-        required: true,
-        type: 'string',
-        defaultValue: "2.84 (Nivel mic spre mediu)",
-      },
-      {
-        key: 'PLACEHOLDER_NUMAR_DOCUMENT',
-        label: 'Număr document / decizie',
-        source: 'manual',
-        required: false,
-        type: 'string',
-        defaultValue: "1",
-      },
-      {
-        key: 'PLACEHOLDER_NUMAR_FACTORI_RISC',
-        label: 'Număr factori de risc',
-        source: 'manual',
-        required: true,
-        type: 'number',
-        defaultValue: 17,
-      },
-      {
-        key: 'PLACEHOLDER_NUMAR_FISA_EVALUARE',
-        label: 'Număr fișă evaluare',
-        source: 'manual',
-        required: true,
-        type: 'string',
-        defaultValue: "FE-01",
-      },
-      {
-        key: 'PLACEHOLDER_NUMAR_LOC_MUNCA',
-        label: 'Număr loc de muncă evaluat',
-        source: 'manual',
-        required: true,
-        type: 'number',
-        defaultValue: 1,
-      },
-      {
-        key: 'PLACEHOLDER_NUMAR_PERSOANE_EXPUSE',
-        label: 'Număr persoane expuse la risc',
-        source: 'client.employeeCount',
-        required: true,
-        type: 'number',
-        defaultValue: 3,
-      },
-      {
-        key: 'PLACEHOLDER_REPARTITIE_RISCURI',
-        label: 'Repartiție factori de risc',
-        source: 'manual',
-        required: true,
-        type: 'string',
-        defaultValue: "F1-F17 conform grilei standard",
-      },
-      {
-        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
-        label: 'Reprezentant Legal',
-        source: 'client.legalRepresentative',
-        required: true,
-        type: 'string',
-        
       }
     ],
   },
@@ -3573,28 +2198,25 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
     reviewer: 'Specialist SSM',
     fields: [
       {
-        key: 'PLACEHOLDER_ACT_IDENTITATE',
-        label: 'Act Identitate',
+        key: 'PLACEHOLDER_ACT_IDENTITATE_{001–115}',
+        label: 'Act Identitate {001–115}',
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
-        key: 'PLACEHOLDER_AN_NASTERII',
-        label: 'An Nasterii',
+        key: 'PLACEHOLDER_AN_NASTERII_{001–115}',
+        label: 'An Nasterii {001–115}',
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
-        key: 'PLACEHOLDER_CNP',
-        label: 'Cod Numeric Personal (CNP)',
-        source: 'employee.cnp',
-        required: true,
+        key: 'PLACEHOLDER_CNP_{001–115}',
+        label: 'Cnp {001–115}',
+        source: 'manual',
+        required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DATA_EXAMEN',
@@ -3602,55 +2224,48 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'hygieneSession.examDate',
         required: true,
         type: 'string',
-        
       },
       {
-        key: 'PLACEHOLDER_LOC_NASTERII',
-        label: 'Loc Nasterii',
+        key: 'PLACEHOLDER_LOC_NASTERII_{001–115}',
+        label: 'Loc Nasterii {001–115}',
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
-        key: 'PLACEHOLDER_LUNA_NASTERII',
-        label: 'Luna Nasterii',
+        key: 'PLACEHOLDER_LUNA_NASTERII_{001–115}',
+        label: 'Luna Nasterii {001–115}',
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
-        key: 'PLACEHOLDER_MODUL_NIVEL',
-        label: 'Modul Nivel',
+        key: 'PLACEHOLDER_MODUL_NIVEL_{001–115}',
+        label: 'Modul Nivel {001–115}',
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
-        key: 'PLACEHOLDER_NUMAR_ORDINE',
-        label: 'Numar Ordine',
+        key: 'PLACEHOLDER_NUMAR_ORDINE_{001–115}',
+        label: 'Numar Ordine {001–115}',
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
-        key: 'PLACEHOLDER_NUME_COMPLET',
-        label: 'Nume și prenume salariat',
-        source: 'employee.fullName',
-        required: true,
-        type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_ZIUA_NASTERII',
-        label: 'Ziua Nasterii',
+        key: 'PLACEHOLDER_NUME_COMPLET_{001–115}',
+        label: 'Nume Complet {001–115}',
         source: 'manual',
         required: false,
         type: 'string',
-        
+      },
+      {
+        key: 'PLACEHOLDER_ZIUA_NASTERII_{001–115}',
+        label: 'Ziua Nasterii {001–115}',
+        source: 'manual',
+        required: false,
+        type: 'string',
       }
     ],
   },
@@ -3673,15 +2288,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'meta.currentDateRo',
         required: true,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_DATA_APROBARE',
-        label: 'Data aprobării',
-        source: 'meta.currentDateRo',
-        required: true,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_EMAIL_PRESTATOR',
@@ -3689,7 +2295,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "contact@expertssm.ro",
       },
       {
         key: 'PLACEHOLDER_FIRMA',
@@ -3697,15 +2302,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.name',
         required: true,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
-        label: 'Reprezentant Legal',
-        source: 'client.legalRepresentative',
-        required: true,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_TELEFON_PRESTATOR',
@@ -3713,7 +2309,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "0721.000.111",
       }
     ],
   },
@@ -3736,15 +2331,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'meta.currentDateRo',
         required: true,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_DATA_APROBARE',
-        label: 'Data aprobării',
-        source: 'meta.currentDateRo',
-        required: true,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_EMAIL_PRESTATOR',
@@ -3752,7 +2338,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "contact@expertssm.ro",
       },
       {
         key: 'PLACEHOLDER_FIRMA',
@@ -3760,7 +2345,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.name',
         required: true,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_FUNCTIE',
@@ -3768,15 +2352,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'job.title',
         required: true,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
-        label: 'Reprezentant Legal',
-        source: 'client.legalRepresentative',
-        required: true,
-        type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_TELEFON_PRESTATOR',
@@ -3784,7 +2359,742 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        defaultValue: "0721.000.111",
+      }
+    ],
+  },
+  {
+    code: 'ipssm-tesa',
+    name: 'Fișă de Evaluare a Factorilor de Risc - Post TESA',
+    family: 'risk',
+    originalFilename: 'TESA.docx',
+    normalizedFilename: 'TESA.docx',
+    format: 'docx',
+    contextLevel: 'client',
+    status: 'mapped',
+    version: 2,
+    description: 'Grilă detaliată cu cei 17 factori de risc identificați pentru postul de lucru funcționar administrativ / TESA.',
+    reviewer: 'Evaluator Risc',
+    fields: [
+      {
+        key: 'PLACEHOLDER_DEPARTAMENT',
+        label: 'Departament / Birou',
+        source: 'worksite.activity',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_DURATA_EXPUNERII',
+        label: 'Durată expunere (ore/zi)',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_EVALUATOR_RISC',
+        label: 'Nume evaluator riscuri profesionale',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_01',
+        label: 'Frecventa Risc 01',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_02',
+        label: 'Frecventa Risc 02',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_03',
+        label: 'Frecventa Risc 03',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_04',
+        label: 'Frecventa Risc 04',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_05',
+        label: 'Frecventa Risc 05',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_06',
+        label: 'Frecventa Risc 06',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_07',
+        label: 'Frecventa Risc 07',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_08',
+        label: 'Frecventa Risc 08',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_09',
+        label: 'Frecventa Risc 09',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_10',
+        label: 'Frecventa Risc 10',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_11',
+        label: 'Frecventa Risc 11',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_12',
+        label: 'Frecventa Risc 12',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_13',
+        label: 'Frecventa Risc 13',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_14',
+        label: 'Frecventa Risc 14',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_15',
+        label: 'Frecventa Risc 15',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_16',
+        label: 'Frecventa Risc 16',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_17',
+        label: 'Frecventa Risc 17',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_18',
+        label: 'Frecventa Risc 18',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_19',
+        label: 'Frecventa Risc 19',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_20',
+        label: 'Frecventa Risc 20',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_21',
+        label: 'Frecventa Risc 21',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_22',
+        label: 'Frecventa Risc 22',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_23',
+        label: 'Frecventa Risc 23',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_24',
+        label: 'Frecventa Risc 24',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_25',
+        label: 'Frecventa Risc 25',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_26',
+        label: 'Frecventa Risc 26',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_27',
+        label: 'Frecventa Risc 27',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_28',
+        label: 'Frecventa Risc 28',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_29',
+        label: 'Frecventa Risc 29',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_30',
+        label: 'Frecventa Risc 30',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_FUNCTIE',
+        label: 'Funcție / Ocupație',
+        source: 'job.title',
+        required: true,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_01',
+        label: 'Gravitate Risc 01',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_02',
+        label: 'Gravitate Risc 02',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_03',
+        label: 'Gravitate Risc 03',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_04',
+        label: 'Gravitate Risc 04',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_05',
+        label: 'Gravitate Risc 05',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_06',
+        label: 'Gravitate Risc 06',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_07',
+        label: 'Gravitate Risc 07',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_08',
+        label: 'Gravitate Risc 08',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_09',
+        label: 'Gravitate Risc 09',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_10',
+        label: 'Gravitate Risc 10',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_11',
+        label: 'Gravitate Risc 11',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_12',
+        label: 'Gravitate Risc 12',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_13',
+        label: 'Gravitate Risc 13',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_14',
+        label: 'Gravitate Risc 14',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_15',
+        label: 'Gravitate Risc 15',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_16',
+        label: 'Gravitate Risc 16',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_17',
+        label: 'Gravitate Risc 17',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_18',
+        label: 'Gravitate Risc 18',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_19',
+        label: 'Gravitate Risc 19',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_20',
+        label: 'Gravitate Risc 20',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_21',
+        label: 'Gravitate Risc 21',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_22',
+        label: 'Gravitate Risc 22',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_23',
+        label: 'Gravitate Risc 23',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_24',
+        label: 'Gravitate Risc 24',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_25',
+        label: 'Gravitate Risc 25',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_26',
+        label: 'Gravitate Risc 26',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_27',
+        label: 'Gravitate Risc 27',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_28',
+        label: 'Gravitate Risc 28',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_29',
+        label: 'Gravitate Risc 29',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_30',
+        label: 'Gravitate Risc 30',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_01',
+        label: 'Nivel Partial Risc 01',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_02',
+        label: 'Nivel Partial Risc 02',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_03',
+        label: 'Nivel Partial Risc 03',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_04',
+        label: 'Nivel Partial Risc 04',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_05',
+        label: 'Nivel Partial Risc 05',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_06',
+        label: 'Nivel Partial Risc 06',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_07',
+        label: 'Nivel Partial Risc 07',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_08',
+        label: 'Nivel Partial Risc 08',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_09',
+        label: 'Nivel Partial Risc 09',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_10',
+        label: 'Nivel Partial Risc 10',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_11',
+        label: 'Nivel Partial Risc 11',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_12',
+        label: 'Nivel Partial Risc 12',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_13',
+        label: 'Nivel Partial Risc 13',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_14',
+        label: 'Nivel Partial Risc 14',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_15',
+        label: 'Nivel Partial Risc 15',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_16',
+        label: 'Nivel Partial Risc 16',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_17',
+        label: 'Nivel Partial Risc 17',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_18',
+        label: 'Nivel Partial Risc 18',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_19',
+        label: 'Nivel Partial Risc 19',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_20',
+        label: 'Nivel Partial Risc 20',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_21',
+        label: 'Nivel Partial Risc 21',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_22',
+        label: 'Nivel Partial Risc 22',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_23',
+        label: 'Nivel Partial Risc 23',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_24',
+        label: 'Nivel Partial Risc 24',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_25',
+        label: 'Nivel Partial Risc 25',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_26',
+        label: 'Nivel Partial Risc 26',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_27',
+        label: 'Nivel Partial Risc 27',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_28',
+        label: 'Nivel Partial Risc 28',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_29',
+        label: 'Nivel Partial Risc 29',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_30',
+        label: 'Nivel Partial Risc 30',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_RISC_GLOBAL',
+        label: 'Nivel global de risc calculat',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_DOCUMENT',
+        label: 'Număr document / decizie',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_FACTORI_RISC',
+        label: 'Număr factori de risc',
+        source: 'manual',
+        required: false,
+        type: 'number',
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_FISA_EVALUARE',
+        label: 'Număr fișă evaluare',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_LOC_MUNCA',
+        label: 'Număr loc de muncă evaluat',
+        source: 'manual',
+        required: false,
+        type: 'number',
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_PERSOANE_EXPUSE',
+        label: 'Număr persoane expuse la risc',
+        source: 'manual',
+        required: false,
+        type: 'number',
+      },
+      {
+        key: 'PLACEHOLDER_REPARTITIE_RISCURI',
+        label: 'Repartiție factori de risc',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
+        label: 'Reprezentant Legal / Administrator',
+        source: 'client.legalRepresentative',
+        required: true,
+        type: 'string',
       }
     ],
   },
@@ -3802,20 +3112,11 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
     reviewer: 'Specialist SSM',
     fields: [
       {
-        key: 'PLACEHOLDER_DATA_DOCUMENT',
-        label: 'Data documentului',
-        source: 'meta.currentDateRo',
-        required: true,
-        type: 'string',
-        
-      },
-      {
         key: 'PLACEHOLDER_DENUMIRE_ZONA_01',
         label: 'Denumire Zona 01',
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DENUMIRE_ZONA_02',
@@ -3823,7 +3124,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DENUMIRE_ZONA_03',
@@ -3831,7 +3131,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DENUMIRE_ZONA_04',
@@ -3839,7 +3138,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DENUMIRE_ZONA_05',
@@ -3847,7 +3145,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_DENUMIRE_ZONA_06',
@@ -3855,7 +3152,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
+      },
+      {
+        key: 'PLACEHOLDER_DIRECTOR',
+        label: 'Director',
+        source: 'manual',
+        required: false,
+        type: 'string',
       },
       {
         key: 'PLACEHOLDER_FIRMA',
@@ -3863,7 +3166,13 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.name',
         required: true,
         type: 'string',
-        
+      },
+      {
+        key: 'PLACEHOLDER_LUCRATOR_DESEMNAT_SSM',
+        label: 'Lucrator Desemnat Ssm',
+        source: 'manual',
+        required: false,
+        type: 'string',
       },
       {
         key: 'PLACEHOLDER_MASURI_ZONA_01',
@@ -3871,7 +3180,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_MASURI_ZONA_02',
@@ -3879,7 +3187,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_MASURI_ZONA_03',
@@ -3887,7 +3194,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_MASURI_ZONA_04',
@@ -3895,7 +3201,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_MASURI_ZONA_05',
@@ -3903,7 +3208,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
       },
       {
         key: 'PLACEHOLDER_MASURI_ZONA_06',
@@ -3911,15 +3215,6 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'manual',
         required: false,
         type: 'string',
-        
-      },
-      {
-        key: 'PLACEHOLDER_PUNCT_LUCRU',
-        label: 'Denumire punct de lucru',
-        source: 'worksite.name',
-        required: false,
-        type: 'string',
-        
       }
     ],
   }

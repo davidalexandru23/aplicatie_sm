@@ -40,7 +40,6 @@ export interface ParsedEmployee {
   entrance?: string;
   floor?: string;
   apartment?: string;
-  postalCode?: string;
   // Contact
   email?: string;
   phone?: string;
@@ -649,7 +648,6 @@ export async function commitImport(
             entrance: emp.entrance,
             floor: emp.floor,
             apartment: emp.apartment,
-            postalCode: emp.postalCode,
           },
         });
 
@@ -733,7 +731,6 @@ export async function commitImport(
               entrance: emp.entrance,
               floor: emp.floor,
               apartment: emp.apartment,
-              postalCode: emp.postalCode,
             },
           });
         } else {
@@ -748,7 +745,6 @@ export async function commitImport(
               entrance: emp.entrance,
               floor: emp.floor,
               apartment: emp.apartment,
-              postalCode: emp.postalCode,
             },
           });
         }
