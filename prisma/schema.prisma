@@ -1,0 +1,450 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// 1. CLIENȚI, PUNCTE DE LUCRU & POSTURI
+// ==========================================
+
+model Client {
+  id                  String   @id @default(uuid())
+  name                String   // Denumire firmă
+  cui                 String   @unique // CUI / CIF
+  regCom              String?  // Nr. Registrul Comerțului
+  address             String   // Sediu social complet
+  legalRepresentative String?  // Reprezentant legal
+  contactPerson       String?  // Persoană de contact
+  contactEmail        String?  // Email contact
+  contactPhone        String?  // Telefon contact
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  worksites          Worksite[]
+  jobs               Job[]
+  employees          Employee[]
+  riskAssessments    RiskAssessment[]
+  trainingEvents     TrainingEvent[]
+  generatedDocuments GeneratedDocument[]
+  importBatches      ImportBatch[]
+
+  @@index([cui])
+}
+
+model Worksite {
+  id        String   @id @default(uuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  name      String   // Denumire punct de lucru
+  address   String   // Adresă punct de lucru
+  activity  String?  // Activitate specifică la punct
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  employees          Employee[]
+  employmentHistory  EmploymentHistory[]
+  riskAssessments    RiskAssessment[]
+
+  @@unique([clientId, name])
+}
+
+model Job {
+  id              String   @id @default(uuid())
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  title           String   // Funcție / post
+  corCode         String?  // Cod COR opțional
+  mainActivities  String?  // Activități principale
+  equipmentUsed   String?  // Echipamente/utilaje folosite
+  workConditions  String?  // Condiții de lucru relevante
+  workersCount    Int?     // Număr aproximativ lucrători
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  employees          Employee[]
+  employmentHistory  EmploymentHistory[]
+  riskAssessments    RiskAssessment[]
+
+  @@unique([clientId, title])
+}
+
+// ==========================================
+// 2. PERSOANE, ACTE, DOMICILIU & ÎNCADRARE
+// ==========================================
+
+model Employee {
+  id              String   @id @default(uuid())
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  // Date personale
+  firstName       String   // Prenume
+  lastName        String   // Nume
+  sex             String?  // F / M / Altă mențiune
+  cnp             String   // Mascat în interfață, protejat
+  birthDate       DateTime?
+  birthPlace      String?  // Localitate naștere
+  birthCounty     String?  // Județ / sector naștere
+  citizenship     String?  @default("Română")
+
+  // Contact
+  email           String?
+  phone           String?
+
+  // Încadrare curentă
+  currentJobId    String?
+  currentJob      Job?     @relation(fields: [currentJobId], references: [id], onDelete: SetNull)
+  currentWorksiteId String?
+  currentWorksite Worksite? @relation(fields: [currentWorksiteId], references: [id], onDelete: SetNull)
+  
+  startDateOnJob  DateTime? // Data începerii pe post/punct
+  hireDate        DateTime? // Data angajării
+  status          String   @default("ACTIV") // ACTIV / PLECAT
+  leaveDate       DateTime? // Data plecării
+
+  // Solicitare curs igienă
+  hygieneRequested        Boolean  @default(false)
+  hygieneModule           String?
+  hygienePreferredSession String?
+  adminNotes              String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  identityDocument   IdentityDocument?
+  residenceAddress   ResidenceAddress?
+  employmentHistory  EmploymentHistory[]
+  trainingParticipants TrainingParticipant[]
+  hygieneParticipants  HygieneParticipant[]
+  generatedDocuments   GeneratedDocument[]
+
+  @@unique([clientId, cnp])
+  @@index([clientId, status])
+}
+
+model IdentityDocument {
+  id          String    @id @default(uuid())
+  employeeId  String    @unique
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  docType     String    @default("CI") // CI / CEI / Pașaport / Alt act
+  series      String?
+  number      String
+  issuedBy    String?
+  issueDate   DateTime?
+  expiryDate  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model ResidenceAddress {
+  id          String   @id @default(uuid())
+  employeeId  String   @unique
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  county      String   // Județ / sector domiciliu
+  locality    String   // Localitate domiciliu
+  street      String   // Stradă
+  number      String   // Număr
+  building    String?  // Bloc
+  entrance    String?  // Scara
+  floor       String?  // Etaj
+  apartment   String?  // Apartament
+  postalCode  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model EmploymentHistory {
+  id          String    @id @default(uuid())
+  employeeId  String
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  jobId       String?
+  job         Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  worksiteId  String?
+  worksite    Worksite? @relation(fields: [worksiteId], references: [id], onDelete: SetNull)
+  validFrom   DateTime
+  validTo     DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+// ==========================================
+// 3. EVALUARE RISCURI & PREVENIRE
+// ==========================================
+
+model RiskAssessment {
+  id              String   @id @default(uuid())
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  worksiteId      String?
+  worksite        Worksite? @relation(fields: [worksiteId], references: [id], onDelete: SetNull)
+  jobId           String?
+  job             Job?     @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  
+  title           String   // Titlu evaluare
+  method          String   @default("INCDPM") // Metoda de evaluare
+  version         Int      @default(1)
+  evaluatorName   String?
+  conclusions     String?
+  status          String   @default("draft") // draft, field_data_complete, expert_review, employer_review, active, superseded
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  riskItems          RiskItem[]
+  preventionMeasures PreventionMeasure[]
+  hazardZones        HazardZone[]
+}
+
+model RiskItem {
+  id                String         @id @default(uuid())
+  assessmentId      String
+  assessment        RiskAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  
+  hazard            String         // Factor de risc / Pericol identificat
+  riskSituation     String         // Situație de risc
+  consequence       String         // Consecință maximă previzibilă
+  severityScore     Int?           // Gravitate (1-7)
+  probabilityScore  Int?           // Probabilitate (1-6)
+  riskLevel         Int?           // Nivel de risc (1-7)
+  existingMeasures  String?        // Măsuri existente
+  residualRiskLevel Int?           // Nivel de risc rezidual
+  sortOrder         Int            @default(0)
+
+  preventionMeasures PreventionMeasure[]
+}
+
+model PreventionMeasure {
+  id              String         @id @default(uuid())
+  assessmentId    String
+  assessment      RiskAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  riskItemId      String?
+  riskItem        RiskItem?      @relation(fields: [riskItemId], references: [id], onDelete: SetNull)
+  
+  description     String         // Măsură de prevenire și protecție
+  measureType     String         @default("tehnica") // tehnica, organizatorica, igienico-sanitara, altul
+  responsiblePerson String?      // Responsabil implementare
+  deadline        String?        // Termen de realizare / periodic
+  status          String         @default("planificat") // planificat, in_curs, realizat
+  resources       String?        // Resurse necesare
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model HazardZone {
+  id              String         @id @default(uuid())
+  assessmentId    String
+  assessment      RiskAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  zoneName        String         // Denumire zonă cu risc ridicat și specific
+  location        String         // Localizare exactă
+  hazardDescription String       // Pericol grav și iminent
+  safetyMeasures  String         // Măsuri de securitate specifice
+  createdAt       DateTime       @default(now())
+}
+
+// ==========================================
+// 4. INSTRUIRE SSM & CURSURI IGIENĂ
+// ==========================================
+
+model TrainingMaterial {
+  id              String   @id @default(uuid())
+  type            String   // introductiv_general, loc_de_munca, periodic, ipssm
+  title           String   // Titlu tematică / instrucțiune
+  code            String?  // ex. IPSSM-01
+  version         Int      @default(1)
+  contentSummary  String?
+  activityOrJob   String?  // Pentru ce activitate sau post se aplică
+  isApproved      Boolean  @default(true)
+  approvedBy      String?
+  approvedAt      DateTime?
+  createdAt       DateTime @default(now())
+}
+
+model TrainingEvent {
+  id                    String   @id @default(uuid())
+  clientId              String
+  client                Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  type                  String   // introductiv_general, loc_de_munca, periodic, suplimentar
+  eventDate             DateTime // Data efectuării instruirii
+  durationHours         Float    @default(4.0) // Durata consemnată
+  materialOrTopic       String   // Tematica / materialul parcurs
+  practicalDemonstration String? // Demonstrație practică efectuată
+  instructorName        String   // Persoana care a efectuat instruirea
+  verifierName          String?  // Persoana care a verificat instruirea
+  location              String?  // Locul instruirii
+  status                String   @default("planned") // planned, performed, recorded
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  participants TrainingParticipant[]
+}
+
+model TrainingParticipant {
+  id              String        @id @default(uuid())
+  eventId         String
+  event           TrainingEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  employeeId      String
+  employee        Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  result          String        @default("admis") // admis / respins
+  recordedAt      DateTime?
+  scannedSheetUrl String?       // Copie scanată după semnare pe hârtie
+
+  createdAt       DateTime      @default(now())
+
+  @@unique([eventId, employeeId])
+}
+
+model HygieneSession {
+  id                  String   @id @default(uuid())
+  providerName        String   @default("Firma Prestatoare SSM") // Se completează cu furnizorul autorizat
+  msAuthorization     String?  // Număr/dată aviz Ministerul Sănătății
+  meAuthorization     String?  // Număr/dată aviz Ministerul Educației
+  sessionDate         DateTime // Data cursului
+  examDate            DateTime // Data examenului
+  location            String   // Sediul sau localitatea de examen
+  commissionPresident String?  // Președinte comisie
+  commissionMember1   String?
+  commissionMember2   String?
+  commissionSecretary String?
+  pvSeriesNumber      String?  // Serie și număr proces-verbal examen
+  status              String   @default("programata") // programata, in_desfasurare, finalizata, certificate_emise
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  participants HygieneParticipant[]
+}
+
+model HygieneParticipant {
+  id                String          @id @default(uuid())
+  sessionId         String
+  session           HygieneSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  employeeId        String?
+  employee          Employee?       @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  
+  // Date participant înscrise în catalog
+  clientName        String          // Angajator
+  lastName          String
+  firstName         String
+  cnp               String
+  birthDate         DateTime?
+  birthPlace        String?
+  docType           String?         @default("CI")
+  docSeries         String?
+  docNumber         String?
+  jobTitle          String?
+  attendance        String          @default("prezent") // prezent / absent
+  examGrade         Float?
+  examResult        String          @default("admis") // admis / respins
+  certificateSeries String?
+  certificateNumber String?
+
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([sessionId])
+}
+
+// ==========================================
+// 5. CATALOG ȘABLOANE, REVIZII & GENERARE
+// ==========================================
+
+model Template {
+  id                 String   @id @default(uuid())
+  code               String   @unique // ID tehnic intern, ex. ipssm-opis, hr-cim, etc.
+  name               String   // Nume afișat
+  family             String   // ipssm, hr, risk, hygiene, training, decision
+  originalFilename   String   // Numele fișierului din sabloane_ssm
+  normalizedFilename String   // Numele fișierului de lucru
+  format             String   // docx, xlsx, pdf
+  contextLevel       String   // client, employee, job, event, hygiene_session
+  status             String   @default("inventory") // inventory, normalized, mapped, review, active, archived
+  version            Int      @default(1)
+  description        String?
+  manifestJson       String   // JSON declarativ cu regulile de mapping, validare și cerințe
+  reviewer           String?  // Specialistul desemnat
+  approvedAt         DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  generatedDocuments GeneratedDocument[]
+}
+
+model GeneratedDocument {
+  id                 String   @id @default(uuid())
+  clientId           String
+  client             Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  employeeId         String?
+  employee           Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  jobId              String?
+  eventId            String?
+  hygieneSessionId   String?
+
+  templateId         String
+  template           Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  templateVersion    Int      @default(1)
+
+  title              String   // Denumire document generat
+  status             String   @default("draft") // draft, missing_data, ready_for_review, approved_for_print, printed, signed_scan_attached, archived, rejected
+  filePath           String   // Calea fizică în volumul privat
+  mimeType           String
+  fileSizeBytes      Int      @default(0)
+
+  snapshotData       String   // JSON snapshot al datelor utilizate la generare
+  missingFields      String?  // JSON cu lista câmpurilor lipsă detectate
+
+  createdBy          String   // Nume operator
+  reviewedBy         String?
+  approvedBy         String?
+  signedScanPath     String?  // Cale către scanul semnat pe hârtie
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([clientId, status])
+  @@index([templateId])
+}
+
+// ==========================================
+// 6. IMPORTURI & AUDIT
+// ==========================================
+
+model ImportBatch {
+  id                 String   @id @default(uuid())
+  clientId           String
+  client             Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  filename           String
+  schemaVersion      String   @default("1.0")
+  rowCount           Int      @default(0)
+  newCount           Int      @default(0)
+  updatedCount       Int      @default(0)
+  errorCount         Int      @default(0)
+  ambiguousCount     Int      @default(0)
+  status             String   @default("uploaded") // uploaded, validated, needs_review, confirmed, rejected
+  validationReport   String?  // JSON detaliat
+  diffData           String?  // JSON cu diferențe preview
+  operatorName       String
+  createdAt          DateTime @default(now())
+
+  @@index([clientId])
+}
+
+model AuditEvent {
+  id                 String   @id @default(uuid())
+  actorName          String
+  actorEmail         String?
+  action             String   // create, update, delete, import, generate, approve, reveal_cnp
+  entityType         String   // Client, Employee, RiskAssessment, GeneratedDocument, etc.
+  entityId           String?
+  details            String?  // Fără CNP sau text de CI în detalii!
+  ipAddress          String?
+  createdAt          DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
