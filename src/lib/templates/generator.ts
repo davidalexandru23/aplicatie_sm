@@ -1,8 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+import zlib from 'zlib';
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
-import { PDFDocument, StandardFonts } from 'pdf-lib';
+import { PDFDocument, StandardFonts, rgb, PDFName } from 'pdf-lib';
 import * as XLSX from 'xlsx';
 import { prisma } from '../prisma';
 import { logAuditEvent } from '../security';
@@ -93,13 +94,36 @@ export async function collectUnresolvedPlaceholders(buffer: Buffer, format: stri
     }
   } else if (format === 'pdf') {
     const pdf = await PDFDocument.load(buffer);
-    for (const field of pdf.getForm().getFields()) {
-      const textField = field as typeof field & { getText?: () => string | undefined };
-      const val = textField.getText?.() || '';
-      if (!val || val.startsWith('PLACEHOLDER_')) {
-        found.add(field.getName());
+    for (const [, obj] of pdf.context.enumerateIndirectObjects()) {
+      if ('getContents' in obj && typeof (obj as { getContents?: () => Uint8Array }).getContents === 'function') {
+        try {
+          const raw = Buffer.from((obj as { getContents: () => Uint8Array }).getContents());
+          let str = '';
+          try {
+            str = zlib.inflateSync(raw).toString('latin1');
+          } catch {
+            str = raw.toString('latin1');
+          }
+          const unhex = str.replace(/<([0-9A-Fa-f]+)>/g, (_, h) => {
+            try {
+              return Buffer.from(h, 'hex').toString('latin1');
+            } catch {
+              return h;
+            }
+          });
+          add(unhex);
+        } catch {}
       }
     }
+    try {
+      for (const field of pdf.getForm().getFields()) {
+        const textField = field as typeof field & { getText?: () => string | undefined };
+        const val = textField.getText?.() || '';
+        if (!val || val.startsWith('PLACEHOLDER_')) {
+          found.add(field.getName());
+        }
+      }
+    } catch {}
   }
   return [...found];
 }
@@ -149,6 +173,95 @@ function formatParticipantValue(token: string, participant: Record<string, unkno
 
   const value = map[key];
   return value === undefined || value === null || value === '' ? undefined : textValue(value);
+}
+
+interface PdfFieldPlacement {
+  key: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  size?: number;
+}
+
+const PDF_BASE_TEMPLATES: Record<string, string> = {
+  'Cerere angajare.pdf': path.join(process.cwd(), 'sabloane_ssm', 'Cerere angajare.pdf'),
+  'Declaratie luare cunostinta RI.pdf': path.join(process.cwd(), 'sabloane_ssm', 'Declaratie luat la cunost. Regulament Intern.pdf'),
+  'Declaratie pe proprie raspundere CIM.pdf': path.join(process.cwd(), 'sabloane_ssm', 'Declaratie pe propie raspundere contract de munca.pdf'),
+};
+
+const PDF_FIELD_PLACEMENTS: Record<string, PdfFieldPlacement[]> = {
+  'Cerere angajare.pdf': [
+    { key: 'PLACEHOLDER_NUME_COMPLET', x: 155, y: 626, width: 152, height: 13, size: 9 },
+    { key: 'PLACEHOLDER_LOCALITATE_DOMICILIU', x: 374, y: 626, width: 132, height: 13, size: 9 },
+    { key: 'PLACEHOLDER_ADRESA_DOMICILIU', x: 90, y: 599, width: 405, height: 13, size: 9 },
+    { key: 'PLACEHOLDER_SERIE_ACT', x: 255, y: 565, width: 34, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_NUMAR_ACT', x: 333, y: 565, width: 54, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_EMITENT_ACT', x: 420, y: 565, width: 155, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_DATA_EMITERII', x: 143, y: 538, width: 132, height: 13, size: 9 },
+    { key: 'PLACEHOLDER_FIRMA', x: 178, y: 503, width: 128, height: 13, size: 9 },
+    { key: 'PLACEHOLDER_FUNCTIE', x: 362, y: 503, width: 125, height: 13, size: 9 },
+    { key: 'PLACEHOLDER_DATA_ANGAJARII', x: 91, y: 476, width: 140, height: 13, size: 9 },
+    { key: 'PLACEHOLDER_DATA_CERERE', x: 91, y: 389, width: 115, height: 13, size: 9 },
+    { key: 'PLACEHOLDER_REPREZENTANT_LEGAL', x: 91, y: 291, width: 180, height: 13, size: 9 },
+  ],
+  'Declaratie luare cunostinta RI.pdf': [
+    { key: 'PLACEHOLDER_NUME_COMPLET', x: 192, y: 638, width: 150, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_LOCALITATE_DOMICILIU', x: 447, y: 638, width: 100, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_STRADA_DOMICILIU', x: 72, y: 617, width: 154, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_NUMAR_DOMICILIU', x: 235, y: 617, width: 36, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_BLOC', x: 295, y: 617, width: 30, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_SCARA', x: 370, y: 617, width: 29, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_ETAJ', x: 428, y: 617, width: 27, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_APARTAMENT', x: 478, y: 617, width: 34, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_JUDET_DOMICILIU', x: 72, y: 596, width: 130, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_TIP_ACT', x: 277, y: 596, width: 30, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_SERIE_ACT', x: 343, y: 596, width: 38, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_NUMAR_ACT', x: 398, y: 596, width: 52, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_EMITENT_ACT', x: 72, y: 575, width: 150, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_DATA_EMITERII', x: 250, y: 575, width: 110, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_CNP', x: 380, y: 575, width: 175, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_FIRMA', x: 142, y: 554, width: 390, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_DATA_DECLARATIE', x: 72, y: 329, width: 110, height: 13, size: 8 },
+  ],
+  'Declaratie pe proprie raspundere CIM.pdf': [
+    { key: 'PLACEHOLDER_NUME_COMPLET', x: 162, y: 774, width: 155, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_SERIE_ACT', x: 418, y: 774, width: 50, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_NUMAR_ACT', x: 95, y: 755, width: 92, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_EMITENT_ACT', x: 245, y: 755, width: 142, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_DATA_EMITERII', x: 392, y: 755, width: 112, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_DATA_DECLARATIE', x: 72, y: 736, width: 108, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_NUME_COMPLET_PERSOANA_01', x: 72, y: 517, width: 118, height: 13, size: 7 },
+    { key: 'PLACEHOLDER_CNP_PERSOANA_01', x: 191, y: 517, width: 103, height: 13, size: 7 },
+    { key: 'PLACEHOLDER_CALITATE_PERSOANA_01', x: 296, y: 517, width: 63, height: 13, size: 7 },
+    { key: 'PLACEHOLDER_INVALIDITATE_PERSOANA_01', x: 360, y: 517, width: 62, height: 13, size: 7 },
+    { key: 'PLACEHOLDER_DATA_INTRETINERE_01', x: 423, y: 517, width: 66, height: 13, size: 7 },
+    { key: 'PLACEHOLDER_VENIT_PERSOANA_01', x: 490, y: 517, width: 70, height: 13, size: 7 },
+    { key: 'PLACEHOLDER_NUME_COMPLET_PERSOANA_02', x: 72, y: 493, width: 118, height: 13, size: 7 },
+    { key: 'PLACEHOLDER_CNP_PERSOANA_02', x: 191, y: 493, width: 103, height: 13, size: 7 },
+    { key: 'PLACEHOLDER_CALITATE_PERSOANA_02', x: 296, y: 493, width: 63, height: 13, size: 7 },
+    { key: 'PLACEHOLDER_INVALIDITATE_PERSOANA_02', x: 360, y: 493, width: 62, height: 13, size: 7 },
+    { key: 'PLACEHOLDER_DATA_INTRETINERE_02', x: 423, y: 493, width: 66, height: 13, size: 7 },
+    { key: 'PLACEHOLDER_VENIT_PERSOANA_02', x: 490, y: 493, width: 70, height: 13, size: 7 },
+    { key: 'PLACEHOLDER_TIP_PENSIE', x: 258, y: 464, width: 220, height: 13, size: 8 },
+    { key: 'PLACEHOLDER_CASA_SANATATE', x: 399, y: 362, width: 158, height: 13, size: 8 },
+  ],
+};
+
+function resolvePdfFieldValue(name: string, data: Record<string, unknown>): string | undefined {
+  let val = data[name];
+  if (val !== undefined && val !== null && String(val).trim() !== '') return String(val).trim();
+  if (name === 'PLACEHOLDER_NUME_COMPLET') val = data.PLACEHOLDER_NUME_COMPLET || data.PLACEHOLDER_NUME;
+  else if (name === 'PLACEHOLDER_LOCALITATE_DOMICILIU') val = data.PLACEHOLDER_LOCALITATE_DOMICILIU || data.PLACEHOLDER_LOCALITATE;
+  else if (name === 'PLACEHOLDER_ADRESA_DOMICILIU') val = data.PLACEHOLDER_ADRESA_DOMICILIU || data.PLACEHOLDER_ADRESA;
+  else if (name === 'PLACEHOLDER_NUMAR_ACT') val = data.PLACEHOLDER_NUMAR_ACT || data.PLACEHOLDER_NR_ACT;
+  else if (name === 'PLACEHOLDER_EMITENT_ACT') val = data.PLACEHOLDER_EMITENT_ACT || data.PLACEHOLDER_EMITENT;
+  else if (name === 'PLACEHOLDER_DATA_EMITERII') val = data.PLACEHOLDER_DATA_EMITERII || data.PLACEHOLDER_DATA_ACT;
+  else if (name === 'PLACEHOLDER_DATA_ANGAJARII') val = data.PLACEHOLDER_DATA_ANGAJARII || data.PLACEHOLDER_DATA_ANGAJ;
+  else if (name === 'PLACEHOLDER_JUDET_DOMICILIU') val = data.PLACEHOLDER_JUDET_DOMICILIU || data.PLACEHOLDER_JUDET;
+  else if (name === 'PLACEHOLDER_NUMAR_DOMICILIU') val = data.PLACEHOLDER_NUMAR_DOMICILIU || data.PLACEHOLDER_NR;
+  if (val !== undefined && val !== null && String(val).trim() !== '') return String(val).trim();
+  return undefined;
 }
 
 export async function generateDocument(params: {
@@ -221,35 +334,43 @@ export async function generateDocument(params: {
     ext = 'pdf';
     mimeType = 'application/pdf';
 
-    const pdfBytes = fs.readFileSync(templateFilePath);
+    const baseSourcePath = PDF_BASE_TEMPLATES[templateFilename] || templateFilePath;
+    const pdfBytes = fs.readFileSync(baseSourcePath);
     const pdfDoc = await PDFDocument.load(pdfBytes);
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const form = pdfDoc.getForm();
+    const page = pdfDoc.getPage(0);
+    const placements = PDF_FIELD_PLACEMENTS[templateFilename] || [];
 
-    for (const field of form.getFields()) {
-      const editableField = field as typeof field & { setText?: (value: string) => void };
-      const name = field.getName();
+    for (const f of placements) {
+      const val = resolvePdfFieldValue(f.key, params.data);
+      const textToDraw = val ? pdfText(val) : `{${f.key}}`;
+      const fontSize = f.size || 8;
+      const textWidth = font.widthOfTextAtSize(textToDraw, fontSize);
+      const boxWidth = Math.max(f.width, textWidth + 4);
 
-      // Look up by direct field name or standard aliases
-      let val = params.data[name];
-      if (val === undefined || val === null || String(val).trim() === '') {
-        if (name === 'PLACEHOLDER_NUME_COMPLET') val = params.data.PLACEHOLDER_NUME_COMPLET || params.data.PLACEHOLDER_NUME;
-        else if (name === 'PLACEHOLDER_LOCALITATE_DOMICILIU') val = params.data.PLACEHOLDER_LOCALITATE_DOMICILIU || params.data.PLACEHOLDER_LOCALITATE;
-        else if (name === 'PLACEHOLDER_ADRESA_DOMICILIU') val = params.data.PLACEHOLDER_ADRESA_DOMICILIU || params.data.PLACEHOLDER_ADRESA;
-        else if (name === 'PLACEHOLDER_NUMAR_ACT') val = params.data.PLACEHOLDER_NUMAR_ACT || params.data.PLACEHOLDER_NR_ACT;
-        else if (name === 'PLACEHOLDER_EMITENT_ACT') val = params.data.PLACEHOLDER_EMITENT_ACT || params.data.PLACEHOLDER_EMITENT;
-        else if (name === 'PLACEHOLDER_DATA_EMITERII') val = params.data.PLACEHOLDER_DATA_EMITERII || params.data.PLACEHOLDER_DATA_ACT;
-        else if (name === 'PLACEHOLDER_DATA_ANGAJARII') val = params.data.PLACEHOLDER_DATA_ANGAJARII || params.data.PLACEHOLDER_DATA_ANGAJ;
-        else if (name === 'PLACEHOLDER_JUDET_DOMICILIU') val = params.data.PLACEHOLDER_JUDET_DOMICILIU || params.data.PLACEHOLDER_JUDET;
-        else if (name === 'PLACEHOLDER_NUMAR_DOMICILIU') val = params.data.PLACEHOLDER_NUMAR_DOMICILIU || params.data.PLACEHOLDER_NR;
-      }
+      page.drawRectangle({
+        x: f.x - 2,
+        y: f.y - 1,
+        width: boxWidth,
+        height: f.height || 14,
+        color: rgb(1, 1, 1),
+      });
 
-      if (val !== undefined && val !== null && String(val).trim() !== '' && editableField.setText) {
-        editableField.setText(pdfText(val));
-      }
+      page.drawText(textToDraw, {
+        x: f.x,
+        y: f.y + 1,
+        size: fontSize,
+        font,
+        color: rgb(0, 0, 0),
+      });
     }
 
-    form.updateFieldAppearances(font);
+    // Clean any annotations and AcroForm dicts so generated PDF is 100% normal flat text
+    for (const p of pdfDoc.getPages()) {
+      p.node.delete(PDFName.of('Annots'));
+    }
+    pdfDoc.catalog.delete(PDFName.of('AcroForm'));
+
     outputBuffer = Buffer.from(await pdfDoc.save());
   } else if (templateFormat === 'xlsx') {
     ext = 'xlsx';

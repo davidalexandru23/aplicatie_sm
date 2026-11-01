@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import zlib from 'zlib';
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
 import { PDFDocument } from 'pdf-lib';
@@ -109,10 +110,40 @@ async function verifyOffline() {
         }
       } else if (tpl.format === 'pdf') {
         const pdfDoc = await PDFDocument.load(fileBuffer);
-        const form = pdfDoc.getForm();
-        const fieldNames = form.getFields().map((f) => f.getName());
-        if (fieldNames.length === 0) {
-          console.error(`✗ PDF-ul ${tpl.normalizedFilename} nu conține câmpuri AcroForm!`);
+        const formFields = pdfDoc.getForm().getFields().length;
+        if (formFields > 0) {
+          console.error(`✗ PDF-ul ${tpl.normalizedFilename} conține ${formFields} câmpuri de formular/textbox interactive (cerința cere text normal)!`);
+          allTokensConsistent = false;
+        }
+
+        // Verify tokens are present as normal visual text in streams
+        const found = new Set<string>();
+        for (const [, obj] of pdfDoc.context.enumerateIndirectObjects()) {
+          if ('getContents' in obj && typeof (obj as { getContents?: () => Uint8Array }).getContents === 'function') {
+            try {
+              const raw = Buffer.from((obj as { getContents: () => Uint8Array }).getContents());
+              let str = '';
+              try {
+                str = zlib.inflateSync(raw).toString('latin1');
+              } catch {
+                str = raw.toString('latin1');
+              }
+              const unhex = str.replace(/<([0-9A-Fa-f]+)>/g, (_, h) => {
+                try {
+                  return Buffer.from(h, 'hex').toString('latin1');
+                } catch {
+                  return h;
+                }
+              });
+              for (const m of unhex.matchAll(/PLACEHOLDER_[A-Z0-9_]+/g)) {
+                found.add(m[0]);
+              }
+            } catch {}
+          }
+        }
+
+        if (found.size === 0) {
+          console.error(`✗ PDF-ul ${tpl.normalizedFilename} nu conține token-uri text normal în stream!`);
           allTokensConsistent = false;
         }
       } else if (tpl.format === 'xlsx') {
@@ -136,9 +167,9 @@ async function verifyOffline() {
   console.log(`Toate cele 25 de fișiere există pe disc: ${allFilesExist ? 'DA (100%)' : 'NU'}`);
   console.log(`Toate șabloanele sunt valide structural: ${allTokensConsistent ? 'DA (100%)' : 'NU'}`);
   console.log('\nDistribuție pe formate:');
-  console.log(`- DOCX: ${catalogSummary.filter((c) => c.format === 'docx').length}`);
-  console.log(`- PDF (AcroForm): ${catalogSummary.filter((c) => c.format === 'pdf').length}`);
-  console.log(`- XLSX: ${catalogSummary.filter((c) => c.format === 'xlsx').length}`);
+  console.log(`- DOCX (text normal inline): ${catalogSummary.filter((c) => c.format === 'docx').length}`);
+  console.log(`- PDF (text normal, fără forme/textbox): ${catalogSummary.filter((c) => c.format === 'pdf').length}`);
+  console.log(`- XLSX (celule normale): ${catalogSummary.filter((c) => c.format === 'xlsx').length}`);
 
   console.log('\nReguli critice de mapare respectate:');
   console.log('1. PLACEHOLDER_REPREZENTANT_LEGAL -> Mapare strictă din client.legalRepresentative (Administrator firmă).');
@@ -146,6 +177,7 @@ async function verifyOffline() {
   console.log('3. Câmpurile lipsă rămân {PLACEHOLDER_*} vizibile în document (nu se inventează valori fictive).');
   console.log('4. Câmpurile de evaluare riscuri (scoruri, consecințe, măsuri) rămân exclusiv evaluatorului uman.');
   console.log('5. Importul clientului nu include cod poștal la angajat.');
+  console.log('6. Toate cele 25 de șabloane folosesc exclusiv text normal pentru placeholder-e (fără forme, AcroForm sau textbox-uri).');
 
   if (!allFilesExist || !allTokensConsistent) {
     process.exit(1);
