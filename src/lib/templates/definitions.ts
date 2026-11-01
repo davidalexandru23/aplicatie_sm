@@ -1,9 +1,13 @@
+// Auto-generated synchronized template definitions for the 25 official templates
+// Based on /handoff/ssm-template-placeholder-pack/INVENTAR_PLACEHOLDERE.md
+
 export interface TemplateFieldDef {
   key: string;
   label: string;
-  source: string; // e.g. "client.name", "employee.lastName", "job.title"
+  source: string; // e.g. "client.name", "employee.lastName", "job.title", "manual"
   required: boolean;
   type: 'string' | 'date' | 'number' | 'boolean';
+  defaultValue?: string | number | boolean;
   formatter?: 'date_ro' | 'uppercase' | 'cnp_mask' | 'currency' | 'address_full';
   description?: string;
 }
@@ -32,148 +36,2161 @@ export interface TemplateDefinition {
 }
 
 export const TEMPLATE_CATALOG: TemplateDefinition[] = [
-  // ----------------------------------------------------
-  // 1. IPSSM (Instrucțiuni Proprii SSM)
-  // ----------------------------------------------------
-  {
-    code: 'ipssm-opis',
-    name: 'OPIS Instrucțiuni Proprii SSM',
-    family: 'ipssm',
-    originalFilename: 'OPIS IPSSM.doc',
-    normalizedFilename: 'OPIS IPSSM.docx',
-    format: 'docx',
-    contextLevel: 'client',
-    status: 'mapped',
-    version: 1,
-    description: 'Index dinamic al instrucțiunilor proprii SSM aplicabile clientului',
-    reviewer: 'Specialist SSM',
-    fields: [
-      { key: 'client_name', label: 'Denumire firmă', source: 'client.name', required: true, type: 'string' },
-      { key: 'current_year', label: 'An curent', source: 'meta.currentYear', required: true, type: 'number' },
-      { key: 'date_ro', label: 'Data emiterii', source: 'meta.currentDateRo', required: true, type: 'string' },
-    ],
-    collections: [
-      {
-        key: 'instructions',
-        label: 'Listă Instrucțiuni Aprobate',
-        source: 'ipssm_list',
-        fields: [
-          { key: 'code', label: 'Cod IPSSM', source: 'item.code', required: true, type: 'string' },
-          { key: 'title', label: 'Titlu instrucțiune', source: 'item.title', required: true, type: 'string' },
-        ],
-      },
-    ],
-  },
-  {
-    code: 'ipssm-universale',
-    name: 'IPSSM 01-10 Generale / Universale',
-    family: 'ipssm',
-    originalFilename: '!IP 01 - 10 UNIVERSALE.doc',
-    normalizedFilename: 'IP 01-10 UNIVERSALE.docx',
-    format: 'docx',
-    contextLevel: 'client',
-    status: 'mapped',
-    version: 1,
-    description: 'Pachetul de instrucțiuni generale 01-10 (electrosecuritate, incendiu, prim ajutor, etc.)',
-    reviewer: 'Specialist SSM',
-    fields: [
-      { key: 'client_name', label: 'Denumire firmă', source: 'client.name', required: true, type: 'string' },
-      { key: 'administrator_name', label: 'Nume administrator / aprobator', source: 'client.legalRepresentative', required: true, type: 'string' },
-      { key: 'date_ro', label: 'Data aprobării', source: 'meta.currentDateRo', required: true, type: 'string' },
-    ],
-  },
   {
     code: 'ipssm-alunecari',
-    name: 'IPSSM 11 - Prevenirea alunecărilor și împiedicărilor',
+    name: 'IPSSM 11 - Alunecări și împiedicări',
     family: 'ipssm',
     originalFilename: '11 - ALUNECRILOR SI MPIEDICRILOR LA LOCUL DE MUNCA.rtf.doc',
     normalizedFilename: '11 - ALUNECARI.docx',
     format: 'docx',
     contextLevel: 'client',
     status: 'mapped',
-    version: 1,
-    description: 'Instrucțiune de lucru pentru prevenirea riscurilor de alunecare și împiedicare',
+    version: 2,
+    description: 'Instrucțiuni proprii pentru prevenirea alunecărilor și căderilor de la același nivel.',
     reviewer: 'Specialist SSM',
     fields: [
-      { key: 'client_name', label: 'Denumire firmă', source: 'client.name', required: true, type: 'string' },
-      { key: 'administrator_name', label: 'Administrator', source: 'client.legalRepresentative', required: true, type: 'string' },
-      { key: 'date_ro', label: 'Data', source: 'meta.currentDateRo', required: true, type: 'string' },
+      {
+        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
+        label: 'Reprezentant Legal',
+        source: 'client.legalRepresentative',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_SPECIALIST_SSM',
+        label: 'Specialist / Serviciu Desemnat SSM',
+        source: 'client.externalService',
+        required: true,
+        type: 'string',
+        defaultValue: "Ing. Popescu Ion - Specialist SSM",
+      }
     ],
   },
   {
     code: 'ipssm-autovehicule',
-    name: 'IPSSM 12 - Circulația autovehiculelor',
+    name: 'IPSSM 12 - Autovehicule și transport',
     family: 'ipssm',
     originalFilename: '12 - CIRCULAIA AUTOVEHICULELOR.doc',
     normalizedFilename: '12 - AUTOVEHICULE.docx',
     format: 'docx',
     contextLevel: 'client',
     status: 'mapped',
-    version: 1,
-    description: 'Instrucțiune specifică pentru salariații care utilizează vehicule în interes de serviciu',
+    version: 2,
+    description: 'Instrucțiuni proprii pentru exploatarea și circulația în siguranță a autovehiculelor.',
     reviewer: 'Specialist SSM',
     fields: [
-      { key: 'client_name', label: 'Denumire firmă', source: 'client.name', required: true, type: 'string' },
-      { key: 'administrator_name', label: 'Administrator', source: 'client.legalRepresentative', required: true, type: 'string' },
-      { key: 'date_ro', label: 'Data', source: 'meta.currentDateRo', required: true, type: 'string' },
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
+        label: 'Reprezentant Legal',
+        source: 'client.legalRepresentative',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_SPECIALIST_SSM',
+        label: 'Specialist / Serviciu Desemnat SSM',
+        source: 'client.externalService',
+        required: true,
+        type: 'string',
+        defaultValue: "Ing. Popescu Ion - Specialist SSM",
+      }
     ],
   },
   {
     code: 'ipssm-birou',
-    name: 'IPSSM 13 - Activități de birou',
+    name: 'IPSSM 13 - Activități de birou și ergonomie',
     family: 'ipssm',
     originalFilename: '13 - ACTIVITATI DE BIROU.doc',
     normalizedFilename: '13 - ACTIVITATI DE BIROU.docx',
     format: 'docx',
     contextLevel: 'client',
     status: 'mapped',
-    version: 1,
-    description: 'Instrucțiuni de securitate pentru personalul cu activitate de birou (ergonomie, ecrane)',
+    version: 2,
+    description: 'Instrucțiuni specifice de securitate și sănătate în muncă pentru lucrul cu ecran și activități de birou.',
     reviewer: 'Specialist SSM',
     fields: [
-      { key: 'client_name', label: 'Denumire firmă', source: 'client.name', required: true, type: 'string' },
-      { key: 'administrator_name', label: 'Administrator', source: 'client.legalRepresentative', required: true, type: 'string' },
-      { key: 'date_ro', label: 'Data', source: 'meta.currentDateRo', required: true, type: 'string' },
+      {
+        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
+        label: 'Reprezentant Legal',
+        source: 'client.legalRepresentative',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_SPECIALIST_SSM',
+        label: 'Specialist / Serviciu Desemnat SSM',
+        source: 'client.externalService',
+        required: true,
+        type: 'string',
+        defaultValue: "Ing. Popescu Ion - Specialist SSM",
+      }
     ],
   },
   {
-    code: 'ipssm-tesa',
-    name: 'Ghid de instruire TESA',
-    family: 'ipssm',
-    originalFilename: 'TESA.doc',
-    normalizedFilename: 'TESA.docx',
+    code: 'hygiene-adeverinta',
+    name: 'Adeverință participare curs igienă',
+    family: 'hygiene',
+    originalFilename: 'Adeverinta participare.docx',
+    normalizedFilename: 'Adeverinta participare.docx',
     format: 'docx',
-    contextLevel: 'client',
+    contextLevel: 'hygiene_session',
     status: 'mapped',
-    version: 1,
-    description: 'Pachet specific de instruire și descriere a procesului de muncă pentru personalul TESA',
+    version: 2,
+    description: 'Adeverință individuală de absolvire a programului de instruire privind însușirea noțiunilor fundamentale de igienă.',
     reviewer: 'Specialist SSM',
     fields: [
-      { key: 'client_name', label: 'Denumire firmă', source: 'client.name', required: true, type: 'string' },
-      { key: 'date_ro', label: 'Data aprobării', source: 'meta.currentDateRo', required: true, type: 'string' },
+      {
+        key: 'PLACEHOLDER_AVIZ_ME',
+        label: 'Aviz Ministerul Educației',
+        source: 'hygieneSession.meAuthorization',
+        required: true,
+        type: 'string',
+        defaultValue: "Aviz ME nr. 55/2024",
+      },
+      {
+        key: 'PLACEHOLDER_AVIZ_MS',
+        label: 'Aviz Ministerul Sănătății',
+        source: 'hygieneSession.msAuthorization',
+        required: true,
+        type: 'string',
+        defaultValue: "Aviz MS nr. 102/2024",
+      },
+      {
+        key: 'PLACEHOLDER_CNP',
+        label: 'Cod Numeric Personal (CNP)',
+        source: 'employee.cnp',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_ELIBERARE',
+        label: 'Data eliberării adeverinței',
+        source: 'hygieneSession.examDate',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_NASTERII',
+        label: 'Data nașterii salariat',
+        source: 'employee.birthDate',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FUNCTIE_PRESTATOR',
+        label: 'Funcție reprezentant prestator',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "Director Formare / Specialist SSM",
+      },
+      {
+        key: 'PLACEHOLDER_JUDET_NASTERII',
+        label: 'Județ naștere',
+        source: 'employee.birthCounty',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_LOCALITATE_NASTERII',
+        label: 'Localitate naștere',
+        source: 'employee.birthPlace',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_MODUL_IGIENA',
+        label: 'Modul curs igienă',
+        source: 'hygiene.module',
+        required: true,
+        type: 'string',
+        defaultValue: "Nivelul 1 - Servicii de curățenie și alimentație",
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_IGIENA',
+        label: 'Nivel curs igienă',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "Nivelul 1",
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_ADEVERINTA',
+        label: 'Număr adeverință cursant',
+        source: 'participant.certificateNumber',
+        required: true,
+        type: 'string',
+        defaultValue: "101",
+      },
+      {
+        key: 'PLACEHOLDER_NUME_COMPLET',
+        label: 'Nume și prenume salariat',
+        source: 'employee.fullName',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_PRESTATOR_SSM',
+        label: 'Prestator servicii SSM / Formare',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "SC EXPERT SSM TRAINING SRL",
+      },
+      {
+        key: 'PLACEHOLDER_SERIE_ADEVERINTA',
+        label: 'Serie adeverință cursant',
+        source: 'participant.certificateSeries',
+        required: true,
+        type: 'string',
+        defaultValue: "IGI",
+      },
+      {
+        key: 'PLACEHOLDER_SPECIALIST_SSM',
+        label: 'Specialist / Serviciu Desemnat SSM',
+        source: 'client.externalService',
+        required: true,
+        type: 'string',
+        defaultValue: "Ing. Popescu Ion - Specialist SSM",
+      }
     ],
   },
-
-  // ----------------------------------------------------
-  // 2. TEMATICI INSTRUIRE (Training)
-  // ----------------------------------------------------
   {
-    code: 'training-tematica-introductiv',
-    name: 'Tematică instruire introductiv-generală (4 ore)',
-    family: 'training',
-    originalFilename: 'Tematica de instuire introductiv generala SSM 4 h.docx',
-    normalizedFilename: 'Tematica introductiv generala 4h.docx',
+    code: 'hr-anexa-fisa-post',
+    name: 'Anexă la fișa postului - Atribuții SSM',
+    family: 'hr',
+    originalFilename: 'Anexa fisa postului SSM.docx',
+    normalizedFilename: 'Anexa fisa postului SSM.docx',
+    format: 'docx',
+    contextLevel: 'employee',
+    status: 'mapped',
+    version: 2,
+    description: 'Anexă obligatorie cu drepturile și obligațiile salariatului în domeniul SSM conform art. 22-23 din Legea 319/2006.',
+    reviewer: 'Specialist SSM',
+    fields: [
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FUNCTIE',
+        label: 'Funcție / Ocupație',
+        source: 'job.title',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUME_COMPLET',
+        label: 'Nume și prenume salariat',
+        source: 'employee.fullName',
+        required: true,
+        type: 'string',
+        
+      }
+    ],
+  },
+  {
+    code: 'hygiene-anexe-catalog',
+    name: 'Anexe și Cataloage Curs Igienă (8 Anexe)',
+    family: 'hygiene',
+    originalFilename: 'Anexe Curs igiena.xlsx',
+    normalizedFilename: 'Anexe Curs igiena.xlsx',
+    format: 'xlsx',
+    contextLevel: 'hygiene_session',
+    status: 'mapped',
+    version: 2,
+    description: 'Setul complet de 8 anexe oficiale conform Ordinului 1225/5031/2003 (cereri, decizii, cataloage, procese-verbale, tabele).',
+    reviewer: 'Specialist SSM',
+    fields: [
+      {
+        key: 'PLACEHOLDER_ACT_IDENTITATE',
+        label: 'Act Identitate',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_ACT_REPREZENTANT',
+        label: 'Act numire reprezentant furnizor',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "Decizia AGA nr. 1/2020",
+      },
+      {
+        key: 'PLACEHOLDER_APARTAMENT_FURNIZOR',
+        label: 'Apartament sediu furnizor',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "8",
+      },
+      {
+        key: 'PLACEHOLDER_AUTORITATE_EMITENTA',
+        label: 'Autoritate emitentă aviz',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "DSP București",
+      },
+      {
+        key: 'PLACEHOLDER_AVIZ_ME',
+        label: 'Aviz Ministerul Educației',
+        source: 'hygieneSession.meAuthorization',
+        required: true,
+        type: 'string',
+        defaultValue: "Aviz ME nr. 55/2024",
+      },
+      {
+        key: 'PLACEHOLDER_AVIZ_MS',
+        label: 'Aviz Ministerul Sănătății',
+        source: 'hygieneSession.msAuthorization',
+        required: true,
+        type: 'string',
+        defaultValue: "Aviz MS nr. 102/2024",
+      },
+      {
+        key: 'PLACEHOLDER_BLOC_FURNIZOR',
+        label: 'Bloc sediu furnizor',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "B1",
+      },
+      {
+        key: 'PLACEHOLDER_CALITATE_REPREZENTANT',
+        label: 'Calitate reprezentant legal',
+        source: 'client.legalRepresentativeRole',
+        required: true,
+        type: 'string',
+        defaultValue: "Administrator",
+      },
+      {
+        key: 'PLACEHOLDER_CERTIFICAT_FURNIZOR',
+        label: 'Certificat furnizor',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "Certificat seria IG nr. 889",
+      },
+      {
+        key: 'PLACEHOLDER_CNP',
+        label: 'Cod Numeric Personal (CNP)',
+        source: 'employee.cnp',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_COD_POSTAL_FURNIZOR',
+        label: 'Cod poștal furnizor',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "010101",
+      },
+      {
+        key: 'PLACEHOLDER_COMISIE_EXAMEN',
+        label: 'Membri comisie examinare',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "Președinte, Membru 1, Secretar",
+      },
+      {
+        key: 'PLACEHOLDER_CUI_PRESTATOR',
+        label: 'CUI prestator SSM',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "RO30123456",
+      },
+      {
+        key: 'PLACEHOLDER_DATA_AVIZ_ME',
+        label: 'Data avizului ME',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "20.01.2024",
+      },
+      {
+        key: 'PLACEHOLDER_DATA_AVIZ_MS',
+        label: 'Data avizului MS',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "15.01.2024",
+      },
+      {
+        key: 'PLACEHOLDER_DATA_CATALOG',
+        label: 'Data catalog examen',
+        source: 'hygieneSession.examDate',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_ELIBERARE',
+        label: 'Data eliberării adeverinței',
+        source: 'hygieneSession.examDate',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_EMITERE',
+        label: 'Data emiterii',
+        source: 'meta.currentDateRo',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_EXAMEN',
+        label: 'Data susținerii examenului',
+        source: 'hygieneSession.examDate',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_INREGISTRARE',
+        label: 'Data înregistrării',
+        source: 'meta.currentDateRo',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_LOC_NASTERII',
+        label: 'Data Loc Nasterii',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_NASTERII',
+        label: 'Data nașterii salariat',
+        source: 'employee.birthDate',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_PV',
+        label: 'Data procesului verbal',
+        source: 'hygieneSession.examDate',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_SESIUNE',
+        label: 'Data sesiunii de curs',
+        source: 'hygieneSession.sessionDate',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_EMAIL_PRESTATOR',
+        label: 'Email prestator SSM',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "contact@expertssm.ro",
+      },
+      {
+        key: 'PLACEHOLDER_ETAJ_FURNIZOR',
+        label: 'Etaj sediu furnizor',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "2",
+      },
+      {
+        key: 'PLACEHOLDER_FURNIZOR_SSM',
+        label: 'Furnizor formare / igienă',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "SC EXPERT SSM TRAINING SRL",
+      },
+      {
+        key: 'PLACEHOLDER_JUDET_EXAMEN',
+        label: 'Județ examen',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "București",
+      },
+      {
+        key: 'PLACEHOLDER_JUDET_FURNIZOR',
+        label: 'Județ sediu furnizor',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "Sector 1",
+      },
+      {
+        key: 'PLACEHOLDER_LOCALITATE_EXAMEN',
+        label: 'Localitate examen',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "București",
+      },
+      {
+        key: 'PLACEHOLDER_LOCALITATE_FURNIZOR',
+        label: 'Localitate sediu furnizor',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "București",
+      },
+      {
+        key: 'PLACEHOLDER_LOCALITATE_NASTERII',
+        label: 'Localitate naștere',
+        source: 'employee.birthPlace',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_LOCATIE_EXAMEN',
+        label: 'Locație desfășurare examen',
+        source: 'hygieneSession.location',
+        required: true,
+        type: 'string',
+        defaultValue: "Sediul Prestatorului",
+      },
+      {
+        key: 'PLACEHOLDER_MEMBRU_COMISIE_1',
+        label: 'Membru comisie 1',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "As. Medical Mihai Elena",
+      },
+      {
+        key: 'PLACEHOLDER_MEMBRU_COMISIE_2',
+        label: 'Membru comisie 2',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "Insp. DSP Popa Dan",
+      },
+      {
+        key: 'PLACEHOLDER_MODULE_IGIENA',
+        label: 'Module igienă',
+        source: 'hygiene.module',
+        required: true,
+        type: 'string',
+        defaultValue: "Modulul I",
+      },
+      {
+        key: 'PLACEHOLDER_MODUL_ABSOLVIT',
+        label: 'Modul Absolvit',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_MODUL_IGIENA',
+        label: 'Modul curs igienă',
+        source: 'hygiene.module',
+        required: true,
+        type: 'string',
+        defaultValue: "Nivelul 1 - Servicii de curățenie și alimentație",
+      },
+      {
+        key: 'PLACEHOLDER_MODUL_NIVEL',
+        label: 'Modul Nivel',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_IGIENA',
+        label: 'Nivel curs igienă',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "Nivelul 1",
+      },
+      {
+        key: 'PLACEHOLDER_NOTA_EXAMEN',
+        label: 'Nota Examen',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_ADMISI',
+        label: 'Număr candidați admiși',
+        source: 'manual',
+        required: false,
+        type: 'number',
+        defaultValue: 3,
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_AVIZ_ME',
+        label: 'Număr aviz ME',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "55",
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_AVIZ_MS',
+        label: 'Număr aviz MS',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "102",
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_CANDIDATI',
+        label: 'Număr total candidați',
+        source: 'manual',
+        required: false,
+        type: 'number',
+        defaultValue: 3,
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_CATALOG',
+        label: 'Număr catalog examen',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "CAT-2026-01",
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_CERTIFICAT_FURNIZOR',
+        label: 'Nr. certificat furnizor formare',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "CERT-889",
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_DECIZIE_COMISIE',
+        label: 'Număr decizie numire comisie',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "Decizia nr. 12/2026",
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_FURNIZOR',
+        label: 'Număr imobil furnizor',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "12",
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_INREGISTRARE_FURNIZOR',
+        label: 'Nr. înregistrare furnizor',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "REG-1045",
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_ORDINE',
+        label: 'Numar Ordine',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_PREZENTI',
+        label: 'Număr candidați prezenți',
+        source: 'manual',
+        required: false,
+        type: 'number',
+        defaultValue: 3,
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_PV',
+        label: 'Număr proces-verbal examen',
+        source: 'hygieneSession.pvSeriesNumber',
+        required: false,
+        type: 'string',
+        defaultValue: "15",
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_RESPINSI',
+        label: 'Număr candidați respinși',
+        source: 'manual',
+        required: false,
+        type: 'number',
+        defaultValue: 0,
+      },
+      {
+        key: 'PLACEHOLDER_NUME_COMPLET',
+        label: 'Nume și prenume salariat',
+        source: 'employee.fullName',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_ORA_EXAMEN',
+        label: 'Ora examenului',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "10:00",
+      },
+      {
+        key: 'PLACEHOLDER_ORDIN_APLICABIL',
+        label: 'Ordin ministerial aplicabil',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "Ordinul MS/ME nr. 1225/5031/2003",
+      },
+      {
+        key: 'PLACEHOLDER_PERIOADA_CURS',
+        label: 'Perioada Curs',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_PRESEDINTE_COMISIE',
+        label: 'Președinte comisie examen',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "Dr. Ionescu Radu",
+      },
+      {
+        key: 'PLACEHOLDER_PRESTATOR_SSM',
+        label: 'Prestator servicii SSM / Formare',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "SC EXPERT SSM TRAINING SRL",
+      },
+      {
+        key: 'PLACEHOLDER_REPREZENTANT_PRESTATOR',
+        label: 'Nume reprezentant prestator',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "Director General Popa Ion",
+      },
+      {
+        key: 'PLACEHOLDER_REZULTAT_EXAMEN',
+        label: 'Rezultat examen (Admis/Respins)',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "Admis",
+      },
+      {
+        key: 'PLACEHOLDER_SALA_EXAMEN',
+        label: 'Sala de examen',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "Sala Curs 1",
+      },
+      {
+        key: 'PLACEHOLDER_SCARA_FURNIZOR',
+        label: 'Scară sediu furnizor',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "A",
+      },
+      {
+        key: 'PLACEHOLDER_SECRETAR_COMISIE',
+        label: 'Secretar comisie examen',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "Secretar Georgescu Ana",
+      },
+      {
+        key: 'PLACEHOLDER_SERIE_NUMAR_CERTIFICAT',
+        label: 'Serie și număr certificat',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "IGI 101",
+      },
+      {
+        key: 'PLACEHOLDER_SERIE_PV',
+        label: 'Serie proces-verbal examen',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "PV-EX",
+      },
+      {
+        key: 'PLACEHOLDER_STRADA_FURNIZOR',
+        label: 'Stradă sediu furnizor',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "Str. Formatorilor",
+      },
+      {
+        key: 'PLACEHOLDER_TELEFON_PRESTATOR',
+        label: 'Telefon prestator SSM',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "0721.000.111",
+      }
+    ],
+  },
+  {
+    code: 'hr-cerere-angajare',
+    name: 'Cerere de angajare (Formular PDF)',
+    family: 'hr',
+    originalFilename: 'Cerere angajare.pdf',
+    normalizedFilename: 'Cerere angajare.pdf',
+    format: 'pdf',
+    contextLevel: 'employee',
+    status: 'mapped',
+    version: 2,
+    description: 'Formular interactiv PDF AcroForm pentru solicitarea încadrării în muncă a candidatului.',
+    reviewer: 'Operator HR',
+    fields: [
+      {
+        key: 'PLACEHOLDER_ADRESA',
+        label: 'Adresă',
+        source: 'client.address',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_ADRESA_DOMICILIU',
+        label: 'Adresă completă domiciliu',
+        source: 'residence.addressFull',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_ACT',
+        label: 'Data eliberării actului',
+        source: 'identity.issueDate',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_ANGAJ',
+        label: 'Data angajării',
+        source: 'employee.hireDate',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_ANGAJARII',
+        label: 'Data angajării',
+        source: 'employee.hireDate',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_CERERE',
+        label: 'Data cererii de angajare',
+        source: 'employee.hireDate',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_EMITERII',
+        label: 'Data eliberării actului',
+        source: 'identity.issueDate',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_EMITENT',
+        label: 'Emitent act identitate',
+        source: 'identity.issuedBy',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_EMITENT_ACT',
+        label: 'Autoritate emitentă act identitate',
+        source: 'identity.issuedBy',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FUNCTIE',
+        label: 'Funcție / Ocupație',
+        source: 'job.title',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_LOCALITATE',
+        label: 'Localitate domiciliu',
+        source: 'residence.locality',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_LOCALITATE_DOMICILIU',
+        label: 'Localitate domiciliu',
+        source: 'residence.locality',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NR_ACT',
+        label: 'Număr act identitate',
+        source: 'identity.number',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_ACT',
+        label: 'Număr act identitate',
+        source: 'identity.number',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUME',
+        label: 'Nume familie salariat',
+        source: 'employee.lastName',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUME_COMPLET',
+        label: 'Nume și prenume salariat',
+        source: 'employee.fullName',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
+        label: 'Reprezentant Legal',
+        source: 'client.legalRepresentative',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_SERIE_ACT',
+        label: 'Serie act identitate',
+        source: 'identity.series',
+        required: true,
+        type: 'string',
+        
+      }
+    ],
+  },
+  {
+    code: 'hr-cim-2026',
+    name: 'Contract individual de muncă 2026',
+    family: 'hr',
+    originalFilename: 'Contract individual munca 2026.docx',
+    normalizedFilename: 'Contract individual munca 2026.docx',
+    format: 'docx',
+    contextLevel: 'employee',
+    status: 'mapped',
+    version: 2,
+    description: 'Model-cadru de contract individual de muncă actualizat 2026 conform Codului Muncii și legislației conexe.',
+    reviewer: 'Operator HR',
+    fields: [
+      {
+        key: 'PLACEHOLDER_ADRESA_DOMICILIU',
+        label: 'Adresă completă domiciliu',
+        source: 'residence.addressFull',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_ADRESA_FIRMA',
+        label: 'Adresă sediu social firmă',
+        source: 'client.address',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_ADRESA_PUNCT_LUCRU',
+        label: 'Adresă punct de lucru / loc muncă',
+        source: 'worksite.address',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_ALTE_DREPTURI_SALARIALE',
+        label: 'Alte sporuri / drepturi salariale',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "Conform CCM / decizii",
+      },
+      {
+        key: 'PLACEHOLDER_ARTICOL_DURATA_DETERMINATA',
+        label: 'Temei durată determinată',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "nedeterminată",
+      },
+      {
+        key: 'PLACEHOLDER_CALITATE_REPREZENTANT',
+        label: 'Calitate reprezentant legal',
+        source: 'client.legalRepresentativeRole',
+        required: true,
+        type: 'string',
+        defaultValue: "Administrator",
+      },
+      {
+        key: 'PLACEHOLDER_CNP',
+        label: 'Cod Numeric Personal (CNP)',
+        source: 'employee.cnp',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_COD_COR',
+        label: 'Cod COR funcție (6 cifre)',
+        source: 'job.corCode',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_CUI',
+        label: 'Cod Unic de Înregistrare (CUI)',
+        source: 'client.cui',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_INCEPERE',
+        label: 'Data începerii activității',
+        source: 'employee.hireDate',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_PLATA',
+        label: 'Data plății salariului',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "15 a fiecărei luni",
+      },
+      {
+        key: 'PLACEHOLDER_DATA_SEMNARE',
+        label: 'Data semnării CIM',
+        source: 'meta.currentDateRo',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_SFARSIT',
+        label: 'Data sfârșit CIM (durată determinată)',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "-",
+      },
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FUNCTIE',
+        label: 'Funcție / Ocupație',
+        source: 'job.title',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NR_REG_COM',
+        label: 'Nr. Reg. Comerțului (Jxx/xxx/xxxx)',
+        source: 'client.regCom',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_ACT',
+        label: 'Număr act identitate',
+        source: 'identity.number',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_CIM',
+        label: 'Număr contract individual de muncă',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "101",
+      },
+      {
+        key: 'PLACEHOLDER_NUME_COMPLET',
+        label: 'Nume și prenume salariat',
+        source: 'employee.fullName',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_ORE_PE_ZI',
+        label: 'Număr ore de muncă pe zi',
+        source: 'job.dailyHours',
+        required: true,
+        type: 'number',
+        defaultValue: 8,
+      },
+      {
+        key: 'PLACEHOLDER_PERMIS_MUNCA',
+        label: 'Permis de muncă (cetățeni străini)',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "Nu este cazul",
+      },
+      {
+        key: 'PLACEHOLDER_PROGRAM_LUCRU',
+        label: 'Interval program de lucru',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "08:00 - 16:30",
+      },
+      {
+        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
+        label: 'Reprezentant Legal',
+        source: 'client.legalRepresentative',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_SALARIU_BRUT',
+        label: 'Salariu de bază lunar brut (lei)',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "4050 lei",
+      },
+      {
+        key: 'PLACEHOLDER_SERIE_ACT',
+        label: 'Serie act identitate',
+        source: 'identity.series',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_TELEFON_CONTACT',
+        label: 'Telefon contact firmă',
+        source: 'client.contactPhone',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_ZILE_CONCEDIU',
+        label: 'Zile de concediu de odihnă anual',
+        source: 'manual',
+        required: true,
+        type: 'number',
+        defaultValue: 21,
+      },
+      {
+        key: 'PLACEHOLDER_ZILE_PREAVIZ_DEMISIONARE',
+        label: 'Zile preaviz în caz de demisie',
+        source: 'manual',
+        required: true,
+        type: 'number',
+        defaultValue: 20,
+      },
+      {
+        key: 'PLACEHOLDER_ZILE_PROBA',
+        label: 'Durată perioadă de probă (zile)',
+        source: 'manual',
+        required: true,
+        type: 'number',
+        defaultValue: 90,
+      }
+    ],
+  },
+  {
+    code: 'decizii-angajator',
+    name: 'Pachet Decizii Interne SSM ale Angajatorului',
+    family: 'decision',
+    originalFilename: 'DECIZII.docx',
+    normalizedFilename: 'DECIZII.docx',
     format: 'docx',
     contextLevel: 'client',
     status: 'mapped',
-    version: 1,
-    description: 'Programul și tematica legală pentru instruirea introductiv-generală conform HG 1425/2006',
+    version: 2,
+    description: 'Set consolidat de decizii manageriale de organizare a activității de prevenire și protecție (numire lucrător desemnat, comitete, prim ajutor, etc.).',
     reviewer: 'Specialist SSM',
     fields: [
-      { key: 'client_name', label: 'Denumire firmă', source: 'client.name', required: true, type: 'string' },
-      { key: 'administrator_name', label: 'Administrator', source: 'client.legalRepresentative', required: true, type: 'string' },
-      { key: 'cui', label: 'CUI', source: 'client.cui', required: true, type: 'string' },
-      { key: 'duration_hours', label: 'Durată (ore)', source: 'event.durationHours', required: true, type: 'number' },
+      {
+        key: 'PLACEHOLDER_ADRESA_FIRMA',
+        label: 'Adresă sediu social firmă',
+        source: 'client.address',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_AJUTOR_LUCRARE',
+        label: 'Ajutor Lucrare',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_CONTACT_ANUNTARE_INCIDENT',
+        label: 'Contact Anuntare Incident',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_BULETIN_ANALIZA',
+        label: 'Data Buletin Analiza',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_DECIZIE',
+        label: 'Data deciziei interne',
+        source: 'meta.currentDateRo',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_FINALIZARE_LUCRARE',
+        label: 'Data Finalizare Lucrare',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_INCEPERE_LUCRARE',
+        label: 'Data Incepere Lucrare',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_INTOCMIRE',
+        label: 'Data Intocmire',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_PERMIS_FOC',
+        label: 'Data Permis Foc',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DESCRIERE_LUCRARE',
+        label: 'Descriere Lucrare',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DOMENIU_INSTRUIRE',
+        label: 'Domeniu Instruire',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_EMITENT_BULETIN_ANALIZA',
+        label: 'Emitent Buletin Analiza',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_EVALUATOR_RISC',
+        label: 'Nume evaluator riscuri profesionale',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "Ing. Evaluator Risc Popescu Ion",
+      },
+      {
+        key: 'PLACEHOLDER_EXECUTANT_LUCRARE',
+        label: 'Executant Lucrare',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FUNCTIE_INSTRUCTOR',
+        label: 'Functie Instructor',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_LUCRATOR_DESEMNAT_SSM',
+        label: 'Lucrator Desemnat Ssm',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_MASURI_PSI_SUPLIMENTARE',
+        label: 'Masuri Psi Suplimentare',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_MEMBRU_COMISIE',
+        label: 'Membru comisie',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "As. Medical Mihai Elena",
+      },
+      {
+        key: 'PLACEHOLDER_METODA_IZOLARE_INSTALATII',
+        label: 'Metoda Izolare Instalatii',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_MIJLOACE_STINGERE',
+        label: 'Mijloace Stingere',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_BULETIN_ANALIZA',
+        label: 'Numar Buletin Analiza',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_DECIZIE_01',
+        label: 'Numar Decizie 01',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_DECIZIE_02',
+        label: 'Numar Decizie 02',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_DECIZIE_03',
+        label: 'Numar Decizie 03',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_DECIZIE_04',
+        label: 'Numar Decizie 04',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_DECIZIE_05',
+        label: 'Numar Decizie 05',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_DECIZIE_06',
+        label: 'Numar Decizie 06',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_DECIZIE_07',
+        label: 'Numar Decizie 07',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_DECIZIE_08',
+        label: 'Numar Decizie 08',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_DECIZIE_09',
+        label: 'Numar Decizie 09',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_DECIZIE_11',
+        label: 'Numar Decizie 11',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_PERMIS_FOC',
+        label: 'Numar Permis Foc',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_ORA_FINALIZARE',
+        label: 'Ora Finalizare',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_ORA_INCEPERE',
+        label: 'Ora Incepere',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_PROTECTIE_MATERIALE',
+        label: 'Protectie Materiale',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_RAZA_PROTECTIE_METRI',
+        label: 'Raza Protectie Metri',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
+        label: 'Reprezentant Legal',
+        source: 'client.legalRepresentative',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_RESPONSABIL_CONTROL_PSI',
+        label: 'Responsabil Control Psi',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_RESPONSABIL_PRIM_AJUTOR',
+        label: 'Responsabil Prim Ajutor',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_RESPONSABIL_PSI',
+        label: 'Responsabil Psi',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_RESPONSABIL_SUPRAVEGHERE_LUCRARI',
+        label: 'Responsabil Supraveghere Lucrari',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_TEHNOLOGIE_LUCRU',
+        label: 'Tehnologie Lucru',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_VENTILARE_SPATIU',
+        label: 'Ventilare Spatiu',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      }
+    ],
+  },
+  {
+    code: 'hr-declaratie-regulament',
+    name: 'Declarație luare la cunoștință Regulament Intern',
+    family: 'hr',
+    originalFilename: 'Declaratie luare cunostinta RI.pdf',
+    normalizedFilename: 'Declaratie luare cunostinta RI.pdf',
+    format: 'pdf',
+    contextLevel: 'employee',
+    status: 'mapped',
+    version: 2,
+    description: 'Formular interactiv PDF AcroForm pentru confirmarea luării la cunoștință a Regulamentului Intern al unității.',
+    reviewer: 'Operator HR',
+    fields: [
+      {
+        key: 'PLACEHOLDER_APARTAMENT',
+        label: 'Apartament domiciliu',
+        source: 'residence.apartment',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_BLOC',
+        label: 'Bloc domiciliu',
+        source: 'residence.building',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_CNP',
+        label: 'Cod Numeric Personal (CNP)',
+        source: 'employee.cnp',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA',
+        label: 'Data',
+        source: 'meta.currentDateRo',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_ACT',
+        label: 'Data eliberării actului',
+        source: 'identity.issueDate',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_DECLARATIE',
+        label: 'Data declarației',
+        source: 'employee.hireDate',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_EMITERII',
+        label: 'Data eliberării actului',
+        source: 'identity.issueDate',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_EMITENT',
+        label: 'Emitent act identitate',
+        source: 'identity.issuedBy',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_EMITENT_ACT',
+        label: 'Autoritate emitentă act identitate',
+        source: 'identity.issuedBy',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_ETAJ',
+        label: 'Etaj domiciliu',
+        source: 'residence.floor',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_JUDET',
+        label: 'Județ domiciliu',
+        source: 'residence.county',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_JUDET_DOMICILIU',
+        label: 'Județ domiciliu',
+        source: 'residence.county',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_LOCALITATE',
+        label: 'Localitate domiciliu',
+        source: 'residence.locality',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_LOCALITATE_DOMICILIU',
+        label: 'Localitate domiciliu',
+        source: 'residence.locality',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NR',
+        label: 'Număr imobil',
+        source: 'residence.number',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NR_ACT',
+        label: 'Număr act identitate',
+        source: 'identity.number',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_ACT',
+        label: 'Număr act identitate',
+        source: 'identity.number',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_DOMICILIU',
+        label: 'Număr imobil domiciliu',
+        source: 'residence.number',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUME',
+        label: 'Nume familie salariat',
+        source: 'employee.lastName',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUME_COMPLET',
+        label: 'Nume și prenume salariat',
+        source: 'employee.fullName',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_SCARA',
+        label: 'Scară domiciliu',
+        source: 'residence.entrance',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_SERIE_ACT',
+        label: 'Serie act identitate',
+        source: 'identity.series',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_STRADA_DOMICILIU',
+        label: 'Stradă domiciliu',
+        source: 'residence.street',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_TIP_ACT',
+        label: 'Tip act identitate (C.I./B.I./Pașaport)',
+        source: 'identity.docType',
+        required: true,
+        type: 'string',
+        defaultValue: "C.I.",
+      }
+    ],
+  },
+  {
+    code: 'hr-declaratie-raspundere',
+    name: 'Declarație pe proprie răspundere la angajare (CIM)',
+    family: 'hr',
+    originalFilename: 'Declaratie pe proprie raspundere CIM.pdf',
+    normalizedFilename: 'Declaratie pe proprie raspundere CIM.pdf',
+    format: 'pdf',
+    contextLevel: 'employee',
+    status: 'mapped',
+    version: 2,
+    description: 'Formular PDF AcroForm privind deducerile personale, cumulul de funcții, stagiul de cotizare și persoanele în întreținere.',
+    reviewer: 'Operator HR',
+    fields: [
+      {
+        key: 'PLACEHOLDER_CALITATE_01',
+        label: 'Calitate persoană 1',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "-",
+      },
+      {
+        key: 'PLACEHOLDER_CALITATE_02',
+        label: 'Calitate persoană 2',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "-",
+      },
+      {
+        key: 'PLACEHOLDER_CALITATE_PERSOANA_01',
+        label: 'Calitate persoană 1 (copil/soț)',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "-",
+      },
+      {
+        key: 'PLACEHOLDER_CALITATE_PERSOANA_02',
+        label: 'Calitate persoană 2 (copil/soț)',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "-",
+      },
+      {
+        key: 'PLACEHOLDER_CASA_SANAT',
+        label: 'Casa de Sănătate',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "CASMB București",
+      },
+      {
+        key: 'PLACEHOLDER_CASA_SANATATE',
+        label: 'Casa de Asigurări de Sănătate',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "CASMB București",
+      },
+      {
+        key: 'PLACEHOLDER_CNP_01',
+        label: 'CNP persoană 1',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "-",
+      },
+      {
+        key: 'PLACEHOLDER_CNP_02',
+        label: 'CNP persoană 2',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "-",
+      },
+      {
+        key: 'PLACEHOLDER_CNP_PERSOANA_01',
+        label: 'CNP persoană 1 în întreținere',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "-",
+      },
+      {
+        key: 'PLACEHOLDER_CNP_PERSOANA_02',
+        label: 'CNP persoană 2 în întreținere',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "-",
+      },
+      {
+        key: 'PLACEHOLDER_DATA',
+        label: 'Data',
+        source: 'meta.currentDateRo',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_01',
+        label: 'Data 01',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_02',
+        label: 'Data 02',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_ACT',
+        label: 'Data eliberării actului',
+        source: 'identity.issueDate',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_DECLARATIE',
+        label: 'Data declarației',
+        source: 'employee.hireDate',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_EMITERII',
+        label: 'Data eliberării actului',
+        source: 'identity.issueDate',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_INTRETINERE_01',
+        label: 'Data acordării întreținerii 1',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "-",
+      },
+      {
+        key: 'PLACEHOLDER_DATA_INTRETINERE_02',
+        label: 'Data acordării întreținerii 2',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "-",
+      },
+      {
+        key: 'PLACEHOLDER_EMITENT',
+        label: 'Emitent act identitate',
+        source: 'identity.issuedBy',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_EMITENT_ACT',
+        label: 'Autoritate emitentă act identitate',
+        source: 'identity.issuedBy',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_INVALIDITATE_01',
+        label: 'Invaliditate 01',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_INVALIDITATE_02',
+        label: 'Invaliditate 02',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_INVALIDITATE_PERSOANA_01',
+        label: 'Grad invaliditate persoană 1',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "-",
+      },
+      {
+        key: 'PLACEHOLDER_INVALIDITATE_PERSOANA_02',
+        label: 'Grad invaliditate persoană 2',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "-",
+      },
+      {
+        key: 'PLACEHOLDER_NR_ACT',
+        label: 'Număr act identitate',
+        source: 'identity.number',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_ACT',
+        label: 'Număr act identitate',
+        source: 'identity.number',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUME',
+        label: 'Nume familie salariat',
+        source: 'employee.lastName',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUME_01',
+        label: 'Nume 01',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUME_02',
+        label: 'Nume 02',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUME_COMPLET',
+        label: 'Nume și prenume salariat',
+        source: 'employee.fullName',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUME_COMPLET_PERSOANA_01',
+        label: 'Nume persoană 1 în întreținere',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "-",
+      },
+      {
+        key: 'PLACEHOLDER_NUME_COMPLET_PERSOANA_02',
+        label: 'Nume persoană 2 în întreținere',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "-",
+      },
+      {
+        key: 'PLACEHOLDER_SERIE_ACT',
+        label: 'Serie act identitate',
+        source: 'identity.series',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_TIP_PENSIE',
+        label: 'Tip pensie',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "Nu este cazul",
+      },
+      {
+        key: 'PLACEHOLDER_VENIT_01',
+        label: 'Venit 01',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_VENIT_02',
+        label: 'Venit 02',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_VENIT_PERSOANA_01',
+        label: 'Venit persoană 1 în întreținere',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "-",
+      },
+      {
+        key: 'PLACEHOLDER_VENIT_PERSOANA_02',
+        label: 'Venit persoană 2 în întreținere',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "-",
+      }
     ],
   },
   {
@@ -185,312 +2202,1590 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
     format: 'docx',
     contextLevel: 'client',
     status: 'mapped',
-    version: 1,
-    description: 'Material explicativ detaliat pentru efectuarea instruirii introductiv-generale',
+    version: 2,
+    description: 'Ghid detaliat de conținut și teme suport pentru instruirea introductiv-generală.',
     reviewer: 'Specialist SSM',
     fields: [
-      { key: 'client_name', label: 'Denumire firmă', source: 'client.name', required: true, type: 'string' },
-      { key: 'administrator_name', label: 'Administrator', source: 'client.legalRepresentative', required: true, type: 'string' },
-    ],
-  },
-  {
-    code: 'training-tematica-loc-munca',
-    name: 'Tematică instruire la locul de muncă',
-    family: 'training',
-    originalFilename: 'Tematica de instuire la locul de munca SSM.docx',
-    normalizedFilename: 'Tematica loc de munca.docx',
-    format: 'docx',
-    contextLevel: 'job',
-    status: 'mapped',
-    version: 1,
-    description: 'Tematica aplicată specific pe post și punct de lucru pentru faza 2 de instruire',
-    reviewer: 'Specialist SSM',
-    fields: [
-      { key: 'client_name', label: 'Denumire firmă', source: 'client.name', required: true, type: 'string' },
-      { key: 'job_title', label: 'Funcție / post', source: 'job.title', required: true, type: 'string' },
-      { key: 'worksite_name', label: 'Punct de lucru', source: 'worksite.name', required: true, type: 'string' },
-      { key: 'administrator_name', label: 'Administrator', source: 'client.legalRepresentative', required: true, type: 'string' },
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_SPECIALIST_SSM',
+        label: 'Specialist / Serviciu Desemnat SSM',
+        source: 'client.externalService',
+        required: true,
+        type: 'string',
+        defaultValue: "Ing. Popescu Ion - Specialist SSM",
+      }
     ],
   },
   {
     code: 'training-detaliu-loc-munca',
-    name: 'Detaliu suport la tematica instruirii la locul de muncă',
+    name: 'Detaliu suport la tematica la locul de muncă',
     family: 'training',
-    originalFilename: 'Detaliu la Tematica instruire la locul de munca.docx',
+    originalFilename: 'Detaliu la tematica de instruire la locul de munca.docx',
     normalizedFilename: 'Detaliu Tematica loc de munca.docx',
-    format: 'docx',
-    contextLevel: 'job',
-    status: 'mapped',
-    version: 1,
-    description: 'Suportul didactic și descrierea riscurilor pe post pentru instruirea la locul de muncă',
-    reviewer: 'Specialist SSM',
-    fields: [
-      { key: 'client_name', label: 'Denumire firmă', source: 'client.name', required: true, type: 'string' },
-      { key: 'job_title', label: 'Funcție / post', source: 'job.title', required: true, type: 'string' },
-      { key: 'administrator_name', label: 'Administrator', source: 'client.legalRepresentative', required: true, type: 'string' },
-    ],
-  },
-
-  // ----------------------------------------------------
-  // 3. DECIZII ANGAJATOR
-  // ----------------------------------------------------
-  {
-    code: 'decizii-angajator',
-    name: 'Pachet Decizii Organizare SSM a Angajatorului',
-    family: 'decision',
-    originalFilename: 'DECIZII NOU .docx',
-    normalizedFilename: 'DECIZII.docx',
     format: 'docx',
     contextLevel: 'client',
     status: 'mapped',
-    version: 1,
-    description: 'Deciziile interne privind periodicitatea instruirii, persoanele desemnate și responsabilitățile SSM',
-    reviewer: 'Specialist SSM / Juridic',
-    fields: [
-      { key: 'client_name', label: 'Denumire firmă', source: 'client.name', required: true, type: 'string' },
-      { key: 'cui', label: 'CUI', source: 'client.cui', required: true, type: 'string' },
-      { key: 'reg_com', label: 'Nr. Reg. Comerțului', source: 'client.regCom', required: false, type: 'string' },
-      { key: 'address', label: 'Sediu social', source: 'client.address', required: true, type: 'string' },
-      { key: 'legal_rep', label: 'Reprezentant legal', source: 'client.legalRepresentative', required: true, type: 'string' },
-      { key: 'decision_number', label: 'Număr decizie', source: 'meta.decisionNumber', required: true, type: 'string' },
-      { key: 'decision_date', label: 'Data deciziei', source: 'meta.currentDateRo', required: true, type: 'string' },
-    ],
-  },
-
-  // ----------------------------------------------------
-  // 4. DOCUMENTE HR & NOMINALE
-  // ----------------------------------------------------
-  {
-    code: 'hr-anexa-fisa-post',
-    name: 'Anexă SSM la fișa de post',
-    family: 'hr',
-    originalFilename: 'Anexa fisa postului SSM.docx',
-    normalizedFilename: 'Anexa fisa postului SSM.docx',
-    format: 'docx',
-    contextLevel: 'employee',
-    status: 'mapped',
-    version: 1,
-    description: 'Anexa cuprinzând atribuțiile și răspunderile în domeniul SSM specifice postului salariatului',
+    version: 2,
+    description: 'Ghid detaliat pentru instruirea la locul de muncă și instruirea periodică.',
     reviewer: 'Specialist SSM',
     fields: [
-      { key: 'client_name', label: 'Denumire firmă', source: 'client.name', required: true, type: 'string' },
-      { key: 'employee_name', label: 'Nume complet salariat', source: 'employee.fullName', required: true, type: 'string' },
-      { key: 'job_title', label: 'Funcție / post', source: 'employee.jobTitle', required: true, type: 'string' },
-      { key: 'date_ro', label: 'Data emiterii', source: 'meta.currentDateRo', required: true, type: 'string' },
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+        
+      }
     ],
   },
-  {
-    code: 'hr-cerere-angajare',
-    name: 'Cerere de angajare',
-    family: 'hr',
-    originalFilename: 'Cerere angajare.pdf',
-    normalizedFilename: 'Cerere angajare.pdf',
-    format: 'pdf',
-    contextLevel: 'employee',
-    status: 'mapped',
-    version: 1,
-    description: 'Formularul nominal tipizat de solicitare a angajării',
-    reviewer: 'Consultant HR',
-    fields: [
-      { key: 'client_name', label: 'Societate', source: 'client.name', required: true, type: 'string' },
-      { key: 'employee_name', label: 'Nume și prenume', source: 'employee.fullName', required: true, type: 'string' },
-      { key: 'address_full', label: 'Domiciliu complet', source: 'employee.addressFull', required: true, type: 'string' },
-      { key: 'doc_series', label: 'Serie CI', source: 'employee.docSeries', required: false, type: 'string' },
-      { key: 'doc_number', label: 'Număr CI', source: 'employee.docNumber', required: true, type: 'string' },
-      { key: 'doc_issued_by', label: 'Eliberat de', source: 'employee.docIssuedBy', required: false, type: 'string' },
-      { key: 'doc_issue_date', label: 'Data eliberării', source: 'employee.docIssueDateRo', required: false, type: 'string' },
-      { key: 'job_title', label: 'Funcția solicitată', source: 'employee.jobTitle', required: true, type: 'string' },
-      { key: 'hire_date', label: 'Data începere', source: 'employee.hireDateRo', required: true, type: 'string' },
-      { key: 'legal_rep', label: 'Reprezentant legal', source: 'client.legalRepresentative', required: true, type: 'string' },
-    ],
-  },
-  {
-    code: 'hr-declaratie-regulament',
-    name: 'Declarație luare la cunoștință Regulament Intern',
-    family: 'hr',
-    originalFilename: 'Declaratie luat la cunost. Regulament Intern.pdf',
-    normalizedFilename: 'Declaratie luare cunostinta RI.pdf',
-    format: 'pdf',
-    contextLevel: 'employee',
-    status: 'mapped',
-    version: 1,
-    description: 'Confirmarea de primire și luare la cunoștință a RI, CIM și Fișei Postului',
-    reviewer: 'Consultant HR',
-    fields: [
-      { key: 'employee_name', label: 'Nume și prenume', source: 'employee.fullName', required: true, type: 'string' },
-      { key: 'locality', label: 'Localitate domiciliu', source: 'employee.locality', required: true, type: 'string' },
-      { key: 'street', label: 'Stradă', source: 'employee.street', required: true, type: 'string' },
-      { key: 'street_number', label: 'Număr stradă', source: 'employee.streetNumber', required: true, type: 'string' },
-      { key: 'building', label: 'Bloc', source: 'employee.building', required: false, type: 'string' },
-      { key: 'entrance', label: 'Scara', source: 'employee.entrance', required: false, type: 'string' },
-      { key: 'floor', label: 'Etaj', source: 'employee.floor', required: false, type: 'string' },
-      { key: 'apartment', label: 'Apartament', source: 'employee.apartment', required: false, type: 'string' },
-      { key: 'county', label: 'Sector / Județ', source: 'employee.county', required: true, type: 'string' },
-      { key: 'doc_series', label: 'Serie CI', source: 'employee.docSeries', required: false, type: 'string' },
-      { key: 'doc_number', label: 'Număr CI', source: 'employee.docNumber', required: true, type: 'string' },
-      { key: 'doc_issued_by', label: 'Eliberat de', source: 'employee.docIssuedBy', required: false, type: 'string' },
-      { key: 'doc_issue_date', label: 'Data eliberării', source: 'employee.docIssueDateRo', required: false, type: 'string' },
-      { key: 'cnp', label: 'CNP', source: 'employee.cnp', required: true, type: 'string' },
-      { key: 'client_name', label: 'Angajator', source: 'client.name', required: true, type: 'string' },
-      { key: 'date_ro', label: 'Data', source: 'meta.currentDateRo', required: true, type: 'string' },
-    ],
-  },
-  {
-    code: 'hr-declaratie-raspundere',
-    name: 'Declarație pe proprie răspundere la angajare (pensie, funcție de bază, deduceri)',
-    family: 'hr',
-    originalFilename: 'Declaratie pe propie raspundere contract de munca.pdf',
-    normalizedFilename: 'Declaratie pe proprie raspundere CIM.pdf',
-    format: 'pdf',
-    contextLevel: 'employee',
-    status: 'mapped',
-    version: 1,
-    description: 'Declarație salariat privind deducerea personală, cumul de funcții și pensie',
-    reviewer: 'Consultant HR',
-    fields: [
-      { key: 'employee_name', label: 'Nume și prenume', source: 'employee.fullName', required: true, type: 'string' },
-      { key: 'doc_series', label: 'Serie CI', source: 'employee.docSeries', required: false, type: 'string' },
-      { key: 'doc_number', label: 'Număr CI', source: 'employee.docNumber', required: true, type: 'string' },
-      { key: 'doc_issued_by', label: 'Eliberat de', source: 'employee.docIssuedBy', required: false, type: 'string' },
-      { key: 'doc_issue_date', label: 'Data eliberării', source: 'employee.docIssueDateRo', required: false, type: 'string' },
-      { key: 'date_ro', label: 'Data', source: 'meta.currentDateRo', required: true, type: 'string' },
-    ],
-  },
-  {
-    code: 'hr-cim-2026',
-    name: 'Contract Individual de Muncă (CIM Model Cadru)',
-    family: 'hr',
-    originalFilename: 'contract-individual-munca nou 2026.docx',
-    normalizedFilename: 'Contract individual munca 2026.docx',
-    format: 'docx',
-    contextLevel: 'employee',
-    status: 'mapped',
-    version: 1,
-    description: 'Contractul individual de muncă conform Codului Muncii',
-    reviewer: 'Juridic / Specialist HR',
-    fields: [
-      { key: 'client_name', label: 'Angajator', source: 'client.name', required: true, type: 'string' },
-      { key: 'cui', label: 'CUI', source: 'client.cui', required: true, type: 'string' },
-      { key: 'reg_com', label: 'Nr. Reg. Comerțului', source: 'client.regCom', required: false, type: 'string' },
-      { key: 'address', label: 'Sediu social', source: 'client.address', required: true, type: 'string' },
-      { key: 'legal_rep', label: 'Reprezentant legal', source: 'client.legalRepresentative', required: true, type: 'string' },
-      { key: 'employee_name', label: 'Salariat', source: 'employee.fullName', required: true, type: 'string' },
-      { key: 'cnp', label: 'CNP Salariat', source: 'employee.cnp', required: true, type: 'string' },
-      { key: 'address_full', label: 'Adresă domiciliu', source: 'employee.addressFull', required: true, type: 'string' },
-      { key: 'doc_series', label: 'Serie act', source: 'employee.docSeries', required: false, type: 'string' },
-      { key: 'doc_number', label: 'Număr act', source: 'employee.docNumber', required: true, type: 'string' },
-      { key: 'job_title', label: 'Funcție / post', source: 'employee.jobTitle', required: true, type: 'string' },
-      { key: 'hire_date', label: 'Data începerii activității', source: 'employee.hireDateRo', required: true, type: 'string' },
-    ],
-  },
-  {
-    code: 'hr-info-dosar',
-    name: 'Checklist acte dosar de personal',
-    family: 'hr',
-    originalFilename: 'INFO ce cuprinde dosarul de personal.docx',
-    normalizedFilename: 'INFO dosar personal.docx',
-    format: 'docx',
-    contextLevel: 'employee',
-    status: 'mapped',
-    version: 1,
-    description: 'Checklist administrativ cu documentele obligatorii la angajare',
-    reviewer: 'Consultant HR',
-    fields: [
-      { key: 'client_name', label: 'Denumire firmă', source: 'client.name', required: true, type: 'string' },
-      { key: 'employee_name', label: 'Salariat', source: 'employee.fullName', required: true, type: 'string' },
-      { key: 'job_title', label: 'Funcție', source: 'employee.jobTitle', required: true, type: 'string' },
-      { key: 'date_ro', label: 'Data', source: 'meta.currentDateRo', required: true, type: 'string' },
-    ],
-  },
-  {
-    code: 'hr-gdpr-informare',
-    name: 'Informare privind protecția datelor cu caracter personal',
-    family: 'hr',
-    originalFilename: 'Informare Salariat Protectia Datelor model.doc',
-    normalizedFilename: 'Informare Protectia Datelor.docx',
-    format: 'docx',
-    contextLevel: 'employee',
-    status: 'review', // Rămâne în review conform cerinței specifice GDPR
-    version: 1,
-    description: 'Informarea salariatului conform Regulamentului (UE) 2016/679',
-    reviewer: 'Responsabil DPO / Juridic',
-    fields: [
-      { key: 'client_name', label: 'Operator date (Firma)', source: 'client.name', required: true, type: 'string' },
-      { key: 'employee_name', label: 'Salariat', source: 'employee.fullName', required: true, type: 'string' },
-      { key: 'address_full', label: 'Domiciliu', source: 'employee.addressFull', required: true, type: 'string' },
-      { key: 'doc_series', label: 'Serie CI', source: 'employee.docSeries', required: false, type: 'string' },
-      { key: 'doc_number', label: 'Număr CI', source: 'employee.docNumber', required: true, type: 'string' },
-      { key: 'cnp', label: 'CNP', source: 'employee.cnp', required: true, type: 'string' },
-      { key: 'date_ro', label: 'Data', source: 'meta.currentDateRo', required: true, type: 'string' },
-    ],
-  },
-
-  // ----------------------------------------------------
-  // 5. EVALUARE DE RISC & URGENȚĂ
-  // ----------------------------------------------------
   {
     code: 'risk-evaluare',
-    name: 'Raport Evaluarea Riscurilor Profesionale',
+    name: 'Dosar Evaluare a Riscurilor de Accidentare și Îmbolnăvire Profesională',
     family: 'risk',
-    originalFilename: 'EVALUAREA RISCURILOR.doc',
+    originalFilename: 'EVALUAREA RISCURILOR.docx',
     normalizedFilename: 'EVALUAREA RISCURILOR.docx',
     format: 'docx',
     contextLevel: 'client',
     status: 'mapped',
-    version: 1,
-    description: 'Raportul complet multicapitol al evaluării de risc de accidentare și îmbolnăvire profesională',
-    reviewer: 'Evaluator de risc atestat',
+    version: 2,
+    description: 'Raport oficial de evaluare globală a riscurilor profesionale la nivelul întreprinderii conform metodei INCDPM.',
+    reviewer: 'Evaluator Risc',
     fields: [
-      { key: 'client_name', label: 'Denumire firmă', source: 'client.name', required: true, type: 'string' },
-      { key: 'cui', label: 'CUI', source: 'client.cui', required: true, type: 'string' },
-      { key: 'address', label: 'Sediu social', source: 'client.address', required: true, type: 'string' },
-      { key: 'evaluator_name', label: 'Nume evaluator', source: 'assessment.evaluatorName', required: true, type: 'string' },
-      { key: 'year', label: 'An evaluare', source: 'meta.currentYear', required: true, type: 'number' },
-    ],
-    collections: [
       {
-        key: 'risk_items',
-        label: 'Factori de Risc Identificați',
-        source: 'riskItems',
-        fields: [
-          { key: 'hazard', label: 'Pericol / factor de risc', source: 'item.hazard', required: true, type: 'string' },
-          { key: 'riskSituation', label: 'Situație de risc', source: 'item.riskSituation', required: true, type: 'string' },
-          { key: 'consequence', label: 'Consecință', source: 'item.consequence', required: true, type: 'string' },
-          { key: 'riskLevel', label: 'Nivel parțial de risc', source: 'item.riskLevel', required: true, type: 'number' },
-          { key: 'existingMeasures', label: 'Măsuri de securitate existente', source: 'item.existingMeasures', required: false, type: 'string' },
-        ],
+        key: 'PLACEHOLDER_ACTIVITATE_PRINCIPALA',
+        label: 'Activitate principală desfășurată',
+        source: 'client.mainActivity',
+        required: false,
+        type: 'string',
+        
       },
+      {
+        key: 'PLACEHOLDER_ADRESA_FIRMA',
+        label: 'Adresă sediu social firmă',
+        source: 'client.address',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_AN_EVALUARE',
+        label: 'An evaluare riscuri',
+        source: 'meta.currentYear',
+        required: true,
+        type: 'number',
+        
+      },
+      {
+        key: 'PLACEHOLDER_AN_INFIINTARE',
+        label: 'An înființare societate',
+        source: 'client.fiscalYear',
+        required: false,
+        type: 'string',
+        defaultValue: "2020",
+      },
+      {
+        key: 'PLACEHOLDER_CERTIFICAT_EVALUATOR',
+        label: 'Certificat atestare evaluator risc',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "Certificat Seria EV nr. 4521",
+      },
+      {
+        key: 'PLACEHOLDER_COD_CAEN',
+        label: 'Cod CAEN activitate',
+        source: 'client.caenCode',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_CONCLUZII_EVALUARE',
+        label: 'Concluzii evaluare riscuri',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "Securitatea se încadrează în limitele legale.",
+      },
+      {
+        key: 'PLACEHOLDER_CUI',
+        label: 'Cod Unic de Înregistrare (CUI)',
+        source: 'client.cui',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_EMAIL_PRESTATOR',
+        label: 'Email prestator SSM',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "contact@expertssm.ro",
+      },
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FUNCTIE',
+        label: 'Funcție / Ocupație',
+        source: 'job.title',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_RISC_GLOBAL',
+        label: 'Nivel global de risc calculat',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "2.84 (Nivel mic spre mediu)",
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_LUCRATORI',
+        label: 'Număr total lucrători',
+        source: 'client.employeeCount',
+        required: false,
+        type: 'number',
+        defaultValue: 3,
+      },
+      {
+        key: 'PLACEHOLDER_PRESTATOR_SSM',
+        label: 'Prestator servicii SSM / Formare',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "SC EXPERT SSM TRAINING SRL",
+      },
+      {
+        key: 'PLACEHOLDER_PROGRAM_LUCRU',
+        label: 'Interval program de lucru',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "08:00 - 16:30",
+      },
+      {
+        key: 'PLACEHOLDER_SITE_PRESTATOR',
+        label: 'Site web prestator SSM',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "www.expertssm.ro",
+      }
+    ],
+  },
+  {
+    code: 'hr-info-dosar',
+    name: 'Informare conținut dosar personal salariat',
+    family: 'hr',
+    originalFilename: 'INFO dosar personal.docx',
+    normalizedFilename: 'INFO dosar personal.docx',
+    format: 'docx',
+    contextLevel: 'client',
+    status: 'mapped',
+    version: 2,
+    description: 'Opisul documentelor obligatorii din dosarul personal al salariatului.',
+    reviewer: 'Operator HR',
+    fields: [
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+        
+      }
+    ],
+  },
+  {
+    code: 'ipssm-universale',
+    name: 'IPSSM 01-10 Generale / Universale',
+    family: 'ipssm',
+    originalFilename: '!IP 01 - 10 UNIVERSALE.doc',
+    normalizedFilename: 'IP 01-10 UNIVERSALE.docx',
+    format: 'docx',
+    contextLevel: 'client',
+    status: 'mapped',
+    version: 2,
+    description: 'Pachetul de instrucțiuni generale 01-10: electrosecuritate, incendiu, prim ajutor, circulație interioară.',
+    reviewer: 'Specialist SSM',
+    fields: [
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
+        label: 'Reprezentant Legal',
+        source: 'client.legalRepresentative',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_SPECIALIST_SSM',
+        label: 'Specialist / Serviciu Desemnat SSM',
+        source: 'client.externalService',
+        required: true,
+        type: 'string',
+        defaultValue: "Ing. Popescu Ion - Specialist SSM",
+      }
+    ],
+  },
+  {
+    code: 'hr-gdpr-informare',
+    name: 'Notă de informare prelucrare date cu caracter personal (GDPR)',
+    family: 'hr',
+    originalFilename: 'Informare Protectia Datelor.docx',
+    normalizedFilename: 'Informare Protectia Datelor.docx',
+    format: 'docx',
+    contextLevel: 'employee',
+    status: 'mapped',
+    version: 2,
+    description: 'Informarea salariaților cu privire la prelucrarea datelor personale conform Regulamentului (UE) 2016/679.',
+    reviewer: 'DPO / HR',
+    fields: [
+      {
+        key: 'PLACEHOLDER_ADRESA_DOMICILIU',
+        label: 'Adresă completă domiciliu',
+        source: 'residence.addressFull',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_ADRESA_FIRMA',
+        label: 'Adresă sediu social firmă',
+        source: 'client.address',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_CNP',
+        label: 'Cod Numeric Personal (CNP)',
+        source: 'employee.cnp',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_EMITERII',
+        label: 'Data eliberării actului',
+        source: 'identity.issueDate',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_EMITENT_ACT',
+        label: 'Autoritate emitentă act identitate',
+        source: 'identity.issuedBy',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_LOCALITATE_SEMNARE',
+        label: 'Localitate semnare',
+        source: 'residence.locality',
+        required: true,
+        type: 'string',
+        defaultValue: "București",
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_ACT',
+        label: 'Număr act identitate',
+        source: 'identity.number',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUME',
+        label: 'Nume familie salariat',
+        source: 'employee.lastName',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUME_COMPLET',
+        label: 'Nume și prenume salariat',
+        source: 'employee.fullName',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_PRENUME',
+        label: 'Prenume salariat',
+        source: 'employee.firstName',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
+        label: 'Reprezentant Legal',
+        source: 'client.legalRepresentative',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_SERIE_ACT',
+        label: 'Serie act identitate',
+        source: 'identity.series',
+        required: true,
+        type: 'string',
+        
+      }
+    ],
+  },
+  {
+    code: 'ipssm-opis',
+    name: 'OPIS Instrucțiuni Proprii SSM',
+    family: 'ipssm',
+    originalFilename: 'OPIS IPSSM.doc',
+    normalizedFilename: 'OPIS IPSSM.docx',
+    format: 'docx',
+    contextLevel: 'client',
+    status: 'mapped',
+    version: 2,
+    description: 'Catalogul și evidența instrucțiunilor proprii de securitate a muncii aprobate la nivel de firmă.',
+    reviewer: 'Specialist SSM',
+    fields: [
+      {
+        key: 'PLACEHOLDER_AN',
+        label: 'An calendaristic',
+        source: 'meta.currentYear',
+        required: true,
+        type: 'number',
+        
+      },
+      {
+        key: 'PLACEHOLDER_EMAIL_PRESTATOR',
+        label: 'Email prestator SSM',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "contact@expertssm.ro",
+      },
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_TELEFON_PRESTATOR',
+        label: 'Telefon prestator SSM',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "0721.000.111",
+      }
+    ],
+  },
+  {
+    code: 'risk-plan-actiune-urgenta',
+    name: 'Plan de acțiune în caz de pericol grav și iminent',
+    family: 'risk',
+    originalFilename: 'Plan actiune pericol grav si iminent.docx',
+    normalizedFilename: 'Plan actiune pericol grav si iminent.docx',
+    format: 'docx',
+    contextLevel: 'client',
+    status: 'mapped',
+    version: 2,
+    description: 'Măsuri de urgență, evacuare și alertare conform art. 101-107 din Normele Metodologice de aplicare a Legii 319/2006.',
+    reviewer: 'Specialist SSM',
+    fields: [
+      {
+        key: 'PLACEHOLDER_ADRESA_FIRMA',
+        label: 'Adresă sediu social firmă',
+        source: 'client.address',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_TELEFON_CONTACT',
+        label: 'Telefon contact firmă',
+        source: 'client.contactPhone',
+        required: false,
+        type: 'string',
+        
+      }
     ],
   },
   {
     code: 'risk-plan-prevenire-tesa',
-    name: 'Plan de Prevenire și Protecție (TESA / General)',
+    name: 'Plan de Prevenire și Protecție - Personal TESA',
     family: 'risk',
-    originalFilename: 'Plan de Prevenire TESA.doc',
+    originalFilename: 'Plan de Prevenire TESA.docx',
     normalizedFilename: 'Plan de Prevenire TESA.docx',
     format: 'docx',
     contextLevel: 'client',
     status: 'mapped',
-    version: 1,
-    description: 'Tabelul de măsuri tehnice, organizatorice, igienico-sanitare derivat din evaluare',
+    version: 2,
+    description: 'Măsuri tehnice, organizatorice, igienico-sanitare și termene de realizare pentru activitățile de birou.',
     reviewer: 'Specialist SSM',
     fields: [
-      { key: 'client_name', label: 'Denumire firmă', source: 'client.name', required: true, type: 'string' },
-      { key: 'administrator_name', label: 'Administrator', source: 'client.legalRepresentative', required: true, type: 'string' },
-      { key: 'year', label: 'An', source: 'meta.currentYear', required: true, type: 'number' },
-    ],
-    collections: [
       {
-        key: 'measures',
-        label: 'Măsuri de Prevenire',
-        source: 'preventionMeasures',
-        fields: [
-          { key: 'description', label: 'Descriere măsură', source: 'item.description', required: true, type: 'string' },
-          { key: 'measureType', label: 'Tip măsură', source: 'item.measureType', required: true, type: 'string' },
-          { key: 'responsiblePerson', label: 'Responsabil', source: 'item.responsiblePerson', required: true, type: 'string' },
-          { key: 'deadline', label: 'Termen de realizare', source: 'item.deadline', required: true, type: 'string' },
-        ],
+        key: 'PLACEHOLDER_AN',
+        label: 'An calendaristic',
+        source: 'meta.currentYear',
+        required: true,
+        type: 'number',
+        
       },
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FUNCTIE',
+        label: 'Funcție / Ocupație',
+        source: 'job.title',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_PRESTATOR_SSM',
+        label: 'Prestator servicii SSM / Formare',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "SC EXPERT SSM TRAINING SRL",
+      },
+      {
+        key: 'PLACEHOLDER_REVIZIE_SPECIALIST_SSM',
+        label: 'Revizie întocmită de specialist',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "Revizia 1 / 2026",
+      },
+      {
+        key: 'PLACEHOLDER_SPECIALIST_SSM',
+        label: 'Specialist / Serviciu Desemnat SSM',
+        source: 'client.externalService',
+        required: true,
+        type: 'string',
+        defaultValue: "Ing. Popescu Ion - Specialist SSM",
+      }
+    ],
+  },
+  {
+    code: 'ipssm-tesa',
+    name: 'Fișă de Evaluare a Factorilor de Risc - Post TESA',
+    family: 'risk',
+    originalFilename: 'TESA.docx',
+    normalizedFilename: 'TESA.docx',
+    format: 'docx',
+    contextLevel: 'client',
+    status: 'mapped',
+    version: 2,
+    description: 'Grilă detaliată cu cei 17 factori de risc identificați pentru postul de lucru funcționar administrativ / TESA.',
+    reviewer: 'Evaluator Risc',
+    fields: [
+      {
+        key: 'PLACEHOLDER_DEPARTAMENT',
+        label: 'Departament / Birou',
+        source: 'worksite.activity',
+        required: true,
+        type: 'string',
+        defaultValue: "Administrativ / TESA",
+      },
+      {
+        key: 'PLACEHOLDER_DURATA_EXPUNERII',
+        label: 'Durată expunere (ore/zi)',
+        source: 'job.dailyHours',
+        required: true,
+        type: 'string',
+        defaultValue: "8 ore/zi",
+      },
+      {
+        key: 'PLACEHOLDER_EVALUATOR_RISC',
+        label: 'Nume evaluator riscuri profesionale',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "Ing. Evaluator Risc Popescu Ion",
+      },
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_01',
+        label: 'Frecventa Risc 01',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_02',
+        label: 'Frecventa Risc 02',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_03',
+        label: 'Frecventa Risc 03',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_04',
+        label: 'Frecventa Risc 04',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_05',
+        label: 'Frecventa Risc 05',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_06',
+        label: 'Frecventa Risc 06',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_07',
+        label: 'Frecventa Risc 07',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_08',
+        label: 'Frecventa Risc 08',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_09',
+        label: 'Frecventa Risc 09',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_10',
+        label: 'Frecventa Risc 10',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_11',
+        label: 'Frecventa Risc 11',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_12',
+        label: 'Frecventa Risc 12',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_13',
+        label: 'Frecventa Risc 13',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_14',
+        label: 'Frecventa Risc 14',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_15',
+        label: 'Frecventa Risc 15',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_16',
+        label: 'Frecventa Risc 16',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_17',
+        label: 'Frecventa Risc 17',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_18',
+        label: 'Frecventa Risc 18',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_19',
+        label: 'Frecventa Risc 19',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_20',
+        label: 'Frecventa Risc 20',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_21',
+        label: 'Frecventa Risc 21',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_22',
+        label: 'Frecventa Risc 22',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_23',
+        label: 'Frecventa Risc 23',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_24',
+        label: 'Frecventa Risc 24',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_25',
+        label: 'Frecventa Risc 25',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_26',
+        label: 'Frecventa Risc 26',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_27',
+        label: 'Frecventa Risc 27',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_28',
+        label: 'Frecventa Risc 28',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_29',
+        label: 'Frecventa Risc 29',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FRECVENTA_RISC_30',
+        label: 'Frecventa Risc 30',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FUNCTIE',
+        label: 'Funcție / Ocupație',
+        source: 'job.title',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_01',
+        label: 'Gravitate Risc 01',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_02',
+        label: 'Gravitate Risc 02',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_03',
+        label: 'Gravitate Risc 03',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_04',
+        label: 'Gravitate Risc 04',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_05',
+        label: 'Gravitate Risc 05',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_06',
+        label: 'Gravitate Risc 06',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_07',
+        label: 'Gravitate Risc 07',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_08',
+        label: 'Gravitate Risc 08',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_09',
+        label: 'Gravitate Risc 09',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_10',
+        label: 'Gravitate Risc 10',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_11',
+        label: 'Gravitate Risc 11',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_12',
+        label: 'Gravitate Risc 12',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_13',
+        label: 'Gravitate Risc 13',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_14',
+        label: 'Gravitate Risc 14',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_15',
+        label: 'Gravitate Risc 15',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_16',
+        label: 'Gravitate Risc 16',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_17',
+        label: 'Gravitate Risc 17',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_18',
+        label: 'Gravitate Risc 18',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_19',
+        label: 'Gravitate Risc 19',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_20',
+        label: 'Gravitate Risc 20',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_21',
+        label: 'Gravitate Risc 21',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_22',
+        label: 'Gravitate Risc 22',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_23',
+        label: 'Gravitate Risc 23',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_24',
+        label: 'Gravitate Risc 24',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_25',
+        label: 'Gravitate Risc 25',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_26',
+        label: 'Gravitate Risc 26',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_27',
+        label: 'Gravitate Risc 27',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_28',
+        label: 'Gravitate Risc 28',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_29',
+        label: 'Gravitate Risc 29',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_GRAVITATE_RISC_30',
+        label: 'Gravitate Risc 30',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_01',
+        label: 'Nivel Partial Risc 01',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_02',
+        label: 'Nivel Partial Risc 02',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_03',
+        label: 'Nivel Partial Risc 03',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_04',
+        label: 'Nivel Partial Risc 04',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_05',
+        label: 'Nivel Partial Risc 05',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_06',
+        label: 'Nivel Partial Risc 06',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_07',
+        label: 'Nivel Partial Risc 07',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_08',
+        label: 'Nivel Partial Risc 08',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_09',
+        label: 'Nivel Partial Risc 09',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_10',
+        label: 'Nivel Partial Risc 10',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_11',
+        label: 'Nivel Partial Risc 11',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_12',
+        label: 'Nivel Partial Risc 12',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_13',
+        label: 'Nivel Partial Risc 13',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_14',
+        label: 'Nivel Partial Risc 14',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_15',
+        label: 'Nivel Partial Risc 15',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_16',
+        label: 'Nivel Partial Risc 16',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_17',
+        label: 'Nivel Partial Risc 17',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_18',
+        label: 'Nivel Partial Risc 18',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_19',
+        label: 'Nivel Partial Risc 19',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_20',
+        label: 'Nivel Partial Risc 20',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_21',
+        label: 'Nivel Partial Risc 21',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_22',
+        label: 'Nivel Partial Risc 22',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_23',
+        label: 'Nivel Partial Risc 23',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_24',
+        label: 'Nivel Partial Risc 24',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_25',
+        label: 'Nivel Partial Risc 25',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_26',
+        label: 'Nivel Partial Risc 26',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_27',
+        label: 'Nivel Partial Risc 27',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_28',
+        label: 'Nivel Partial Risc 28',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_29',
+        label: 'Nivel Partial Risc 29',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_PARTIAL_RISC_30',
+        label: 'Nivel Partial Risc 30',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NIVEL_RISC_GLOBAL',
+        label: 'Nivel global de risc calculat',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "2.84 (Nivel mic spre mediu)",
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_DOCUMENT',
+        label: 'Număr document / decizie',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "1",
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_FACTORI_RISC',
+        label: 'Număr factori de risc',
+        source: 'manual',
+        required: true,
+        type: 'number',
+        defaultValue: 17,
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_FISA_EVALUARE',
+        label: 'Număr fișă evaluare',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "FE-01",
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_LOC_MUNCA',
+        label: 'Număr loc de muncă evaluat',
+        source: 'manual',
+        required: true,
+        type: 'number',
+        defaultValue: 1,
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_PERSOANE_EXPUSE',
+        label: 'Număr persoane expuse la risc',
+        source: 'client.employeeCount',
+        required: true,
+        type: 'number',
+        defaultValue: 3,
+      },
+      {
+        key: 'PLACEHOLDER_REPARTITIE_RISCURI',
+        label: 'Repartiție factori de risc',
+        source: 'manual',
+        required: true,
+        type: 'string',
+        defaultValue: "F1-F17 conform grilei standard",
+      },
+      {
+        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
+        label: 'Reprezentant Legal',
+        source: 'client.legalRepresentative',
+        required: true,
+        type: 'string',
+        
+      }
+    ],
+  },
+  {
+    code: 'hygiene-tabel-cursanti',
+    name: 'Tabel evidență cursanți igienă',
+    family: 'hygiene',
+    originalFilename: 'Tabel Cursanti exemplu.xlsx',
+    normalizedFilename: 'Tabel Cursanti exemplu.xlsx',
+    format: 'xlsx',
+    contextLevel: 'hygiene_session',
+    status: 'mapped',
+    version: 2,
+    description: 'Registru electronic cu datele de identificare și participare ale cursanților la programul de igienă.',
+    reviewer: 'Specialist SSM',
+    fields: [
+      {
+        key: 'PLACEHOLDER_ACT_IDENTITATE',
+        label: 'Act Identitate',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_AN_NASTERII',
+        label: 'An Nasterii',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_CNP',
+        label: 'Cod Numeric Personal (CNP)',
+        source: 'employee.cnp',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_EXAMEN',
+        label: 'Data susținerii examenului',
+        source: 'hygieneSession.examDate',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_LOC_NASTERII',
+        label: 'Loc Nasterii',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_LUNA_NASTERII',
+        label: 'Luna Nasterii',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_MODUL_NIVEL',
+        label: 'Modul Nivel',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUMAR_ORDINE',
+        label: 'Numar Ordine',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_NUME_COMPLET',
+        label: 'Nume și prenume salariat',
+        source: 'employee.fullName',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_ZIUA_NASTERII',
+        label: 'Ziua Nasterii',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      }
+    ],
+  },
+  {
+    code: 'training-tematica-introductiv',
+    name: 'Tematică instruire introductiv-generală (4 ore)',
+    family: 'training',
+    originalFilename: 'Tematica de instuire introductiv generala SSM 4 h.docx',
+    normalizedFilename: 'Tematica introductiv generala 4h.docx',
+    format: 'docx',
+    contextLevel: 'client',
+    status: 'mapped',
+    version: 2,
+    description: 'Programa analitică de 4 ore pentru instruirea inițială la angajare conform HG 1425/2006.',
+    reviewer: 'Specialist SSM',
+    fields: [
+      {
+        key: 'PLACEHOLDER_DATA_APLICARE',
+        label: 'Data aplicării',
+        source: 'meta.currentDateRo',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_APROBARE',
+        label: 'Data aprobării',
+        source: 'meta.currentDateRo',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_EMAIL_PRESTATOR',
+        label: 'Email prestator SSM',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "contact@expertssm.ro",
+      },
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
+        label: 'Reprezentant Legal',
+        source: 'client.legalRepresentative',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_TELEFON_PRESTATOR',
+        label: 'Telefon prestator SSM',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "0721.000.111",
+      }
+    ],
+  },
+  {
+    code: 'training-tematica-loc-munca',
+    name: 'Tematică instruire la locul de muncă și periodică',
+    family: 'training',
+    originalFilename: 'Tematica de instuire la locul de munca SSM.docx',
+    normalizedFilename: 'Tematica loc de munca.docx',
+    format: 'docx',
+    contextLevel: 'client',
+    status: 'mapped',
+    version: 2,
+    description: 'Programa analitică specifică activității desfășurate la postul de lucru.',
+    reviewer: 'Specialist SSM',
+    fields: [
+      {
+        key: 'PLACEHOLDER_DATA_APLICARE',
+        label: 'Data aplicării',
+        source: 'meta.currentDateRo',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DATA_APROBARE',
+        label: 'Data aprobării',
+        source: 'meta.currentDateRo',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_EMAIL_PRESTATOR',
+        label: 'Email prestator SSM',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "contact@expertssm.ro",
+      },
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FUNCTIE',
+        label: 'Funcție / Ocupație',
+        source: 'job.title',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_REPREZENTANT_LEGAL',
+        label: 'Reprezentant Legal',
+        source: 'client.legalRepresentative',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_TELEFON_PRESTATOR',
+        label: 'Telefon prestator SSM',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        defaultValue: "0721.000.111",
+      }
     ],
   },
   {
@@ -502,122 +3797,130 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
     format: 'docx',
     contextLevel: 'client',
     status: 'mapped',
-    version: 1,
-    description: 'Identificarea și semnalizarea zonelor cu pericol grav și iminent la punctele de lucru',
+    version: 2,
+    description: 'Registrul zonelor de lucru identificate ca prezentând risc ridicat sau pericol iminent și măsurile asociate.',
     reviewer: 'Specialist SSM',
     fields: [
-      { key: 'client_name', label: 'Denumire firmă', source: 'client.name', required: true, type: 'string' },
-      { key: 'administrator_name', label: 'Administrator', source: 'client.legalRepresentative', required: true, type: 'string' },
-      { key: 'date_ro', label: 'Data', source: 'meta.currentDateRo', required: true, type: 'string' },
-    ],
-    collections: [
       {
-        key: 'hazard_zones',
-        label: 'Zone de Pericol',
-        source: 'hazardZones',
-        fields: [
-          { key: 'zoneName', label: 'Denumire zonă', source: 'item.zoneName', required: true, type: 'string' },
-          { key: 'location', label: 'Localizare', source: 'item.location', required: true, type: 'string' },
-          { key: 'hazardDescription', label: 'Pericol', source: 'item.hazardDescription', required: true, type: 'string' },
-          { key: 'safetyMeasures', label: 'Măsuri de securitate', source: 'item.safetyMeasures', required: true, type: 'string' },
-        ],
+        key: 'PLACEHOLDER_DATA_DOCUMENT',
+        label: 'Data documentului',
+        source: 'meta.currentDateRo',
+        required: true,
+        type: 'string',
+        
       },
-    ],
-  },
-  {
-    code: 'risk-plan-actiune-urgenta',
-    name: 'Plan de acțiune în caz de pericol grav și iminent (Urgență / Prim ajutor)',
-    family: 'risk',
-    originalFilename: 'Plan actiune pericol grav si iminent.docx',
-    normalizedFilename: 'Plan actiune pericol grav si iminent.docx',
-    format: 'docx',
-    contextLevel: 'client',
-    status: 'mapped',
-    version: 1,
-    description: 'Proceduri de intervenție rapidă, evacuare, anunțare autorități și prim ajutor',
-    reviewer: 'Specialist SSM',
-    fields: [
-      { key: 'client_name', label: 'Denumire firmă', source: 'client.name', required: true, type: 'string' },
-      { key: 'address', label: 'Adresă sediu / puncte', source: 'client.address', required: true, type: 'string' },
-      { key: 'contact_phone', label: 'Telefon contact de urgență', source: 'client.contactPhone', required: true, type: 'string' },
-      { key: 'administrator_name', label: 'Administrator', source: 'client.legalRepresentative', required: true, type: 'string' },
-    ],
-  },
-
-  // ----------------------------------------------------
-  // 6. CURSURI IGIENĂ
-  // ----------------------------------------------------
-  {
-    code: 'hygiene-adeverinta',
-    name: 'Adeverință de participare curs noțiuni fundamentale de igienă',
-    family: 'hygiene',
-    originalFilename: 'Adeverinta participare- model.docx',
-    normalizedFilename: 'Adeverinta participare.docx',
-    format: 'docx',
-    contextLevel: 'hygiene_session',
-    status: 'mapped',
-    version: 1,
-    description: 'Adeverință nominală eliberată conform Ordinului 2209/4469/2022',
-    reviewer: 'Furnizor formare autorizat',
-    fields: [
-      { key: 'participant_name', label: 'Nume cursant', source: 'participant.fullName', required: true, type: 'string' },
-      { key: 'cnp', label: 'CNP', source: 'participant.cnp', required: true, type: 'string' },
-      { key: 'client_name', label: 'Angajator', source: 'participant.clientName', required: true, type: 'string' },
-      { key: 'session_date', label: 'Data cursului', source: 'session.sessionDateRo', required: true, type: 'string' },
-      { key: 'provider_name', label: 'Furnizor de instruire', source: 'session.providerName', required: true, type: 'string' },
-      { key: 'ms_aviz', label: 'Aviz Ministerul Sănătății', source: 'session.msAuthorization', required: true, type: 'string' },
-      { key: 'me_aviz', label: 'Aviz Ministerul Educației', source: 'session.meAuthorization', required: true, type: 'string' },
-      { key: 'cert_number', label: 'Număr adeverință', source: 'participant.certificateNumber', required: true, type: 'string' },
-    ],
-  },
-  {
-    code: 'hygiene-anexe-catalog',
-    name: 'Pachet formulare administrative curs igienă (Anexe 1-8)',
-    family: 'hygiene',
-    originalFilename: 'Anexe Curs igiena.xlsx',
-    normalizedFilename: 'Anexe Curs igiena.xlsx',
-    format: 'xlsx',
-    contextLevel: 'hygiene_session',
-    status: 'mapped',
-    version: 1,
-    description: 'Pachetul complet de evidențe oficiale (catalog curs, catalog examen, proces-verbal, registru)',
-    reviewer: 'Secretar comisie examen',
-    fields: [
-      { key: 'provider_name', label: 'Furnizor instruire', source: 'session.providerName', required: true, type: 'string' },
-      { key: 'session_date', label: 'Data sesiunii', source: 'session.sessionDateRo', required: true, type: 'string' },
-      { key: 'exam_date', label: 'Data examenului', source: 'session.examDateRo', required: true, type: 'string' },
-      { key: 'location', label: 'Locație examen', source: 'session.location', required: true, type: 'string' },
-      { key: 'pv_number', label: 'Serie și număr proces-verbal', source: 'session.pvSeriesNumber', required: true, type: 'string' },
-    ],
-    collections: [
       {
-        key: 'participants',
-        label: 'Lista Cursanților',
-        source: 'participants',
-        fields: [
-          { key: 'lastName', label: 'Nume', source: 'item.lastName', required: true, type: 'string' },
-          { key: 'firstName', label: 'Prenume', source: 'item.firstName', required: true, type: 'string' },
-          { key: 'cnp', label: 'CNP', source: 'item.cnp', required: true, type: 'string' },
-          { key: 'examResult', label: 'Rezultat examen', source: 'item.examResult', required: true, type: 'string' },
-        ],
+        key: 'PLACEHOLDER_DENUMIRE_ZONA_01',
+        label: 'Denumire Zona 01',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
       },
+      {
+        key: 'PLACEHOLDER_DENUMIRE_ZONA_02',
+        label: 'Denumire Zona 02',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DENUMIRE_ZONA_03',
+        label: 'Denumire Zona 03',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DENUMIRE_ZONA_04',
+        label: 'Denumire Zona 04',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DENUMIRE_ZONA_05',
+        label: 'Denumire Zona 05',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_DENUMIRE_ZONA_06',
+        label: 'Denumire Zona 06',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_FIRMA',
+        label: 'Denumire firmă / Angajator',
+        source: 'client.name',
+        required: true,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_MASURI_ZONA_01',
+        label: 'Masuri Zona 01',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_MASURI_ZONA_02',
+        label: 'Masuri Zona 02',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_MASURI_ZONA_03',
+        label: 'Masuri Zona 03',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_MASURI_ZONA_04',
+        label: 'Masuri Zona 04',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_MASURI_ZONA_05',
+        label: 'Masuri Zona 05',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_MASURI_ZONA_06',
+        label: 'Masuri Zona 06',
+        source: 'manual',
+        required: false,
+        type: 'string',
+        
+      },
+      {
+        key: 'PLACEHOLDER_PUNCT_LUCRU',
+        label: 'Denumire punct de lucru',
+        source: 'worksite.name',
+        required: false,
+        type: 'string',
+        
+      }
     ],
-  },
-  {
-    code: 'hygiene-tabel-cursanti',
-    name: 'Tabel centralizator cursanți igienă (Format import/organizare)',
-    family: 'hygiene',
-    originalFilename: 'Tabel Cursanti_exemplu.xls',
-    normalizedFilename: 'Tabel Cursanti exemplu.xls',
-    format: 'xlsx',
-    contextLevel: 'hygiene_session',
-    status: 'mapped',
-    version: 1,
-    description: 'Tabel de evidență pentru pregătirea și gruparea cursanților înainte de sesiune',
-    reviewer: 'Operator cursuri',
-    fields: [
-      { key: 'session_date', label: 'Data sesiunii', source: 'session.sessionDateRo', required: true, type: 'string' },
-      { key: 'total_participants', label: 'Număr total cursanți', source: 'session.totalParticipants', required: true, type: 'number' },
-    ],
-  },
+  }
 ];
