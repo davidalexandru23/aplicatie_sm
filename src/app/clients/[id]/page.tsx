@@ -3,17 +3,35 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { maskCNP } from '@/lib/security';
 import { 
+  calculateEmployeeCompliance, 
+  calculateCompanyMetrics, 
+  formatRoDate 
+} from '@/lib/compliance';
+import { getCaenEntry } from '@/lib/caen-catalog';
+import {
+  ComplianceItemBadge,
+  OverallComplianceBadge,
+  ComplianceScoreBadge,
+  ComplianceBreakdownPills,
+  ComplianceAlertBanner,
+} from '@/components/compliance-badge';
+import { ClientEditModal } from '@/components/client-edit-modal';
+import { OrganizationalDecisionsCard } from '@/components/organizational-decisions-card';
+import { 
   Building2, 
   Users, 
   Briefcase, 
   MapPin, 
   FileText, 
   UploadCloud, 
-  ShieldAlert, 
-  CheckCircle2, 
-  Sparkles,
   Download,
-  Clock
+  Stethoscope,
+  ShieldCheck,
+  Flame,
+  Award,
+  AlertTriangle,
+  Clock,
+  Sparkles
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -57,23 +75,53 @@ export default async function ClientDetailPage({
   }
 
   const activeEmployees = client.employees.filter((e) => e.status === 'ACTIV');
+  
+  // Calcul conformitate per salariat și la nivel de companie (pe angajații activi)
+  const clientMetrics = calculateCompanyMetrics(activeEmployees);
+
+  // Pre-evaluăm conformitatea fiecărui salariat pentru randare optimizată
+  const evaluatedEmployees = client.employees.map((emp) => ({
+    ...emp,
+    compliance: calculateEmployeeCompliance(emp),
+  }));
+
+  // Profil CAEN rezolvat din catalog
+  const caenMeta = client.caenCode ? getCaenEntry(client.caenCode) : undefined;
+
+  // Active employee options for organizational decisions appointments
+  const activeEmployeeOptions = activeEmployees.map((e) => ({
+    id: e.id,
+    fullName: `${e.lastName} ${e.firstName}`,
+    jobTitle: e.currentJob?.title,
+  }));
+
+  // Găsim ultimul pachet de decizii generat
+  const lastDeciziiDoc = client.generatedDocuments.find(
+    (d) => d.template.code === 'decizii-angajator'
+  );
 
   return (
     <div className="space-y-8">
-      {/* Client Overview Card */}
+      {/* 1. Client Overview Card */}
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
               {client.name}
             </h1>
-            <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
-              client.isActive
-                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                : 'bg-slate-100 text-slate-500'
-            }`}>
+            <span
+              className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                client.isActive
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  : 'bg-slate-100 text-slate-500'
+              }`}
+            >
               {client.isActive ? 'CLIENT ACTIV' : 'INACTIV'}
             </span>
+            <ComplianceScoreBadge 
+              scorePercent={clientMetrics.complianceScorePercent} 
+              size="sm" 
+            />
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-2 mt-4 text-xs text-slate-600">
@@ -103,6 +151,7 @@ export default async function ClientDetailPage({
         </div>
 
         <div className="flex flex-wrap md:flex-col gap-2 w-full md:w-auto">
+          <ClientEditModal client={client} />
           <a
             href={`/api/clients/${client.id}/export`}
             className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm transition"
@@ -128,7 +177,148 @@ export default async function ClientDetailPage({
         </div>
       </div>
 
-      {/* Stats Counter */}
+      {/* 2. Profil Activitate Economică (CAEN) & SEPP Abilitat Card */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+              <Briefcase className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-slate-900">
+                Profil Activitate Economică (CAEN Rev. 2) & Serviciu Extern SSM (SEPP)
+              </h2>
+              <p className="text-xs text-slate-500">
+                Parametrii legali de instruire și prestatorul abilitat ITM conform Legii 319/2006.
+              </p>
+            </div>
+          </div>
+          <ClientEditModal
+            client={client}
+            triggerClassName="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition"
+            triggerText="Editează CAEN / SEPP"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+          {/* Stânga: Profil CAEN & Cerințe Legale */}
+          <div className="space-y-3 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-sm font-bold bg-blue-100 text-blue-900 px-2.5 py-1 rounded-md border border-blue-200">
+                CAEN {client.caenCode || 'Nespecificat'}
+              </span>
+              {caenMeta?.riskClass && (
+                <span
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
+                    caenMeta.riskClass === 'LOW'
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : caenMeta.riskClass === 'MEDIUM'
+                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                      : 'bg-rose-50 text-rose-700 border border-rose-200'
+                  }`}
+                >
+                  Clasă Risc {caenMeta.riskClass === 'LOW' ? 'Scăzut' : caenMeta.riskClass === 'MEDIUM' ? 'Mediu' : 'Ridicat'}
+                </span>
+              )}
+              {client.foundedYear && (
+                <span className="text-xs text-slate-500">
+                  • Înființată în {client.foundedYear}
+                </span>
+              )}
+            </div>
+
+            <div>
+              <div className="text-[11px] font-semibold text-slate-500">Denumire Activitate:</div>
+              <div className="text-xs font-medium text-slate-900 mt-0.5">
+                {client.caenActivity || caenMeta?.name || 'Activitate nespecificată în dosar.'}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 border-t border-slate-200 text-xs">
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase">Interval SSM Legal</span>
+                <span className="font-bold text-slate-800">
+                  {caenMeta?.defaultSsmIntervalMonths || 6} luni
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase">Interval PSI Legal</span>
+                <span className="font-bold text-slate-800">
+                  {caenMeta?.defaultPsiIntervalMonths || 6} luni
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase">Curs Igienă</span>
+                <span className={`font-bold ${caenMeta?.requiresHygieneCourse ? 'text-indigo-600' : 'text-slate-500'}`}>
+                  {caenMeta?.requiresHygieneCourse ? 'Obligatoriu' : 'Neaplicabil'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Dreapta: Serviciu Extern de Prevenire și Protecție (SEPP) */}
+          <div className="space-y-3 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span>Serviciu Extern de Prevenire și Protecție (SEPP)</span>
+            </div>
+
+            <div className="space-y-2 text-xs">
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase">Prestator Abilitat ITM:</span>
+                <span className="font-medium text-slate-900">
+                  {client.ssmProviderName || <span className="text-slate-400 italic">Nespecificat</span>}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase">Specialist / Evaluator Desemnat:</span>
+                <span className="font-medium text-slate-900">
+                  {client.ssmSpecialistName || <span className="text-slate-400 italic">Nespecificat</span>}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase">Certificat Atestare / Abilitare:</span>
+                <span className="font-mono text-slate-700">
+                  {client.ssmSpecialistCert || <span className="text-slate-400 italic font-sans">Nespecificat</span>}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Compliance Overview Dashboard Section */}
+      <div className="space-y-4">
+        {/* Banner de alertă critică dacă există scadențe depășite */}
+        <ComplianceAlertBanner metrics={clientMetrics} clientName={client.name} />
+
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            {/* Stânga: Scor Conformitate */}
+            <div className="lg:w-1/3 border-b lg:border-b-0 lg:border-r border-slate-100 pb-5 lg:pb-0 lg:pr-6">
+              <ComplianceScoreBadge 
+                scorePercent={clientMetrics.complianceScorePercent}
+                totalItems={clientMetrics.totalItemsTracked}
+                validCount={clientMetrics.validCount}
+                size="md"
+              />
+              <div className="mt-3 text-xs text-slate-500">
+                Calculat pentru cei <strong className="text-slate-800">{activeEmployees.length}</strong> salariați activi pe 4 direcții: Medicină a Muncii, SSM, PSI/SU și Igienă.
+              </div>
+            </div>
+
+            {/* Dreapta: Pastilele de distribuție */}
+            <div className="lg:w-2/3">
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2.5">
+                Distribuție Cerințe de Securitate în Muncă
+              </div>
+              <ComplianceBreakdownPills metrics={clientMetrics} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Stats Counter */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
           <div className="text-xs text-slate-500 font-medium">Angajați Activi</div>
@@ -150,16 +340,34 @@ export default async function ClientDetailPage({
         </div>
       </div>
 
-      {/* Section 1: Employees */}
+      {/* 5. Organizational Decisions Manager (01-09) */}
+      <OrganizationalDecisionsCard
+        clientId={client.id}
+        initialData={{
+          designatedWorkerSsm: client.designatedWorkerSsm,
+          firstAidResponder: client.firstAidResponder,
+          psiResponder: client.psiResponder,
+          investigationMembers: client.investigationMembers,
+          decisionsDate: client.decisionsDate ? client.decisionsDate.toISOString().split('T')[0] : null,
+          legalRepresentative: client.legalRepresentative,
+        }}
+        activeEmployees={activeEmployeeOptions}
+        lastGeneratedDate={lastDeciziiDoc?.createdAt ? new Date(lastDeciziiDoc.createdAt).toLocaleDateString('ro-RO') : null}
+        lastGeneratedDocId={lastDeciziiDoc?.id || null}
+      />
+
+      {/* 6. Section: Employees with Inline Compliance Badges */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/75">
-          <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+        <div className="px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 bg-slate-50/75">
+          <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-blue-600" />
-            <span>Angajați Înregistrați ({client.employees.length})</span>
-          </h2>
-          <span className="text-xs text-slate-500 font-medium">
-            CNP mascat conform GDPR (nu se expune în URL/loguri)
-          </span>
+            <h2 className="text-sm font-bold text-slate-900">
+              Registru Salariați & Monitorizare Scadențe ({client.employees.length})
+            </h2>
+          </div>
+          <div className="text-xs text-slate-500">
+            CNP mascat conform GDPR • Verificare automată HG 355/2007, Legea 319/2006
+          </div>
         </div>
 
         {client.employees.length === 0 ? (
@@ -171,81 +379,143 @@ export default async function ClientDetailPage({
             <table className="min-w-full divide-y divide-slate-100 text-left text-xs">
               <thead className="bg-white text-slate-400 font-semibold uppercase tracking-wider">
                 <tr>
-                  <th className="px-6 py-3">Nume & Prenume</th>
-                  <th className="px-4 py-3">CNP (Mascat)</th>
-                  <th className="px-4 py-3">Funcție / Post</th>
-                  <th className="px-4 py-3">Punct de Lucru</th>
-                  <th className="px-4 py-3">Data Angajării</th>
-                  <th className="px-4 py-3">Curs Igienă</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Acțiuni Documente</th>
+                  <th className="px-5 py-3">Salariat</th>
+                  <th className="px-3 py-3">Stare Generală</th>
+                  <th className="px-3 py-3">
+                    <span className="flex items-center gap-1">
+                      <Stethoscope className="w-3.5 h-3.5 text-blue-500" />
+                      <span>Medicină Muncii</span>
+                    </span>
+                  </th>
+                  <th className="px-3 py-3">
+                    <span className="flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>Instruire SSM</span>
+                    </span>
+                  </th>
+                  <th className="px-3 py-3">
+                    <span className="flex items-center gap-1">
+                      <Flame className="w-3.5 h-3.5 text-orange-500" />
+                      <span>Instruire PSI</span>
+                    </span>
+                  </th>
+                  <th className="px-3 py-3">
+                    <span className="flex items-center gap-1">
+                      <Award className="w-3.5 h-3.5 text-indigo-500" />
+                      <span>Curs Igienă</span>
+                    </span>
+                  </th>
+                  <th className="px-3 py-3">Status</th>
+                  <th className="px-4 py-3 text-right">Documente</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
-                {client.employees.map((emp) => (
-                  <tr key={emp.id} className="hover:bg-slate-50/50 transition">
-                    <td className="px-6 py-3.5 font-semibold text-slate-900">
-                      {emp.lastName} {emp.firstName}
-                    </td>
-                    <td className="px-4 py-3.5 font-mono text-slate-500">
-                      {maskCNP(emp.cnp)}
-                    </td>
-                    <td className="px-4 py-3.5 text-slate-700">
-                      {emp.currentJob?.title || '—'}
-                    </td>
-                    <td className="px-4 py-3.5 text-slate-600">
-                      {emp.currentWorksite?.name || '—'}
-                    </td>
-                    <td className="px-4 py-3.5 text-slate-500">
-                      {emp.hireDate ? new Date(emp.hireDate).toLocaleDateString('ro-RO') : '—'}
-                    </td>
-                    <td className="px-4 py-3.5">
-                      {emp.hygieneRequested ? (
-                        <span className="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded text-[10px] font-bold">
-                          SOLICITAT
+                {evaluatedEmployees.map((emp) => {
+                  const comp = emp.compliance;
+                  return (
+                    <tr key={emp.id} className="hover:bg-slate-50/60 transition">
+                      {/* Salariat & Detalii de bază */}
+                      <td className="px-5 py-3.5">
+                        <div className="font-semibold text-slate-900">
+                          {emp.lastName} {emp.firstName}
+                        </div>
+                        <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+                          <span className="font-mono">{maskCNP(emp.cnp)}</span>
+                          <span>•</span>
+                          <span className="truncate max-w-[140px]">{emp.currentJob?.title || 'Fără post'}</span>
+                        </div>
+                      </td>
+
+                      {/* Stare Generală Agregată */}
+                      <td className="px-3 py-3.5 whitespace-nowrap">
+                        <OverallComplianceBadge status={comp.overallStatus} size="sm" />
+                      </td>
+
+                      {/* 1. Medicină a Muncii */}
+                      <td className="px-3 py-3.5 whitespace-nowrap">
+                        <ComplianceItemBadge 
+                          item={comp.occupationalMedicine} 
+                          showSubtext={true}
+                        />
+                      </td>
+
+                      {/* 2. Instruire SSM */}
+                      <td className="px-3 py-3.5 whitespace-nowrap">
+                        <ComplianceItemBadge 
+                          item={comp.ssmTraining} 
+                          showSubtext={true}
+                        />
+                      </td>
+
+                      {/* 3. Instruire PSI */}
+                      <td className="px-3 py-3.5 whitespace-nowrap">
+                        <ComplianceItemBadge 
+                          item={comp.psiTraining} 
+                          showSubtext={true}
+                        />
+                      </td>
+
+                      {/* 4. Curs Igienă (Condițional) */}
+                      <td className="px-3 py-3.5 whitespace-nowrap">
+                        {comp.hygieneCertificate ? (
+                          <ComplianceItemBadge 
+                            item={comp.hygieneCertificate} 
+                            showSubtext={true}
+                          />
+                        ) : (
+                          <span className="text-[11px] text-slate-400 italic">
+                            Neaplicabil
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Status HR (ACTIV / PLECAT) */}
+                      <td className="px-3 py-3.5 whitespace-nowrap">
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                            emp.status === 'ACTIV'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-rose-50 text-rose-700 border border-rose-200'
+                          }`}
+                        >
+                          {emp.status}
                         </span>
-                      ) : (
-                        <span className="text-slate-400 text-[11px]">Nu</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                        emp.status === 'ACTIV'
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          : 'bg-rose-50 text-rose-700 border border-rose-200'
-                      }`}>
-                        {emp.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5 text-right space-x-1">
-                      <Link
-                        href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-cerere-angajare`}
-                        className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded"
-                      >
-                        Cerere
-                      </Link>
-                      <Link
-                        href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-declaratie-regulament`}
-                        className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded"
-                      >
-                        Declarație RI
-                      </Link>
-                      <Link
-                        href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-cim-2026`}
-                        className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded"
-                      >
-                        CIM
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+
+                      {/* Acțiuni Rapide Documente */}
+                      <td className="px-4 py-3.5 text-right space-x-1 whitespace-nowrap">
+                        <Link
+                          href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-cerere-angajare`}
+                          className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded"
+                          title="Generează cerere de angajare"
+                        >
+                          Cerere
+                        </Link>
+                        <Link
+                          href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-declaratie-regulament`}
+                          className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded"
+                          title="Generează declarație regulament intern"
+                        >
+                          Declarație RI
+                        </Link>
+                        <Link
+                          href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-cim-2026`}
+                          className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded"
+                          title="Generează CIM 2026"
+                        >
+                          CIM
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
       </div>
 
-      {/* Two Column Layout: Worksites & Jobs */}
+      {/* 7. Two Column Layout: Worksites & Jobs */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Worksites */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
@@ -296,7 +566,7 @@ export default async function ClientDetailPage({
         </div>
       </div>
 
-      {/* Generated Documents Archive for this Client */}
+      {/* 8. Generated Documents Archive for this Client */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/75">
           <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -340,11 +610,13 @@ export default async function ClientDetailPage({
                       {new Date(doc.createdAt).toLocaleDateString('ro-RO')}
                     </td>
                     <td className="px-4 py-3.5">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                        doc.status === 'approved_for_print'
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          : 'bg-amber-50 text-amber-700 border border-amber-200'
-                      }`}>
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                          doc.status === 'approved_for_print'
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : 'bg-amber-50 text-amber-700 border border-amber-200'
+                        }`}
+                      >
                         {doc.status === 'approved_for_print' ? 'Aprobat Tipărire' : 'Draft / Lipsuri'}
                       </span>
                     </td>

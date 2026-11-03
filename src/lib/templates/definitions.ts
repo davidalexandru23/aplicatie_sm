@@ -1152,7 +1152,7 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
       {
         key: 'PLACEHOLDER_DATA_DECIZIE',
         label: 'Data deciziei interne',
-        source: 'manual',
+        source: 'client.decisionsDate',
         required: false,
         type: 'string',
       },
@@ -1236,7 +1236,7 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
       {
         key: 'PLACEHOLDER_LUCRATOR_DESEMNAT_SSM',
         label: 'Lucrator Desemnat Ssm',
-        source: 'manual',
+        source: 'client.designatedWorkerSsm',
         required: false,
         type: 'string',
       },
@@ -1250,7 +1250,7 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
       {
         key: 'PLACEHOLDER_MEMBRU_COMISIE',
         label: 'Membru comisie',
-        source: 'hygieneSession.commissionMember1',
+        source: 'client.investigationMembers',
         required: false,
         type: 'string',
       },
@@ -1397,14 +1397,14 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
       {
         key: 'PLACEHOLDER_RESPONSABIL_PRIM_AJUTOR',
         label: 'Responsabil Prim Ajutor',
-        source: 'manual',
+        source: 'client.firstAidResponder',
         required: false,
         type: 'string',
       },
       {
         key: 'PLACEHOLDER_RESPONSABIL_PSI',
         label: 'Responsabil Psi',
-        source: 'manual',
+        source: 'client.psiResponder',
         required: false,
         type: 'string',
       },
@@ -1801,7 +1801,7 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
       {
         key: 'PLACEHOLDER_ACTIVITATE_PRINCIPALA',
         label: 'Activitate principală desfășurată',
-        source: 'manual',
+        source: 'client.caenActivity',
         required: false,
         type: 'string',
       },
@@ -1822,28 +1822,28 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
       {
         key: 'PLACEHOLDER_AN_INFIINTARE',
         label: 'An înființare societate',
-        source: 'manual',
+        source: 'client.foundedYear',
         required: false,
         type: 'string',
       },
       {
         key: 'PLACEHOLDER_CERTIFICAT_EVALUATOR',
         label: 'Certificat atestare evaluator risc',
-        source: 'manual',
+        source: 'client.ssmSpecialistCert',
         required: false,
         type: 'string',
       },
       {
         key: 'PLACEHOLDER_COD_CAEN',
         label: 'Cod CAEN activitate',
-        source: 'manual',
+        source: 'client.caenCode',
         required: false,
         type: 'string',
       },
       {
         key: 'PLACEHOLDER_CONCLUZII_EVALUARE',
         label: 'Concluzii evaluare riscuri',
-        source: 'manual',
+        source: 'riskProfile.conclusions',
         required: false,
         type: 'string',
       },
@@ -1878,7 +1878,7 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
       {
         key: 'PLACEHOLDER_NIVEL_RISC_GLOBAL',
         label: 'Nivel global de risc calculat',
-        source: 'manual',
+        source: 'riskProfile.globalRiskScore',
         required: false,
         type: 'string',
       },
@@ -1892,7 +1892,7 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
       {
         key: 'PLACEHOLDER_PRESTATOR_SSM',
         label: 'Prestator servicii SSM / Formare',
-        source: 'hygieneSession.providerName',
+        source: 'client.ssmProviderName',
         required: true,
         type: 'string',
       },
@@ -1924,15 +1924,7 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
     version: 2,
     description: 'Opisul documentelor obligatorii din dosarul personal al salariatului.',
     reviewer: 'Operator HR',
-    fields: [
-      {
-        key: '_Fără token-uri detectate._',
-        label: ' Fără token-uri detectate. ',
-        source: 'manual',
-        required: false,
-        type: 'string',
-      }
-    ],
+    fields: [],
   },
   {
     code: 'hr-gdpr-informare',
@@ -2157,7 +2149,7 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
       {
         key: 'PLACEHOLDER_PRESTATOR_SSM',
         label: 'Prestator servicii SSM / Formare',
-        source: 'hygieneSession.providerName',
+        source: 'client.ssmProviderName',
         required: true,
         type: 'string',
       },
@@ -2171,7 +2163,7 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
       {
         key: 'PLACEHOLDER_SPECIALIST_SSM',
         label: 'Specialist / Serviciu Desemnat SSM',
-        source: 'manual',
+        source: 'client.ssmSpecialistName',
         required: true,
         type: 'string',
       }
@@ -2365,7 +2357,7 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
     contextLevel: 'client',
     status: 'mapped',
     version: 2,
-    description: 'Grilă detaliată cu cei 17 factori de risc identificați pentru postul de lucru funcționar administrativ / TESA.',
+    description: 'Grilă detaliată cu cei 30 de factori de risc identificați pentru postul de lucru funcționar administrativ / TESA conform metodei INCDPM.',
     reviewer: 'Evaluator Risc',
     fields: [
       {
@@ -3163,7 +3155,7 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
       {
         key: 'PLACEHOLDER_LUCRATOR_DESEMNAT_SSM',
         label: 'Lucrator Desemnat Ssm',
-        source: 'manual',
+        source: 'client.designatedWorkerSsm',
         required: false,
         type: 'string',
       },

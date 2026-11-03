@@ -55,6 +55,11 @@ export interface ParsedEmployee {
   hygieneModule?: string;
   hygienePreferredSession?: string;
   adminNotes?: string;
+  // Termene SSM & Medicina Muncii (opțional în șablon)
+  medicalLastExamDate?: Date;
+  ssmLastTrainingDate?: Date;
+  psiLastTrainingDate?: Date;
+  hygieneLastExamDate?: Date;
   // Validare
   isValid: boolean;
   errors: string[];
@@ -105,29 +110,91 @@ export interface ImportPreviewReport {
   items: ImportPreviewItem[];
 }
 
-function parseExcelDate(val: unknown): Date | undefined {
-  if (!val) return undefined;
-  if (val instanceof Date) return val;
-  if (typeof val === 'number') {
-    // Excel date serial number
-    const date = new Date(Math.round((val - 25569) * 86400 * 1000));
-    return isNaN(date.getTime()) ? undefined : date;
+/**
+ * Normalizare text antet: litere mici, eliminare diacritice, paranteze, asteriscuri și spații multiple.
+ */
+export function normalizeHeader(raw: string): string {
+  return raw
+    .toLowerCase()
+    .replace(/[*()]/g, '')
+    .replace(/[ăâ]/g, 'a')
+    .replace(/[î]/g, 'i')
+    .replace(/[șş]/g, 's')
+    .replace(/[țţ]/g, 't')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Parsare sigură UTC timezone-neutral pentru date Excel.
+ * Suportă numere seriale Excel (inclusiv string seriale '32888'),
+ * formate europene (DD.MM.YYYY, DD/MM/YYYY, DD-MM-YYYY),
+ * formate ISO (YYYY-MM-DD) și instanțe Date native.
+ */
+export function parseExcelDate(val: unknown): Date | undefined {
+  if (val === undefined || val === null || val === '') return undefined;
+
+  if (val instanceof Date) {
+    if (isNaN(val.getTime())) return undefined;
+    // Offset cushion (+12h) pentru a aduce miezul nopții din orice fus orar (-11h .. +11h) la amiaza aceleiași zile UTC
+    const rounded = new Date(val.getTime() + 12 * 3600 * 1000);
+    return new Date(Date.UTC(rounded.getUTCFullYear(), rounded.getUTCMonth(), rounded.getUTCDate()));
   }
+
+  if (typeof val === 'number') {
+    const parsed = XLSX.SSF.parse_date_code(val);
+    if (parsed && parsed.y && parsed.m && parsed.d) {
+      return new Date(Date.UTC(parsed.y, parsed.m - 1, parsed.d));
+    }
+    return undefined;
+  }
+
   if (typeof val === 'string') {
     const trimmed = val.trim();
     if (!trimmed) return undefined;
-    // Format DD.MM.YYYY
+
+    // Excel serial numeric salvat ca text (ex: '32888' sau '44561.5')
+    if (/^\d{4,6}(?:\.\d+)?$/.test(trimmed)) {
+      const num = parseFloat(trimmed);
+      const parsed = XLSX.SSF.parse_date_code(num);
+      if (parsed && parsed.y && parsed.m && parsed.d) {
+        return new Date(Date.UTC(parsed.y, parsed.m - 1, parsed.d));
+      }
+    }
+
+    // DD.MM.YYYY, DD/MM/YYYY, DD-MM-YYYY
     const dmy = trimmed.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/);
     if (dmy) {
       const d = parseInt(dmy[1], 10);
-      const m = parseInt(dmy[2], 10) - 1;
+      const m = parseInt(dmy[2], 10);
       const y = parseInt(dmy[3], 10);
-      const parsed = new Date(y, m, d);
-      return isNaN(parsed.getTime()) ? undefined : parsed;
+      const dt = new Date(Date.UTC(y, m - 1, d));
+      if (dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d) {
+        return dt;
+      }
+      return undefined;
     }
-    const parsed = new Date(trimmed);
-    return isNaN(parsed.getTime()) ? undefined : parsed;
+
+    // ISO YYYY-MM-DD, YYYY/MM/DD, YYYY.MM.DD
+    const ymd = trimmed.match(/^(\d{4})[./-](\d{1,2})[./-](\d{1,2})(?:T.*)?$/);
+    if (ymd) {
+      const y = parseInt(ymd[1], 10);
+      const m = parseInt(ymd[2], 10);
+      const d = parseInt(ymd[3], 10);
+      const dt = new Date(Date.UTC(y, m - 1, d));
+      if (dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d) {
+        return dt;
+      }
+      return undefined;
+    }
+
+    const fallback = new Date(trimmed);
+    if (!isNaN(fallback.getTime())) {
+      const rounded = new Date(fallback.getTime() + 12 * 3600 * 1000);
+      return new Date(Date.UTC(rounded.getUTCFullYear(), rounded.getUTCMonth(), rounded.getUTCDate()));
+    }
   }
+
   return undefined;
 }
 
@@ -154,11 +221,99 @@ export function validateCNP(cnp: string): boolean {
   return control === parseInt(clean[12], 10);
 }
 
+const CANONICAL_COLUMNS: Record<string, number> = {
+  lastName: 0,
+  firstName: 1,
+  sex: 2,
+  cnp: 3,
+  birthDate: 4,
+  birthPlace: 5,
+  birthCounty: 6,
+  citizenship: 7,
+  docType: 8,
+  docSeries: 9,
+  docNumber: 10,
+  docIssuedBy: 11,
+  docIssueDate: 12,
+  docExpiryDate: 13,
+  county: 14,
+  locality: 15,
+  street: 16,
+  streetNumber: 17,
+  building: 18,
+  entrance: 19,
+  floor: 20,
+  apartment: 21,
+  email: 22,
+  phone: 23,
+  jobTitle: 24,
+  worksiteName: 25,
+  startDateOnJob: 26,
+  hireDate: 27,
+  status: 28,
+  leaveDate: 29,
+  hygieneRequested: 30,
+  hygieneModule: 31,
+  hygienePreferredSession: 32,
+  adminNotes: 33,
+};
+
+const HEADER_TOKEN_MAP: Record<string, string[]> = {
+  lastName: ['nume', 'nume familie', 'nume de familie'],
+  firstName: ['prenume', 'prenumele'],
+  sex: ['sex', 'sex conform actului', 'gen'],
+  cnp: [
+    'cnp',
+    'cod numeric personal',
+    'c.n.p.',
+    'c.n.p',
+    'cnp/pasaport',
+    'cnp / pasaport',
+    'c.n.p. / pasaport',
+    'c.n.p./pasaport',
+    'identificator',
+  ],
+  birthDate: ['data nasterii', 'data nastere'],
+  birthPlace: ['localitatea nasterii', 'loc nastere', 'oras nastere', 'localitate nastere'],
+  birthCounty: ['judet/sector nastere', 'judet sector nastere', 'judet nastere'],
+  citizenship: ['cetatenie', 'nationalitate'],
+  docType: ['tip act', 'tip act ciceipasaport', 'tip act ci/cei/pasaport', 'tip document'],
+  docSeries: ['serie act', 'serie', 'serie ci'],
+  docNumber: ['numar act', 'nr act', 'numar ci', 'nr document', 'numar act identitate'],
+  docIssuedBy: ['emis de', 'eliberat de', 'autoritate emitenta'],
+  docIssueDate: ['data emiterii', 'data eliberarii', 'emis la'],
+  docExpiryDate: ['data expirarii', 'valabil pana la', 'expira la'],
+  county: ['judet/sector domiciliu', 'judet sector domiciliu', 'judet domiciliu', 'judet'],
+  locality: ['localitate domiciliu', 'localitate', 'oras domiciliu', 'comuna'],
+  street: ['strada', 'str.'],
+  streetNumber: ['numar', 'numar strada', 'nr', 'nr.'],
+  building: ['bloc', 'bl.'],
+  entrance: ['scara', 'sc.'],
+  floor: ['etaj', 'et.'],
+  apartment: ['apartament', 'ap.'],
+  email: ['email', 'e-mail', 'email optional'],
+  phone: ['telefon', 'telefon optional', 'mobil', 'tel'],
+  jobTitle: ['functie / post', 'functie/post', 'functie', 'post', 'ocupatie'],
+  worksiteName: ['punct de lucru', 'punct lucru', 'locatie', 'sediu'],
+  startDateOnJob: ['data inceperii pe post/punct', 'data inceperii pe post', 'data debut post'],
+  hireDate: ['data angajarii', 'data angajare', 'data contract'],
+  status: ['status', 'stare', 'situatie'],
+  leaveDate: ['data plecarii', 'data plecare', 'data incetarii'],
+  hygieneRequested: ['solicita curs igiena', 'curs igiena', 'igiena'],
+  hygieneModule: ['modul solicitat', 'modul igiena', 'modul'],
+  hygienePreferredSession: ['sesiune preferata', 'sesiune curs'],
+  adminNotes: ['observatii administrative', 'observatii', 'note', 'mentiuni'],
+  medicalLastExamDate: ['data examen medical', 'data medicina muncii', 'examen medical', 'medicina muncii'],
+  ssmLastTrainingDate: ['data instruire ssm', 'data instruirii ssm', 'ultima instruire ssm', 'data ssm'],
+  psiLastTrainingDate: ['data instruire psi', 'data instruirii psi', 'ultima instruire psi', 'data psi'],
+  hygieneLastExamDate: ['data examen igiena', 'data curs igiena', 'data certificat igiena'],
+};
+
 /**
  * Parsare fișier Excel Model_date_client_SSM.xlsx
  */
 export function parseClientWorkbook(buffer: Buffer): ParsedWorkbook {
-  const wb = XLSX.read(buffer, { type: 'buffer', cellDates: true });
+  const wb = XLSX.read(buffer, { type: 'buffer' });
 
   const sheetNameFirm = wb.SheetNames.find((s) => s.toLowerCase().includes('firm'));
   if (!sheetNameFirm) {
@@ -179,14 +334,63 @@ export function parseClientWorkbook(buffer: Buffer): ParsedWorkbook {
     contactPhone: getCellValue(sFirm, 'E8'),
   };
 
-  // 2. Parsare tabel angajați (începând cu rândul 13, antete la rândul 12)
-  const employees: ParsedEmployee[] = [];
+  // 2. Identificare antete tabel angajați (dinamic pe rândul 12, index r = 11, cu fallback canonic)
   const range = XLSX.utils.decode_range(sFirm['!ref'] || 'A1:AH250');
+  let headerRowIndex = 11; // Rândul 12 (0-indexed 11)
 
-  for (let r = 12; r <= range.e.r; r++) {
-    const lastName = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 0 }));
-    const firstName = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 1 }));
-    const cnpRaw = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 3 }));
+  const checkRowHasHeaders = (r: number): boolean => {
+    let hasName = false;
+    let hasCnp = false;
+    for (let c = range.s.c; c <= Math.min(range.e.c, 33); c++) {
+      const raw = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c }));
+      if (!raw) continue;
+      const norm = normalizeHeader(raw);
+      if (norm.includes('nume')) hasName = true;
+      if (norm.includes('cnp') || norm.includes('c.n.p') || norm.includes('identificator')) hasCnp = true;
+    }
+    return hasName && hasCnp;
+  };
+
+  if (!checkRowHasHeaders(11)) {
+    for (let r = 0; r <= Math.min(range.e.r, 20); r++) {
+      if (checkRowHasHeaders(r)) {
+        headerRowIndex = r;
+        break;
+      }
+    }
+  }
+
+  const dynamicColMap: Record<string, number> = {};
+  for (let c = range.s.c; c <= Math.max(range.e.c, 33); c++) {
+    const rawVal = getCellValue(sFirm, XLSX.utils.encode_cell({ r: headerRowIndex, c }));
+    if (!rawVal) continue;
+    const norm = normalizeHeader(rawVal);
+    for (const [field, tokens] of Object.entries(HEADER_TOKEN_MAP)) {
+      if (dynamicColMap[field] === undefined && tokens.some((t) => norm === t || norm.startsWith(t))) {
+        dynamicColMap[field] = c;
+        break;
+      }
+    }
+  }
+
+  const hasDynamicHeaders = dynamicColMap.cnp !== undefined && (dynamicColMap.lastName !== undefined || dynamicColMap.firstName !== undefined);
+  const getCol = (field: string, fallbackCol: number): number => {
+    if (hasDynamicHeaders && dynamicColMap[field] !== undefined) {
+      return dynamicColMap[field];
+    }
+    return fallbackCol;
+  };
+  const colIndex = (field: string): number => getCol(field, CANONICAL_COLUMNS[field] ?? -1);
+
+  // 3. Parsare tabel angajați
+  const employees: ParsedEmployee[] = [];
+  const seenCnpMap = new Map<string, number>(); // cnpClean -> excelRowNumber (r + 1)
+  const startRow = headerRowIndex + 1;
+
+  for (let r = startRow; r <= range.e.r; r++) {
+    const lastName = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('lastName') }));
+    const firstName = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('firstName') }));
+    const cnpRaw = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('cnp') }));
 
     // Dacă rândul este complet gol, trecem peste
     if (!lastName && !firstName && !cnpRaw) continue;
@@ -194,82 +398,119 @@ export function parseClientWorkbook(buffer: Buffer): ParsedWorkbook {
     const errors: string[] = [];
     if (!lastName) errors.push('Numele este obligatoriu.');
     if (!firstName) errors.push('Prenumele este obligatoriu.');
+
+    const citizenship = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('citizenship') })) || 'Română';
+    const docType = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('docType') })) || 'CI';
+
+    const normCitizenship = normalizeHeader(citizenship);
+    const isRomanian = !citizenship || normCitizenship === 'romana' || normCitizenship === 'ro';
+    const isPassport = normalizeHeader(docType).includes('pasaport');
+
     if (!cnpRaw) {
-      errors.push('CNP-ul este obligatoriu.');
-    } else if (!validateCNP(cnpRaw)) {
-      errors.push('CNP-ul este invalid (cifra de control sau lungime incorectă).');
+      errors.push('CNP-ul sau numărul de identificare este obligatoriu.');
+    } else {
+      const cnpClean = cnpRaw.trim();
+      if (seenCnpMap.has(cnpClean)) {
+        errors.push(`CNP duplicat în fișier (apare deja la rândul ${seenCnpMap.get(cnpClean)}).`);
+      } else {
+        seenCnpMap.set(cnpClean, r + 1);
+      }
+
+      if (isRomanian && !isPassport) {
+        if (!validateCNP(cnpClean)) {
+          errors.push('CNP-ul este invalid (cifra de control sau lungime incorectă).');
+        }
+      } else {
+        if (cnpClean.length < 3) {
+          errors.push('Numărul actului de identificare/pașaport este prea scurt.');
+        }
+      }
     }
 
-    const birthDate = parseExcelDate(sFirm[XLSX.utils.encode_cell({ r, c: 4 })]?.v);
+    const birthDate = parseExcelDate(sFirm[XLSX.utils.encode_cell({ r, c: colIndex('birthDate') })]?.v);
     if (!birthDate) errors.push('Data nașterii este obligatorie sau invalidă.');
 
-    const docNumber = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 10 }));
+    const docNumber = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('docNumber') }));
     if (!docNumber) errors.push('Numărul actului de identitate este obligatoriu.');
 
-    const county = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 14 }));
-    const locality = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 15 }));
-    const street = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 16 }));
-    const streetNumber = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 17 }));
+    const county = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('county') }));
+    const locality = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('locality') }));
+    const street = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('street') }));
+    const streetNumber = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('streetNumber') }));
 
     if (!county) errors.push('Județul de domiciliu este obligatoriu.');
     if (!locality) errors.push('Localitatea de domiciliu este obligatorie.');
     if (!street) errors.push('Strada este obligatorie.');
     if (!streetNumber) errors.push('Numărul străzii este obligatoriu.');
 
-    const jobTitle = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 24 }));
-    const worksiteName = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 25 }));
+    const jobTitle = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('jobTitle') }));
+    const worksiteName = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('worksiteName') }));
     if (!jobTitle) errors.push('Funcția/postul este obligatorie.');
     if (!worksiteName) errors.push('Punctul de lucru este obligatoriu.');
 
-    const hireDate = parseExcelDate(sFirm[XLSX.utils.encode_cell({ r, c: 27 })]?.v);
+    const hireDate = parseExcelDate(sFirm[XLSX.utils.encode_cell({ r, c: colIndex('hireDate') })]?.v);
     if (!hireDate) errors.push('Data angajării este obligatorie.');
 
-    const statusRaw = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 28 })).toUpperCase();
+    const statusRaw = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('status') })).toUpperCase();
     const status = statusRaw === 'PLECAT' ? 'PLECAT' : 'ACTIV';
-    const leaveDate = parseExcelDate(sFirm[XLSX.utils.encode_cell({ r, c: 29 })]?.v);
+    const leaveDate = parseExcelDate(sFirm[XLSX.utils.encode_cell({ r, c: colIndex('leaveDate') })]?.v);
 
     if (status === 'PLECAT' && !leaveDate) {
       errors.push('Pentru statusul PLECAT este necesară data plecării.');
     }
 
-    const hygieneRequested = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 30 })).toUpperCase() === 'DA';
+    const hygieneRequested = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('hygieneRequested') })).toUpperCase() === 'DA';
+
+    const medCol = getCol('medicalLastExamDate', -1);
+    const ssmCol = getCol('ssmLastTrainingDate', -1);
+    const psiCol = getCol('psiLastTrainingDate', -1);
+    const hygCol = getCol('hygieneLastExamDate', -1);
+
+    const medicalLastExamDate = medCol !== -1 ? parseExcelDate(sFirm[XLSX.utils.encode_cell({ r, c: medCol })]?.v) : undefined;
+    const ssmLastTrainingDate = ssmCol !== -1 ? parseExcelDate(sFirm[XLSX.utils.encode_cell({ r, c: ssmCol })]?.v) : undefined;
+    const psiLastTrainingDate = psiCol !== -1 ? parseExcelDate(sFirm[XLSX.utils.encode_cell({ r, c: psiCol })]?.v) : undefined;
+    const hygieneLastExamDate = hygCol !== -1 ? parseExcelDate(sFirm[XLSX.utils.encode_cell({ r, c: hygCol })]?.v) : undefined;
 
     employees.push({
       rowNumber: r + 1,
       lastName,
       firstName,
-      sex: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 2 })),
+      sex: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('sex') })),
       cnp: cnpRaw,
       birthDate,
-      birthPlace: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 5 })),
-      birthCounty: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 6 })),
-      citizenship: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 7 })) || 'Română',
-      docType: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 8 })) || 'CI',
-      docSeries: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 9 })),
+      birthPlace: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('birthPlace') })),
+      birthCounty: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('birthCounty') })),
+      citizenship,
+      docType,
+      docSeries: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('docSeries') })),
       docNumber,
-      docIssuedBy: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 11 })),
-      docIssueDate: parseExcelDate(sFirm[XLSX.utils.encode_cell({ r, c: 12 })]?.v),
-      docExpiryDate: parseExcelDate(sFirm[XLSX.utils.encode_cell({ r, c: 13 })]?.v),
+      docIssuedBy: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('docIssuedBy') })),
+      docIssueDate: parseExcelDate(sFirm[XLSX.utils.encode_cell({ r, c: colIndex('docIssueDate') })]?.v),
+      docExpiryDate: parseExcelDate(sFirm[XLSX.utils.encode_cell({ r, c: colIndex('docExpiryDate') })]?.v),
       county,
       locality,
       street,
       streetNumber,
-      building: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 18 })),
-      entrance: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 19 })),
-      floor: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 20 })),
-      apartment: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 21 })),
-      email: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 22 })),
-      phone: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 23 })),
+      building: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('building') })),
+      entrance: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('entrance') })),
+      floor: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('floor') })),
+      apartment: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('apartment') })),
+      email: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('email') })),
+      phone: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('phone') })),
       jobTitle,
       worksiteName,
-      startDateOnJob: parseExcelDate(sFirm[XLSX.utils.encode_cell({ r, c: 26 })]?.v) || hireDate,
+      startDateOnJob: parseExcelDate(sFirm[XLSX.utils.encode_cell({ r, c: colIndex('startDateOnJob') })]?.v) || hireDate,
       hireDate,
       status,
       leaveDate,
       hygieneRequested,
-      hygieneModule: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 31 })),
-      hygienePreferredSession: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 32 })),
-      adminNotes: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: 33 })),
+      hygieneModule: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('hygieneModule') })),
+      hygienePreferredSession: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('hygienePreferredSession') })),
+      adminNotes: getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('adminNotes') })),
+      medicalLastExamDate,
+      ssmLastTrainingDate,
+      psiLastTrainingDate,
+      hygieneLastExamDate,
       isValid: errors.length === 0,
       errors,
     });
@@ -416,7 +657,14 @@ export async function compareWithDatabase(
             newVal: `${emp.street} nr. ${emp.streetNumber}`,
           });
         }
+      } else if (emp.street || emp.streetNumber) {
+        changes.push({
+          field: 'Adresă domiciliu',
+          oldVal: '—',
+          newVal: `${emp.street} nr. ${emp.streetNumber}`.trim(),
+        });
       }
+
       if (existing.identityDocument) {
         const doc = existing.identityDocument;
         if (doc.number !== emp.docNumber) {
@@ -426,6 +674,24 @@ export async function compareWithDatabase(
             newVal: emp.docNumber,
           });
         }
+      } else if (emp.docNumber) {
+        changes.push({
+          field: 'Număr act identitate',
+          oldVal: '—',
+          newVal: emp.docNumber,
+        });
+      }
+
+      const cleanPhone = emp.phone?.trim() || '';
+      const existingPhone = existing.phone?.trim() || '';
+      if (cleanPhone && cleanPhone !== existingPhone) {
+        changes.push({ field: 'Telefon', oldVal: existingPhone || '—', newVal: cleanPhone });
+      }
+
+      const cleanEmail = emp.email?.trim() || '';
+      const existingEmail = existing.email?.trim() || '';
+      if (cleanEmail && cleanEmail !== existingEmail) {
+        changes.push({ field: 'Email', oldVal: existingEmail || '—', newVal: cleanEmail });
       }
 
       if (changes.length > 0) {
@@ -522,8 +788,9 @@ export async function commitImport(
       }
     }
 
-    // Din lista de angajați
+    // Din lista de angajați (doar rândurile valide nu generează puncte de lucru fantomă)
     for (const emp of parsedData.employees) {
+      if (!emp.isValid) continue;
       if (emp.worksiteName && !worksiteMap.has(emp.worksiteName.toLowerCase())) {
         const newW = await tx.worksite.create({
           data: {
@@ -561,6 +828,7 @@ export async function commitImport(
     }
 
     for (const emp of parsedData.employees) {
+      if (!emp.isValid) continue;
       if (emp.jobTitle && !jobMap.has(emp.jobTitle.toLowerCase())) {
         const newJ = await tx.job.create({
           data: {
@@ -620,6 +888,10 @@ export async function commitImport(
             hygieneModule: emp.hygieneModule,
             hygienePreferredSession: emp.hygienePreferredSession,
             adminNotes: emp.adminNotes,
+            medicalLastExamDate: emp.medicalLastExamDate || emp.hireDate,
+            ssmLastTrainingDate: emp.ssmLastTrainingDate || emp.hireDate,
+            psiLastTrainingDate: emp.psiLastTrainingDate || emp.hireDate,
+            hygieneLastExamDate: emp.hygieneLastExamDate,
           },
         });
 
@@ -688,6 +960,10 @@ export async function commitImport(
             hygieneModule: emp.hygieneModule,
             hygienePreferredSession: emp.hygienePreferredSession,
             adminNotes: emp.adminNotes,
+            ...(emp.medicalLastExamDate ? { medicalLastExamDate: emp.medicalLastExamDate } : {}),
+            ...(emp.ssmLastTrainingDate ? { ssmLastTrainingDate: emp.ssmLastTrainingDate } : {}),
+            ...(emp.psiLastTrainingDate ? { psiLastTrainingDate: emp.psiLastTrainingDate } : {}),
+            ...(emp.hygieneLastExamDate ? { hygieneLastExamDate: emp.hygieneLastExamDate } : {}),
           },
         });
 

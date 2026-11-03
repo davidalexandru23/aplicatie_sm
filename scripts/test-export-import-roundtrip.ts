@@ -5,14 +5,12 @@ import { prisma } from '../src/lib/prisma';
 import { exportClientToExcel } from '../src/lib/exporter';
 import { parseClientWorkbook, compareWithDatabase } from '../src/lib/importer';
 
-async function testRoundTrip() {
-  console.log('================================================================');
-  console.log('TEST ROUND-TRIP: EXPORT CLIENT ÎN EXCEL -> RE-IMPORT ÎN APLICAȚIE');
-  console.log('================================================================\n');
+async function testClientRoundTrip(cui: string) {
+  console.log(`\n--- Testare Round-Trip pentru Client CUI: ${cui} ---`);
 
   // 1. Găsește clientul din baza de date
   const client = await prisma.client.findFirst({
-    where: { cui: 'RO38765432' },
+    where: { cui },
     include: {
       employees: {
         include: {
@@ -28,7 +26,7 @@ async function testRoundTrip() {
   });
 
   if (!client) {
-    throw new Error('Clientul RO38765432 nu există în DB!');
+    throw new Error(`Clientul ${cui} nu există în DB!`);
   }
 
   console.log(`[1] Client găsit: ${client.name} (${client.cui})`);
@@ -96,7 +94,6 @@ async function testRoundTrip() {
   }
 
   console.log('\n[5] Test modificare date în Excel și detectare diferențe...');
-  // Simulăm că utilizatorul modifică un număr de telefon și o stradă în fișierul descărcat
   const modWb = XLSX.read(exportResult.buffer, { type: 'buffer' });
   const sFirm = modWb.Sheets['Firmă și angajați'];
 
@@ -121,9 +118,22 @@ async function testRoundTrip() {
     console.log(`        • ${c.field}: "${c.oldVal}" -> "${c.newVal}"`);
   });
 
+  console.log(`✓ Client ${client.name} (${cui}) a trecut cu succes 100% testul round-trip!`);
+}
+
+async function testRoundTrip() {
+  console.log('================================================================');
+  console.log('TEST ROUND-TRIP: EXPORT CLIENT ÎN EXCEL -> RE-IMPORT ÎN APLICAȚIE');
+  console.log('================================================================');
+
+  const testClients = ['RO38765432', 'RO45123987'];
+  for (const cui of testClients) {
+    await testClientRoundTrip(cui);
+  }
+
   console.log('\n================================================================');
-  console.log('✓ TEST ROUND-TRIP TRECUT CU SUCCES 100%!');
-  console.log('  Exportul produce un registru complet, valid și 100% compatibil.');
+  console.log('✓ TEST ROUND-TRIP TRECUT CU SUCCES 100% PENTRU TOȚI CLIENȚII!');
+  console.log('  Exportul produce registre complete, valide și 100% compatibile.');
   console.log('================================================================');
 }
 

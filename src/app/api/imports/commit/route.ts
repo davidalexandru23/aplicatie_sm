@@ -51,6 +51,14 @@ export async function POST(request: NextRequest) {
       clientId = newClient.id;
     }
 
+    // Defensive check: nu permitem commit dacă fișierul nu are niciun rând valid
+    if (parsedData.employees.length > 0 && parsedData.employees.every((e) => !e.isValid)) {
+      return NextResponse.json(
+        { error: 'Niciun rând valid de importat. Toate rândurile conțin erori de validare.' },
+        { status: 400 }
+      );
+    }
+
     const batchId = await commitImport(
       clientId,
       parsedData,

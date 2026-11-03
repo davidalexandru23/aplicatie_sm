@@ -25,6 +25,27 @@ model Client {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
+  // =========================================================================
+  // EXTENSII CONTEXTUALE SSM, CAEN & DECIZII ORGANIZATORICE (MILESTONE 1)
+  // =========================================================================
+
+  // 1. Profil Activitate Economică & Date Companie
+  caenCode            String?   // Cod CAEN Rev. 2 (ex: "6201", "5610")
+  caenActivity        String?   // Denumire activitate conform CAEN Rev. 2
+  foundedYear         Int?      // An înființare firmă (ex: 2021)
+
+  // 2. Serviciu Extern de Prevenire și Protecție (SEPP) & Evaluator Desemnat
+  ssmProviderName     String?   // Denumire SEPP abilitat ITM (ex: "EXPERT SSM & SITUAȚII DE URGENȚĂ S.R.L.")
+  ssmSpecialistName   String?   // Nume specialist SSM / evaluator (ex: "Ing. Mihai Popescu")
+  ssmSpecialistCert   String?   // Număr / serie certificat atestare SSM (ex: "Certificat seria EV nr. 10452/2018")
+
+  // 3. Numiri Decizii Organizatorice Angajator (Deciziile 01-09)
+  designatedWorkerSsm String?   // Lucrător desemnat SSM (Decizia 01)
+  firstAidResponder   String?   // Responsabil acordare prim ajutor (Decizia 02)
+  psiResponder        String?   // Cadru tehnic / responsabil PSI/SU (Decizia 03)
+  investigationMembers String?  // Membri comisie cercetare evenimente / accidente (Decizia 06)
+  decisionsDate       DateTime? // Data emiterii pachetului de decizii organizatorice
+
   worksites          Worksite[]
   jobs               Job[]
   employees          Employee[]
@@ -34,6 +55,7 @@ model Client {
   importBatches      ImportBatch[]
 
   @@index([cui])
+  @@index([caenCode])
 }
 
 model Worksite {
@@ -114,6 +136,33 @@ model Employee {
   hygieneModule           String?
   hygienePreferredSession String?
   adminNotes              String?
+
+  // ------------------------------------------
+  // CONFORMITATE & SCADENȚE LEGALE (MILESTONE 1)
+  // ------------------------------------------
+
+  // 1. Supravegherea sănătății (HG 355/2007 - Medicină a Muncii)
+  medicalLastExamDate          DateTime? // Data ultimului examen medical (angajare sau periodic)
+  medicalIntervalMonths        Int       @default(12) // Periodicitate în luni (standard 12 luni TESA, 6 luni riscuri)
+  medicalFitnessVerdict        String?   @default("APT") // APT, APT_CONDITIONAT, INAPT_TEMPORAR, INAPT
+  medicalNotes                 String?   // Restricții sau recomandări medicale din fișa de aptitudine
+
+  // 2. Instruire SSM (Legea 319/2006, HG 1425/2006)
+  ssmLastTrainingDate          DateTime? // Data ultimei instruiri periodice SSM
+  ssmIntervalMonths            Int       @default(6) // Periodicitate în luni (12 TESA, 6 operativ, 1-3 risc ridicat)
+  ssmNotes                     String?   // Tematică parcursă / nr. ore consemnate / observații
+
+  // 3. Instruire PSI / Situații de Urgență (Legea 307/2006, OMAI 712/2005)
+  psiLastTrainingDate          DateTime? // Data ultimului instructaj periodic PSI/SU
+  psiIntervalMonths            Int       @default(6) // Periodicitate în luni (6 TESA, 1-3 operativ/instalații)
+  psiNotes                     String?   // Tematică parcursă / exercițiu evacuare
+
+  // 4. Cursuri de Igienă (Ordinul MS/ME nr. 2209/4469/2022)
+  hygieneLastExamDate          DateTime? // Data promovării examenului de igienă
+  hygieneCertificateNumber     String?   // Număr certificat eliberat de DSP
+  hygieneCertificateIssueDate  DateTime? // Data emiterii certificatului DSP
+  hygieneIntervalMonths        Int       @default(36) // Valabilitate 3 ani (36 luni) conform art. 20 Ordin 2209/2022
+  hygieneNotes                 String?   // Modul curs / serie certificat / dispensă studii medicale
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

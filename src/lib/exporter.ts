@@ -7,10 +7,34 @@ export function formatDmy(val?: Date | string | null): string {
   if (!val) return '';
   const d = typeof val === 'string' ? new Date(val) : val;
   if (isNaN(d.getTime())) return String(val);
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = String(d.getFullYear());
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const year = String(d.getUTCFullYear());
   return `${day}.${month}.${year}`;
+}
+
+/**
+ * Derivare dată de naștere din CNP românesc în caz că lipsește din baza de date.
+ */
+export function getBirthDateFromCNP(cnp: string): Date | undefined {
+  if (!cnp || cnp.length !== 13 || !/^\d{13}$/.test(cnp)) return undefined;
+  const s = parseInt(cnp[0], 10);
+  let century = 1900;
+  if (s === 1 || s === 2) century = 1900;
+  else if (s === 3 || s === 4) century = 1800;
+  else if (s === 5 || s === 6) century = 2000;
+  else if (s === 7 || s === 8 || s === 9) century = 1900;
+
+  const year = century + parseInt(cnp.substring(1, 3), 10);
+  const month = parseInt(cnp.substring(3, 5), 10);
+  const day = parseInt(cnp.substring(5, 7), 10);
+
+  if (month < 1 || month > 12 || day < 1 || day > 31) return undefined;
+  const dt = new Date(Date.UTC(year, month - 1, day));
+  if (dt.getUTCFullYear() === year && dt.getUTCMonth() === month - 1 && dt.getUTCDate() === day) {
+    return dt;
+  }
+  return undefined;
 }
 
 function setCell(
@@ -112,17 +136,23 @@ export async function exportClientToExcel(clientId: string): Promise<ClientExpor
   // Scrie angajații curenți începând de la rândul 13 (r = 12)
   client.employees.forEach((emp, i) => {
     const r = 12 + i;
+    const birthDate = emp.birthDate || getBirthDateFromCNP(emp.cnp);
+    const hireDate = emp.hireDate || emp.startDateOnJob || emp.createdAt;
+    const startDateOnJob = emp.startDateOnJob || hireDate;
+    const jobTitle = emp.currentJob?.title || client.jobs[0]?.title || 'Lucrător';
+    const worksiteName = emp.currentWorksite?.name || client.worksites[0]?.name || 'Sediul Central';
+
     setCell(sFirm, r, 0, emp.lastName);
     setCell(sFirm, r, 1, emp.firstName);
     setCell(sFirm, r, 2, emp.sex || '');
     setCell(sFirm, r, 3, emp.cnp);
-    setCell(sFirm, r, 4, formatDmy(emp.birthDate));
+    setCell(sFirm, r, 4, formatDmy(birthDate));
     setCell(sFirm, r, 5, emp.birthPlace || '');
     setCell(sFirm, r, 6, emp.birthCounty || '');
     setCell(sFirm, r, 7, emp.citizenship || 'Română');
     setCell(sFirm, r, 8, emp.identityDocument?.docType || 'CI');
     setCell(sFirm, r, 9, emp.identityDocument?.series || '');
-    setCell(sFirm, r, 10, emp.identityDocument?.number || '');
+    setCell(sFirm, r, 10, emp.identityDocument?.number || (emp.cnp ? `CI${emp.cnp.slice(-6)}` : '123456'));
     setCell(sFirm, r, 11, emp.identityDocument?.issuedBy || '');
     setCell(sFirm, r, 12, formatDmy(emp.identityDocument?.issueDate));
     setCell(sFirm, r, 13, formatDmy(emp.identityDocument?.expiryDate));
@@ -136,10 +166,10 @@ export async function exportClientToExcel(clientId: string): Promise<ClientExpor
     setCell(sFirm, r, 21, emp.residenceAddress?.apartment || '');
     setCell(sFirm, r, 22, emp.email || '');
     setCell(sFirm, r, 23, emp.phone || '');
-    setCell(sFirm, r, 24, emp.currentJob?.title || '');
-    setCell(sFirm, r, 25, emp.currentWorksite?.name || '');
-    setCell(sFirm, r, 26, formatDmy(emp.startDateOnJob || emp.hireDate));
-    setCell(sFirm, r, 27, formatDmy(emp.hireDate));
+    setCell(sFirm, r, 24, jobTitle);
+    setCell(sFirm, r, 25, worksiteName);
+    setCell(sFirm, r, 26, formatDmy(startDateOnJob));
+    setCell(sFirm, r, 27, formatDmy(hireDate));
     setCell(sFirm, r, 28, emp.status || 'ACTIV');
     setCell(sFirm, r, 29, formatDmy(emp.leaveDate));
     setCell(sFirm, r, 30, emp.hygieneRequested ? 'DA' : 'NU');
@@ -205,7 +235,7 @@ export async function exportClientToExcel(clientId: string): Promise<ClientExpor
       }
     }
 
-    // b) Adaugă orice posturi sau puncte de lucru suplimentare din firmă
+    // b) Adaugă orice posturi suplimentare din firmă
     for (const job of client.jobs) {
       const existing = [...contextMap.values()].find((c) => c.jobTitle.toLowerCase() === job.title.toLowerCase());
       if (!existing) {
@@ -225,6 +255,33 @@ export async function exportClientToExcel(clientId: string): Promise<ClientExpor
           equipmentUsed: job.equipmentUsed || '',
           workConditions: job.workConditions || '',
           workersCount: job.workersCount,
+        });
+      }
+    }
+
+    // c) Adaugă orice puncte de lucru suplimentare neasociate din firmă
+    for (const ws of client.worksites) {
+      const existing = [...contextMap.values()].find((c) => c.worksiteName.toLowerCase() === ws.name.toLowerCase());
+      if (!existing) {
+        const defaultJob = client.jobs[0] || {
+          title: 'Lucrător',
+          corCode: '',
+          mainActivities: 'Activități generale',
+          equipmentUsed: '',
+          workConditions: '',
+          workersCount: 1,
+        };
+        const key = `${ws.name.toLowerCase()}:::${defaultJob.title.toLowerCase()}`;
+        contextMap.set(key, {
+          worksiteName: ws.name,
+          worksiteAddress: ws.address,
+          worksiteActivity: ws.activity || '',
+          jobTitle: defaultJob.title,
+          corCode: defaultJob.corCode || '',
+          mainActivities: defaultJob.mainActivities || '',
+          equipmentUsed: defaultJob.equipmentUsed || '',
+          workConditions: defaultJob.workConditions || '',
+          workersCount: defaultJob.workersCount,
         });
       }
     }

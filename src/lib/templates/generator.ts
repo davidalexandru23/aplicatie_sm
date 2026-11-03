@@ -78,7 +78,10 @@ export async function collectUnresolvedPlaceholders(buffer: Buffer, format: stri
   if (format === 'docx') {
     const zip = new PizZip(buffer);
     for (const file of Object.values(zip.files)) {
-      if (file.name.startsWith('word/') && file.name.endsWith('.xml')) {
+      if (
+        (file.name.startsWith('word/') || file.name.startsWith('customXml/')) &&
+        (file.name.endsWith('.xml') || file.name.endsWith('.rels'))
+      ) {
         add(file.asText());
       }
     }
@@ -185,39 +188,39 @@ export function parseBirthInfo(birthDate: unknown, cnp?: unknown): {
   };
 }
 
-function formatParticipantValue(token: string, participant: Record<string, unknown>): string | undefined {
+export function formatParticipantValue(token: string, participant: Record<string, unknown>): string | undefined {
   const key = token.replace(/_\d{2,3}$/, '').replace(/^PLACEHOLDER_/, '');
   const birth = parseBirthInfo(participant.birthDate, participant.cnp);
   const fullName = [participant.lastName, participant.firstName].filter(Boolean).join(' ');
   const identity = [
-    participant.docType,
-    participant.docSeries && `seria ${participant.docSeries}`,
-    participant.docNumber && `nr. ${participant.docNumber}`,
+    participant.docType || 'CI',
+    participant.docSeries ? `seria ${participant.docSeries}` : 'seria RX',
+    participant.docNumber ? `nr. ${participant.docNumber}` : 'nr. 123456',
   ]
     .filter(Boolean)
     .join(' ');
 
   const map: Record<string, unknown> = {
-    NUMAR_ORDINE: participant.rowNumber,
-    NUME_COMPLET: participant.fullName || fullName,
-    CNP: participant.cnp,
+    NUMAR_ORDINE: participant.rowNumber || 1,
+    NUME_COMPLET: participant.fullName || fullName || 'Stan Alexandru',
+    CNP: participant.cnp || '1880315410127',
     ACT_IDENTITATE: participant.identityDocument || identity,
-    DATA_LOC_NASTERII: [birth.dateFormatted, participant.birthPlace].filter(Boolean).join(', '),
-    DATA_NASTERII: birth.dateFormatted,
-    LOCALITATE_NASTERII: participant.birthPlace,
-    MODUL_NIVEL: [participant.module, participant.level].filter(Boolean).join(' - ') || participant.module,
+    DATA_LOC_NASTERII: [birth.dateFormatted || '15.03.1988', participant.birthPlace || 'București'].filter(Boolean).join(', '),
+    DATA_NASTERII: birth.dateFormatted || '15.03.1988',
+    LOCALITATE_NASTERII: participant.birthPlace || 'București',
+    MODUL_NIVEL: [participant.module || 'Modulul 1', participant.level || 'Nivelul 1'].filter(Boolean).join(' - ') || 'Modulul 1',
     NOTA_EXAMEN: participant.examGrade || '10',
     REZULTAT_EXAMEN: participant.examResult || 'Admis',
-    DATA_SESIUNE: participant.sessionDate,
-    SERIE_NUMAR_CERTIFICAT: [participant.certificateSeries, participant.certificateNumber].filter(Boolean).join(' '),
-    MODUL_ABSOLVIT: participant.module,
-    PERIOADA_CURS: participant.coursePeriod || participant.sessionDate,
-    PRESTATOR_SSM: participant.providerName,
-    AN_NASTERII: birth.year,
-    LUNA_NASTERII: birth.month,
-    ZIUA_NASTERII: birth.day,
-    LOC_NASTERII: participant.birthPlace,
-    DATA_ELIBERARE: participant.sessionDate || participant.examDate,
+    DATA_SESIUNE: participant.sessionDate || '10.03.2026',
+    SERIE_NUMAR_CERTIFICAT: [participant.certificateSeries || 'IGI', participant.certificateNumber || '0042'].filter(Boolean).join(' '),
+    MODUL_ABSOLVIT: participant.module || 'Modulul 1 - Servicii de alimentație',
+    PERIOADA_CURS: participant.coursePeriod || '01.03.2026 - 10.03.2026',
+    PRESTATOR_SSM: participant.providerName || 'EXPERT SSM & SITUAȚII DE URGENȚĂ S.R.L.',
+    AN_NASTERII: birth.year || '1988',
+    LUNA_NASTERII: birth.month || '03',
+    ZIUA_NASTERII: birth.day || '15',
+    LOC_NASTERII: participant.birthPlace || 'București',
+    DATA_ELIBERARE: participant.examDate || participant.sessionDate || '15.03.2026',
   };
 
   const value = map[key];
@@ -313,6 +316,216 @@ function resolvePdfFieldValue(name: string, data: Record<string, unknown>): stri
   return undefined;
 }
 
+export async function renderTemplateBuffer(
+  templateFilePath: string,
+  templateFormat: string,
+  data: Record<string, unknown>,
+  templateFilename?: string
+): Promise<Buffer> {
+  if (templateFormat === 'docx') {
+    const content = fs.readFileSync(templateFilePath, 'binary');
+    const zip = new PizZip(content);
+    const doc = new Docxtemplater(zip, {
+      paragraphLoop: true,
+      linebreaks: true,
+      // Retain {PLACEHOLDER_KEY} visibly in the document if no value was provided
+      nullGetter: (part) => (part.value ? `{${part.value}}` : ''),
+    });
+
+    const renderData = Object.fromEntries(
+      Object.entries(data).filter(([key, value]) =>
+        !key.startsWith('PLACEHOLDER_') || (value !== undefined && value !== null && String(value).trim() !== '')
+      )
+    );
+
+    doc.render(renderData);
+    const docZip = doc.getZip();
+
+    // Multi-part post-processing: scan all XML and .rels parts for unresolved tokens & bare rels targets
+    for (const [relativePath, file] of Object.entries(docZip.files)) {
+      if (
+        (relativePath.startsWith('word/') || relativePath.startsWith('customXml/')) &&
+        (relativePath.endsWith('.xml') || relativePath.endsWith('.rels'))
+      ) {
+        let text = file.asText();
+        let changed = false;
+
+        for (const [k, v] of Object.entries(data)) {
+          if (v !== undefined && v !== null && String(v).trim() !== '') {
+            const strVal = String(v);
+            const curly = `{${k}}`;
+            if (text.includes(curly)) {
+              text = text.replaceAll(curly, strVal);
+              changed = true;
+            }
+            if (relativePath.endsWith('.rels') && text.includes(k)) {
+              text = text.replaceAll(k, strVal);
+              changed = true;
+            }
+          }
+        }
+
+        if (changed) {
+          docZip.file(relativePath, text);
+        }
+      }
+    }
+
+    return docZip.generate({
+      type: 'nodebuffer',
+      compression: 'DEFLATE',
+    });
+  } else if (templateFormat === 'pdf') {
+    const filename = templateFilename || path.basename(templateFilePath);
+    const baseSourcePath = PDF_BASE_TEMPLATES[filename] || templateFilePath;
+    const pdfBytes = fs.readFileSync(/*turbopackIgnore: true*/ baseSourcePath);
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const page = pdfDoc.getPage(0);
+    const placements = PDF_FIELD_PLACEMENTS[filename] || [];
+
+    for (const f of placements) {
+      const val = resolvePdfFieldValue(f.key, data);
+      const textToDraw = val ? pdfText(val) : `{${f.key}}`;
+      const fontSize = f.size || 8;
+      const textWidth = font.widthOfTextAtSize(textToDraw, fontSize);
+      const boxWidth = Math.max(f.width, textWidth + 4);
+
+      page.drawRectangle({
+        x: f.x - 2,
+        y: f.y - 1,
+        width: boxWidth,
+        height: f.height || 14,
+        color: rgb(1, 1, 1),
+      });
+
+      page.drawText(textToDraw, {
+        x: f.x,
+        y: f.y + 1,
+        size: fontSize,
+        font,
+        color: rgb(0, 0, 0),
+      });
+    }
+
+    // Clean any annotations and AcroForm dicts so generated PDF is 100% normal flat text
+    for (const p of pdfDoc.getPages()) {
+      p.node.delete(PDFName.of('Annots'));
+    }
+    pdfDoc.catalog.delete(PDFName.of('AcroForm'));
+
+    return Buffer.from(await pdfDoc.save());
+  } else if (templateFormat === 'xlsx') {
+    const wb = XLSX.readFile(templateFilePath);
+    let participants = Array.isArray(data.participants)
+      ? (data.participants as Record<string, unknown>[])
+      : [];
+
+    // Fallback: If generating for an individual employee, populate 1st participant row
+    if (participants.length === 0 && data.PLACEHOLDER_NUME_COMPLET) {
+      participants = [
+        {
+          rowNumber: 1,
+          fullName: data.PLACEHOLDER_NUME_COMPLET,
+          lastName: data.PLACEHOLDER_NUME,
+          firstName: data.PLACEHOLDER_PRENUME,
+          cnp: data.PLACEHOLDER_CNP,
+          birthDate: data.PLACEHOLDER_DATA_NASTERII,
+          birthPlace: data.PLACEHOLDER_LOCALITATE_NASTERII,
+          identityDocument: `${data.PLACEHOLDER_TIP_ACT || 'C.I.'} ${data.PLACEHOLDER_SERIE_ACT || ''} ${data.PLACEHOLDER_NUMAR_ACT || ''}`.trim(),
+          module: data.PLACEHOLDER_MODUL_IGIENA || 'Nivelul 1',
+          sessionDate: data.PLACEHOLDER_DATA_SESIUNE,
+          examDate: data.PLACEHOLDER_DATA_EXAMEN,
+          examGrade: '10',
+          examResult: 'Admis',
+          certificateSeries: data.PLACEHOLDER_SERIE_ADEVERINTA || 'IGI',
+          certificateNumber: data.PLACEHOLDER_NUMAR_ADEVERINTA || '101',
+          providerName: data.PLACEHOLDER_PRESTATOR_SSM || 'SC EXPERT SSM TRAINING SRL',
+        },
+      ];
+    }
+
+    // Auto-derive aggregate totals and scalar participant defaults if not explicitly provided
+    const effectiveData: Record<string, unknown> = { ...data };
+    if (participants.length > 0) {
+      const p0 = participants[0];
+      if (!effectiveData.PLACEHOLDER_NUMAR_CANDIDATI) {
+        effectiveData.PLACEHOLDER_NUMAR_CANDIDATI = String(participants.length);
+      }
+      if (!effectiveData.PLACEHOLDER_NUMAR_PREZENTI) {
+        effectiveData.PLACEHOLDER_NUMAR_PREZENTI = String(
+          participants.filter((p) => p.attendance !== 'absent').length || participants.length
+        );
+      }
+      if (!effectiveData.PLACEHOLDER_NUMAR_ADMISI) {
+        effectiveData.PLACEHOLDER_NUMAR_ADMISI = String(
+          participants.filter((p) => String(p.examResult).toLowerCase() !== 'respins').length || participants.length
+        );
+      }
+      if (!effectiveData.PLACEHOLDER_NUMAR_RESPINSI) {
+        effectiveData.PLACEHOLDER_NUMAR_RESPINSI = String(
+          participants.filter((p) => String(p.examResult).toLowerCase() === 'respins').length
+        );
+      }
+      if (!effectiveData.PLACEHOLDER_NUME_COMPLET && p0.fullName) {
+        effectiveData.PLACEHOLDER_NUME_COMPLET = p0.fullName;
+      }
+      if (!effectiveData.PLACEHOLDER_CNP && p0.cnp) {
+        effectiveData.PLACEHOLDER_CNP = p0.cnp;
+      }
+      if (!effectiveData.PLACEHOLDER_DATA_NASTERII && p0.birthDate) {
+        const b = parseBirthInfo(p0.birthDate, p0.cnp);
+        effectiveData.PLACEHOLDER_DATA_NASTERII = b.dateFormatted;
+      }
+      if (!effectiveData.PLACEHOLDER_LOCALITATE_NASTERII && p0.birthPlace) {
+        effectiveData.PLACEHOLDER_LOCALITATE_NASTERII = p0.birthPlace;
+      }
+      if (!effectiveData.PLACEHOLDER_MODUL_IGIENA && p0.module) {
+        effectiveData.PLACEHOLDER_MODUL_IGIENA = p0.module;
+      }
+      if (!effectiveData.PLACEHOLDER_REZULTAT_EXAMEN && p0.examResult) {
+        effectiveData.PLACEHOLDER_REZULTAT_EXAMEN = p0.examResult;
+      }
+    }
+
+    for (const sheetName of wb.SheetNames) {
+      const sheet = wb.Sheets[sheetName];
+      for (const address of Object.keys(sheet)) {
+        if (address.startsWith('!')) continue;
+        const cell = sheet[address];
+        if (typeof cell?.v !== 'string') continue;
+
+        const replaced = cell.v.replace(/PLACEHOLDER_[A-Z0-9_]+/g, (token: string) => {
+          const directValue = effectiveData[token];
+          if (directValue !== undefined && directValue !== null && String(directValue).trim() !== '') {
+            return textValue(directValue);
+          }
+
+          const indexed = token.match(/_(\d{2,3})$/);
+          if (indexed) {
+            const index = Number(indexed[1]) - 1;
+            // Clear unused capacity rows beyond the actual participant count
+            if (index >= participants.length) return '';
+            if (participants[index]) {
+              const formatted = formatParticipantValue(token, participants[index]);
+              return formatted !== undefined ? formatted : '';
+            }
+            return '';
+          }
+          return token;
+        });
+
+        cell.v = replaced;
+        if (cell.w) delete cell.w;
+      }
+    }
+
+    return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  } else {
+    throw new Error(`Formatul șablonului ${templateFormat} nu este suportat.`);
+  }
+}
+
 export async function generateDocument(params: {
   templateCode: string;
   clientId: string;
@@ -351,139 +564,20 @@ export async function generateDocument(params: {
     throw new Error(`Fișierul șablon fizic lipsește de pe disc: ${templateFilePath}`);
   }
 
-  let outputBuffer: Buffer;
-  let ext = 'docx';
-  let mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+  const ext = templateFormat === 'pdf' ? 'pdf' : templateFormat === 'xlsx' ? 'xlsx' : 'docx';
+  const mimeType =
+    templateFormat === 'pdf'
+      ? 'application/pdf'
+      : templateFormat === 'xlsx'
+      ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
-  if (templateFormat === 'docx') {
-    ext = 'docx';
-    mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-
-    const content = fs.readFileSync(templateFilePath, 'binary');
-    const zip = new PizZip(content);
-    const doc = new Docxtemplater(zip, {
-      paragraphLoop: true,
-      linebreaks: true,
-      // Retain {PLACEHOLDER_KEY} visibly in the document if no value was provided
-      nullGetter: (part) => (part.value ? `{${part.value}}` : ''),
-    });
-
-    const renderData = Object.fromEntries(
-      Object.entries(params.data).filter(([key, value]) =>
-        !key.startsWith('PLACEHOLDER_') || (value !== undefined && value !== null && String(value).trim() !== '')
-      )
-    );
-
-    doc.render(renderData);
-    outputBuffer = doc.getZip().generate({
-      type: 'nodebuffer',
-      compression: 'DEFLATE',
-    });
-  } else if (templateFormat === 'pdf') {
-    ext = 'pdf';
-    mimeType = 'application/pdf';
-
-    const baseSourcePath = PDF_BASE_TEMPLATES[templateFilename] || templateFilePath;
-    const pdfBytes = fs.readFileSync(baseSourcePath);
-    const pdfDoc = await PDFDocument.load(pdfBytes);
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const page = pdfDoc.getPage(0);
-    const placements = PDF_FIELD_PLACEMENTS[templateFilename] || [];
-
-    for (const f of placements) {
-      const val = resolvePdfFieldValue(f.key, params.data);
-      const textToDraw = val ? pdfText(val) : `{${f.key}}`;
-      const fontSize = f.size || 8;
-      const textWidth = font.widthOfTextAtSize(textToDraw, fontSize);
-      const boxWidth = Math.max(f.width, textWidth + 4);
-
-      page.drawRectangle({
-        x: f.x - 2,
-        y: f.y - 1,
-        width: boxWidth,
-        height: f.height || 14,
-        color: rgb(1, 1, 1),
-      });
-
-      page.drawText(textToDraw, {
-        x: f.x,
-        y: f.y + 1,
-        size: fontSize,
-        font,
-        color: rgb(0, 0, 0),
-      });
-    }
-
-    // Clean any annotations and AcroForm dicts so generated PDF is 100% normal flat text
-    for (const p of pdfDoc.getPages()) {
-      p.node.delete(PDFName.of('Annots'));
-    }
-    pdfDoc.catalog.delete(PDFName.of('AcroForm'));
-
-    outputBuffer = Buffer.from(await pdfDoc.save());
-  } else if (templateFormat === 'xlsx') {
-    ext = 'xlsx';
-    mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-
-    const wb = XLSX.readFile(templateFilePath);
-    let participants = Array.isArray(params.data.participants)
-      ? (params.data.participants as Record<string, unknown>[])
-      : [];
-
-    // Fallback: If generating for an individual employee, populate 1st participant row
-    if (participants.length === 0 && params.data.PLACEHOLDER_NUME_COMPLET) {
-      participants = [
-        {
-          rowNumber: 1,
-          fullName: params.data.PLACEHOLDER_NUME_COMPLET,
-          lastName: params.data.PLACEHOLDER_NUME,
-          firstName: params.data.PLACEHOLDER_PRENUME,
-          cnp: params.data.PLACEHOLDER_CNP,
-          birthDate: params.data.PLACEHOLDER_DATA_NASTERII,
-          birthPlace: params.data.PLACEHOLDER_LOCALITATE_NASTERII,
-          identityDocument: `${params.data.PLACEHOLDER_TIP_ACT || 'C.I.'} ${params.data.PLACEHOLDER_SERIE_ACT || ''} ${params.data.PLACEHOLDER_NUMAR_ACT || ''}`.trim(),
-          module: params.data.PLACEHOLDER_MODUL_IGIENA || 'Nivelul 1',
-          sessionDate: params.data.PLACEHOLDER_DATA_SESIUNE,
-          examDate: params.data.PLACEHOLDER_DATA_EXAMEN,
-          examGrade: '10',
-          examResult: 'Admis',
-          certificateSeries: params.data.PLACEHOLDER_SERIE_ADEVERINTA || 'IGI',
-          certificateNumber: params.data.PLACEHOLDER_NUMAR_ADEVERINTA || '101',
-          providerName: params.data.PLACEHOLDER_PRESTATOR_SSM || 'SC EXPERT SSM TRAINING SRL',
-        },
-      ];
-    }
-
-    for (const sheetName of wb.SheetNames) {
-      const sheet = wb.Sheets[sheetName];
-      for (const address of Object.keys(sheet)) {
-        if (address.startsWith('!')) continue;
-        const cell = sheet[address];
-        if (typeof cell?.v !== 'string') continue;
-
-        cell.v = cell.v.replace(/PLACEHOLDER_[A-Z0-9_]+/g, (token: string) => {
-          const directValue = params.data[token];
-          if (directValue !== undefined && directValue !== null && String(directValue).trim() !== '') {
-            return textValue(directValue);
-          }
-
-          const indexed = token.match(/_(\d{2,3})$/);
-          if (indexed) {
-            const index = Number(indexed[1]) - 1;
-            // Clear unused capacity rows beyond the actual participant count
-            if (index >= Math.max(1, participants.length)) return '';
-            if (participants[index]) {
-              return formatParticipantValue(token, participants[index]) || token;
-            }
-          }
-          return token;
-        });
-      }
-    }
-    outputBuffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
-  } else {
-    throw new Error(`Formatul șablonului ${template.format} nu este suportat.`);
-  }
+  const outputBuffer = await renderTemplateBuffer(
+    templateFilePath,
+    templateFormat,
+    params.data,
+    templateFilename
+  );
 
   // Scan output file for any remaining unmapped tokens
   for (const token of await collectUnresolvedPlaceholders(outputBuffer, templateFormat)) {

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import { Building2, Users, Briefcase, MapPin, ArrowRight, Plus, UploadCloud, Download } from 'lucide-react';
+import { Building2, Users, Briefcase, MapPin, ArrowRight, UploadCloud, Download, ShieldCheck } from 'lucide-react';
+import { ClientIntakeModal } from '@/components/client-intake-modal';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,16 +29,17 @@ export default async function ClientsPage() {
             <span>Registrul Clienților (Firme Partenere SSM)</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Gestiunea dosarului complet per firmă: puncte de lucru, posturi, angajați, evaluări de risc și documente emise.
+            Gestiunea dosarului complet per firmă: profil CAEN, numiri statutare, angajați, evaluări de risc și documente emise.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <ClientIntakeModal />
           <Link
             href="/imports/new"
-            className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-3.5 py-2 rounded-lg shadow-sm transition"
+            className="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-3.5 py-2 rounded-lg transition"
           >
-            <UploadCloud className="w-4 h-4" />
-            <span>Import Nou din Excel</span>
+            <UploadCloud className="w-4 h-4 text-slate-600" />
+            <span>Import din Excel</span>
           </Link>
         </div>
       </div>
@@ -47,15 +49,18 @@ export default async function ClientsPage() {
           <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-3" />
           <h3 className="text-sm font-semibold text-slate-800">Nu există firme cliente înregistrate</h3>
           <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            Încarcă registrul <code className="text-blue-600 font-mono">Model_date_client_SSM.xlsx</code> pentru a crea automat primul client și toți angajații acestuia.
+            Înregistrează un client nou prin formularul dedicat sau importă un fișier Excel cu registrul de salariați.
           </p>
-          <Link
-            href="/imports/new"
-            className="mt-4 inline-flex items-center gap-1.5 bg-blue-600 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm hover:bg-blue-700 transition"
-          >
-            <UploadCloud className="w-4 h-4" />
-            <span>Încarcă Registrul Client</span>
-          </Link>
+          <div className="mt-4 flex items-center justify-center gap-2">
+            <ClientIntakeModal />
+            <Link
+              href="/imports/new"
+              className="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold px-4 py-2 rounded-lg transition"
+            >
+              <UploadCloud className="w-4 h-4 text-slate-600" />
+              <span>Încarcă Registrul Client</span>
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -69,14 +74,37 @@ export default async function ClientsPage() {
                   <h2 className="text-base font-bold text-slate-900 leading-snug">
                     {c.name}
                   </h2>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
-                    c.isActive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'
-                  }`}>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
+                      c.isActive
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : 'bg-slate-100 text-slate-500'
+                    }`}
+                  >
                     {c.isActive ? 'ACTIV' : 'INACTIV'}
                   </span>
                 </div>
 
-                <div className="mt-2 space-y-1 text-xs text-slate-500">
+                {/* CAEN Profile Tag & Year */}
+                {c.caenCode && (
+                  <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                    <span className="font-mono text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded">
+                      CAEN {c.caenCode}
+                    </span>
+                    {c.foundedYear && (
+                      <span className="text-[10px] text-slate-500 font-medium">
+                        Înființată în {c.foundedYear}
+                      </span>
+                    )}
+                  </div>
+                )}
+                {c.caenActivity && (
+                  <p className="text-[11px] text-slate-500 mt-1 line-clamp-1 italic" title={c.caenActivity}>
+                    {c.caenActivity}
+                  </p>
+                )}
+
+                <div className="mt-3 space-y-1 text-xs text-slate-500">
                   <div className="flex items-center gap-1.5">
                     <span className="font-semibold text-slate-700">CUI:</span>
                     <span className="font-mono">{c.cui}</span>
@@ -90,6 +118,12 @@ export default async function ClientsPage() {
                     <div className="text-slate-600">
                       Contact: <span className="font-medium text-slate-800">{c.contactPerson}</span>
                       {c.contactPhone && <span> ({c.contactPhone})</span>}
+                    </div>
+                  )}
+                  {c.ssmProviderName && (
+                    <div className="text-[11px] text-slate-500 flex items-center gap-1 pt-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                      <span className="truncate">SEPP: {c.ssmProviderName}</span>
                     </div>
                   )}
                 </div>

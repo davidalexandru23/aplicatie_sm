@@ -1,12 +1,15 @@
 import fs from 'fs';
 import path from 'path';
 import PizZip from 'pizzip';
-import Docxtemplater from 'docxtemplater';
-import * as XLSX from 'xlsx';
 import { prisma } from '../src/lib/prisma';
 import { TEMPLATE_CATALOG } from '../src/lib/templates/definitions';
 import { resolveTemplatePlaceholders, formatDateRo } from '../src/lib/templates/resolver';
-import { parseBirthInfo, validateMissingFields, collectUnresolvedPlaceholders } from '../src/lib/templates/generator';
+import {
+  parseBirthInfo,
+  validateMissingFields,
+  collectUnresolvedPlaceholders,
+  renderTemplateBuffer,
+} from '../src/lib/templates/generator';
 
 const TEST_OUT_DIR = path.join(process.cwd(), 'storage', 'test_documents');
 if (!fs.existsSync(TEST_OUT_DIR)) {
@@ -156,84 +159,15 @@ async function runEndToEndVerification() {
       };
     }
 
-    let outBuffer: Buffer;
     const outFilename = `TEST_${t.code}_${t.normalizedFilename}`;
     const outPath = path.join(TEST_OUT_DIR, outFilename);
 
-    if (t.format === 'docx') {
-      const content = fs.readFileSync(templateFilePath, 'binary');
-      const zip = new PizZip(content);
-      const doc = new Docxtemplater(zip, {
-        paragraphLoop: true,
-        linebreaks: true,
-        nullGetter: (part) => (part.value ? `{${part.value}}` : ''),
-      });
-
-      const renderData = Object.fromEntries(
-        Object.entries(mergedData).filter(
-          ([key, value]) =>
-            !key.startsWith('PLACEHOLDER_') ||
-            (value !== undefined && value !== null && String(value).trim() !== '')
-        )
-      );
-
-      doc.render(renderData);
-      outBuffer = doc.getZip().generate({
-        type: 'nodebuffer',
-        compression: 'DEFLATE',
-      });
-    } else if (t.format === 'xlsx') {
-      const wb = XLSX.readFile(templateFilePath);
-      const participants = simulatedHygieneSession.participants;
-
-      for (const sheetName of wb.SheetNames) {
-        const sheet = wb.Sheets[sheetName];
-        for (const address of Object.keys(sheet)) {
-          if (address.startsWith('!')) continue;
-          const cell = sheet[address];
-          if (typeof cell?.v !== 'string') continue;
-
-          cell.v = cell.v.replace(/PLACEHOLDER_[A-Z0-9_]+/g, (token: string) => {
-            const direct = mergedData[token];
-            if (direct !== undefined && direct !== null && String(direct).trim() !== '') {
-              return String(direct);
-            }
-            const indexed = token.match(/_(\d{2,3})$/);
-            if (indexed) {
-              const idx = Number(indexed[1]) - 1;
-              if (idx >= participants.length) return '';
-              const p = participants[idx];
-              if (p) {
-                const birth = parseBirthInfo(p.birthDate, p.cnp);
-                const identity = `${p.docType} seria ${p.docSeries} nr. ${p.docNumber}`;
-                const map: Record<string, string> = {
-                  NUMAR_ORDINE: String(p.rowNumber),
-                  NUME_COMPLET: p.fullName,
-                  CNP: p.cnp,
-                  ACT_IDENTITATE: identity,
-                  DATA_LOC_NASTERII: `${birth.dateFormatted}, ${p.birthPlace}`,
-                  DATA_NASTERII: birth.dateFormatted,
-                  LOCALITATE_NASTERII: p.birthPlace,
-                  MODUL_NIVEL: `${p.module} - ${p.level}`,
-                  NOTA_EXAMEN: p.examGrade,
-                  REZULTAT_EXAMEN: p.examResult,
-                  AN_NASTERII: birth.year,
-                  LUNA_NASTERII: birth.month,
-                  ZIUA_NASTERII: birth.day,
-                  LOC_NASTERII: p.birthPlace,
-                };
-                const k = token.replace(/_\d{2,3}$/, '').replace(/^PLACEHOLDER_/, '');
-                return map[k] || token;
-              }
-            }
-            return token;
-          });
-        }
-      }
-      outBuffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
-    } else {
-      throw new Error(`Format necunoscut: ${t.format}`);
-    }
+    const outBuffer = await renderTemplateBuffer(
+      templateFilePath,
+      t.format,
+      mergedData,
+      t.normalizedFilename
+    );
 
     fs.writeFileSync(outPath, outBuffer);
 
@@ -274,7 +208,7 @@ async function runEndToEndVerification() {
       }
     }
 
-    const testPassed = repLegalOk;
+    const testPassed = repLegalOk && missingDataStatus === 'approved_for_print' && unmappedInFile.length === 0;
 
     reports.push({
       code: t.code,
@@ -285,7 +219,7 @@ async function runEndToEndVerification() {
       missingDataStatus,
       repLegalValue: String(mergedData.PLACEHOLDER_REPREZENTANT_LEGAL || 'N/A'),
       employeeValue: t.contextLevel === 'employee' ? `${employee.lastName} ${employee.firstName}` : undefined,
-      details: details || `Tokens necompletați: ${unmappedInFile.length} (comportament legal așteptat)`,
+      details: details || `Tokens necompletați: ${unmappedInFile.length}`,
       filePath: outPath,
     });
   }
