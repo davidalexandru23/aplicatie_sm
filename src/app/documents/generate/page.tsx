@@ -45,6 +45,11 @@ interface HygieneParticipantOption {
   id: string;
   firstName: string;
   lastName: string;
+  clientName?: string;
+  employeeId?: string;
+  employee?: {
+    clientId: string;
+  };
 }
 
 interface HygieneSessionOption {
@@ -73,6 +78,8 @@ function DocumentGeneratorContent() {
   const initialClientId = searchParams.get('clientId') || '';
   const initialEmployeeId = searchParams.get('employeeId') || '';
   const initialTemplateCode = searchParams.get('templateCode') || '';
+  const initialHygieneSessionId = searchParams.get('hygieneSessionId') || '';
+  const initialHygieneParticipantId = searchParams.get('hygieneParticipantId') || '';
 
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [templates, setTemplates] = useState<TemplateOption[]>([]);
@@ -82,8 +89,9 @@ function DocumentGeneratorContent() {
   const [selectedClientId, setSelectedClientId] = useState<string>(initialClientId);
   const [selectedTemplateCode, setSelectedTemplateCode] = useState<string>(initialTemplateCode);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>(initialEmployeeId);
-  const [selectedHygieneSessionId, setSelectedHygieneSessionId] = useState('');
-  const [selectedHygieneParticipantId, setSelectedHygieneParticipantId] = useState('');
+  const [selectedHygieneSessionId, setSelectedHygieneSessionId] = useState<string>(initialHygieneSessionId);
+  const [selectedHygieneParticipantId, setSelectedHygieneParticipantId] = useState<string>(initialHygieneParticipantId);
+  const [hygieneScope, setHygieneScope] = useState<'client' | 'session'>(initialHygieneSessionId ? 'session' : 'client');
 
   // Dynamic fields state
   const [fields, setFields] = useState<PlaceholderFieldItem[]>([]);
@@ -94,6 +102,18 @@ function DocumentGeneratorContent() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generationResult, setGenerationResult] = useState<any | null>(null);
+
+  // Sync with searchParams on load/update
+  useEffect(() => {
+    if (initialClientId) setSelectedClientId(initialClientId);
+    if (initialTemplateCode) setSelectedTemplateCode(initialTemplateCode);
+    if (initialEmployeeId) setSelectedEmployeeId(initialEmployeeId);
+    if (initialHygieneSessionId) {
+      setSelectedHygieneSessionId(initialHygieneSessionId);
+      setHygieneScope('session');
+    }
+    if (initialHygieneParticipantId) setSelectedHygieneParticipantId(initialHygieneParticipantId);
+  }, [initialClientId, initialTemplateCode, initialEmployeeId, initialHygieneSessionId, initialHygieneParticipantId]);
 
   // Load clients and templates
   useEffect(() => {
@@ -129,6 +149,28 @@ function DocumentGeneratorContent() {
       });
   }, [selectedClientId]);
 
+  const currentTemplate = templates.find((t) => t.code === selectedTemplateCode);
+  const isHygieneTemplate =
+    currentTemplate?.family === 'hygiene' ||
+    currentTemplate?.contextLevel === 'hygiene_session' ||
+    selectedTemplateCode.startsWith('hygiene-');
+  const isEmployeeRequired =
+    !isHygieneTemplate &&
+    (currentTemplate?.contextLevel === 'employee' || currentTemplate?.contextLevel === 'job');
+  const isAdeverinta = selectedTemplateCode === 'hygiene-adeverinta';
+
+  const selectedClient = clients.find((c) => c.id === selectedClientId);
+  const filteredSessions = hygieneSessions.filter((session) => {
+    if (!selectedClient) return true;
+    return session.participants.some(
+      (p: any) =>
+        p.employee?.clientId === selectedClientId ||
+        (p.clientName && p.clientName.toLowerCase() === selectedClient.name.toLowerCase())
+    );
+  });
+  const displayedSessions = filteredSessions.length > 0 ? filteredSessions : hygieneSessions;
+  const selectedHygieneSession = hygieneSessions.find((session) => session.id === selectedHygieneSessionId);
+
   // Load dynamic template placeholders & pre-filled values
   useEffect(() => {
     if (!selectedClientId || !selectedTemplateCode) {
@@ -142,16 +184,22 @@ function DocumentGeneratorContent() {
       clientId: selectedClientId,
     });
     if (selectedEmployeeId) params.append('employeeId', selectedEmployeeId);
-    if (selectedHygieneSessionId) params.append('hygieneSessionId', selectedHygieneSessionId);
-    if (selectedHygieneParticipantId) params.append('hygieneParticipantId', selectedHygieneParticipantId);
+    if (!isHygieneTemplate || hygieneScope === 'session') {
+      if (selectedHygieneSessionId) params.append('hygieneSessionId', selectedHygieneSessionId);
+      if (selectedHygieneParticipantId) params.append('hygieneParticipantId', selectedHygieneParticipantId);
+    }
 
     fetch(`/api/templates/${selectedTemplateCode}/fields?${params.toString()}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success && Array.isArray(data.fields)) {
-          setFields(data.fields);
+          // Filter out repetitive array tokens (_001 - _115) from manual input fields
+          const cleanFields = data.fields.filter(
+            (f: PlaceholderFieldItem) => !/_\d{2,3}$/.test(f.key)
+          );
+          setFields(cleanFields);
           const initialValues: Record<string, string> = {};
-          data.fields.forEach((f: PlaceholderFieldItem) => {
+          cleanFields.forEach((f: PlaceholderFieldItem) => {
             initialValues[f.key] = f.value !== undefined && f.value !== null ? String(f.value) : '';
           });
           setFormValues(initialValues);
@@ -163,13 +211,15 @@ function DocumentGeneratorContent() {
       .finally(() => {
         setLoadingFields(false);
       });
-  }, [selectedClientId, selectedTemplateCode, selectedEmployeeId, selectedHygieneSessionId, selectedHygieneParticipantId]);
-
-  const currentTemplate = templates.find((t) => t.code === selectedTemplateCode);
-  const isEmployeeRequired = currentTemplate?.contextLevel === 'employee' || currentTemplate?.contextLevel === 'job';
-  const isHygieneRequired = currentTemplate?.contextLevel === 'hygiene_session';
-  const needsHygieneParticipant = selectedTemplateCode === 'hygiene-adeverinta';
-  const selectedHygieneSession = hygieneSessions.find((session) => session.id === selectedHygieneSessionId);
+  }, [
+    selectedClientId,
+    selectedTemplateCode,
+    selectedEmployeeId,
+    selectedHygieneSessionId,
+    selectedHygieneParticipantId,
+    hygieneScope,
+    isHygieneTemplate,
+  ]);
 
   const handleFieldChange = (key: string, value: string) => {
     setFormValues((prev) => ({
@@ -183,16 +233,26 @@ function DocumentGeneratorContent() {
       setError('Selectează firma client și șablonul dorit.');
       return;
     }
-    if (isEmployeeRequired && !selectedEmployeeId) {
+
+    if (isHygieneTemplate) {
+      if (hygieneScope === 'session') {
+        if (!selectedHygieneSessionId) {
+          setError('Selectează sesiunea de igienă folosită pentru document.');
+          return;
+        }
+        if (isAdeverinta && !selectedHygieneParticipantId) {
+          setError('Selectează cursantul din sesiune pentru adeverința nominală.');
+          return;
+        }
+      } else {
+        // Scope A: Client-wide
+        if (isAdeverinta && !selectedEmployeeId) {
+          setError('Selectează salariatul firmei pentru care se eliberează adeverința nominală.');
+          return;
+        }
+      }
+    } else if (isEmployeeRequired && !selectedEmployeeId) {
       setError('Acest șablon este nominal și necesită selectarea unui salariat.');
-      return;
-    }
-    if (isHygieneRequired && !selectedHygieneSessionId) {
-      setError('Selectează sesiunea de igienă folosită pentru document.');
-      return;
-    }
-    if (needsHygieneParticipant && !selectedHygieneParticipantId) {
-      setError('Selectează cursantul pentru adeverința nominală.');
       return;
     }
 
@@ -208,8 +268,8 @@ function DocumentGeneratorContent() {
           templateCode: selectedTemplateCode,
           clientId: selectedClientId,
           employeeId: selectedEmployeeId || undefined,
-          hygieneSessionId: selectedHygieneSessionId || undefined,
-          hygieneParticipantId: selectedHygieneParticipantId || undefined,
+          hygieneSessionId: (isHygieneTemplate && hygieneScope === 'client') ? undefined : (selectedHygieneSessionId || undefined),
+          hygieneParticipantId: (isHygieneTemplate && hygieneScope === 'client') ? undefined : (selectedHygieneParticipantId || undefined),
           customFields: formValues,
         }),
       });
@@ -227,9 +287,10 @@ function DocumentGeneratorContent() {
     }
   };
 
-  const autoCompletedCount = fields.filter((f) => f.isAutocompleted).length;
-  const manualFields = fields.filter((f) => !f.isAutocompleted);
-  const autoFields = fields.filter((f) => f.isAutocompleted);
+  const cleanFields = fields.filter((f) => !/_\d{2,3}$/.test(f.key));
+  const autoCompletedCount = cleanFields.filter((f) => f.isAutocompleted).length;
+  const manualFields = cleanFields.filter((f) => !f.isAutocompleted);
+  const autoFields = cleanFields.filter((f) => f.isAutocompleted);
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-12">
@@ -270,6 +331,7 @@ function DocumentGeneratorContent() {
               onChange={(e) => {
                 setSelectedClientId(e.target.value);
                 setSelectedEmployeeId('');
+                setSelectedHygieneParticipantId('');
               }}
               className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -302,7 +364,7 @@ function DocumentGeneratorContent() {
           </div>
         </div>
 
-        {/* Employee Selection if template is employee-level */}
+        {/* Employee Selection if template is employee-level (non-hygiene) */}
         {isEmployeeRequired && (
           <div className="pt-2 border-t border-slate-100">
             <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -323,43 +385,136 @@ function DocumentGeneratorContent() {
           </div>
         )}
 
-        {/* Hygiene Selection */}
-        {isHygieneRequired && (
-          <div className="pt-2 border-t border-slate-100 space-y-3">
+        {/* Scope Selector for Hygiene Templates */}
+        {isHygieneTemplate && (
+          <div className="pt-3 border-t border-slate-100 space-y-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Sesiune de igienă *</label>
-              <select
-                value={selectedHygieneSessionId}
-                onChange={(e) => {
-                  setSelectedHygieneSessionId(e.target.value);
-                  setSelectedHygieneParticipantId('');
-                }}
-                className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">-- Alege sesiunea --</option>
-                {hygieneSessions.map((session) => (
-                  <option key={session.id} value={session.id}>
-                    {new Date(session.sessionDate).toLocaleDateString('ro-RO')} — {session.providerName} — {session.participants.length} cursanți
-                  </option>
-                ))}
-              </select>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Regim de generare document igienă (Domeniu / Scop) *
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHygieneScope('client');
+                    setSelectedHygieneSessionId('');
+                    setSelectedHygieneParticipantId('');
+                  }}
+                  className={`p-3 text-left rounded-lg border transition ${
+                    hygieneScope === 'client'
+                      ? 'border-blue-600 bg-blue-50/60 ring-2 ring-blue-500/20'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="hygieneScope"
+                      checked={hygieneScope === 'client'}
+                      onChange={() => {}}
+                      className="text-blue-600"
+                    />
+                    <span className="text-xs font-bold text-slate-800">
+                      Scope A: Toți salariații firmei
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1 pl-5">
+                    Evidență completă conform cerințelor DSVSA / DSP. Asamblează automat toți salariații firmei selectate.
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setHygieneScope('session')}
+                  className={`p-3 text-left rounded-lg border transition ${
+                    hygieneScope === 'session'
+                      ? 'border-blue-600 bg-blue-50/60 ring-2 ring-blue-500/20'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="hygieneScope"
+                      checked={hygieneScope === 'session'}
+                      onChange={() => {}}
+                      className="text-blue-600"
+                    />
+                    <span className="text-xs font-bold text-slate-800">
+                      Scope B: Sesiune specifică de instruire
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1 pl-5">
+                    Generare legată de o sesiune de curs și examen susținut în fața comisiei DSP.
+                  </p>
+                </button>
+              </div>
             </div>
 
-            {needsHygieneParticipant && selectedHygieneSession && (
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Cursant pentru adeverință *</label>
+            {/* Scope A: Adeverinta needs employee selection */}
+            {hygieneScope === 'client' && isAdeverinta && (
+              <div className="pt-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Salariat destinatar adeverință *
+                </label>
                 <select
-                  value={selectedHygieneParticipantId}
-                  onChange={(e) => setSelectedHygieneParticipantId(e.target.value)}
+                  value={selectedEmployeeId}
+                  onChange={(e) => setSelectedEmployeeId(e.target.value)}
                   className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">-- Alege cursantul --</option>
-                  {selectedHygieneSession.participants.map((participant) => (
-                    <option key={participant.id} value={participant.id}>
-                      {participant.lastName} {participant.firstName}
+                  <option value="">-- Alege salariatul din firmă --</option>
+                  {employees.map((emp) => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.lastName} {emp.firstName} — {emp.currentJob?.title || 'Fără post'}
                     </option>
                   ))}
                 </select>
+              </div>
+            )}
+
+            {/* Scope B: Session & Participant Selection */}
+            {hygieneScope === 'session' && (
+              <div className="space-y-3 pt-2">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Sesiune de igienă *
+                  </label>
+                  <select
+                    value={selectedHygieneSessionId}
+                    onChange={(e) => {
+                      setSelectedHygieneSessionId(e.target.value);
+                      setSelectedHygieneParticipantId('');
+                    }}
+                    className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">-- Alege sesiunea de igienă --</option>
+                    {displayedSessions.map((session) => (
+                      <option key={session.id} value={session.id}>
+                        {new Date(session.sessionDate).toLocaleDateString('ro-RO')} — {session.providerName} — {session.location} ({session.participants.length} cursanți)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {isAdeverinta && selectedHygieneSession && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Cursant din sesiune pentru adeverință *
+                    </label>
+                    <select
+                      value={selectedHygieneParticipantId}
+                      onChange={(e) => setSelectedHygieneParticipantId(e.target.value)}
+                      className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">-- Alege cursantul --</option>
+                      {selectedHygieneSession.participants.map((participant) => (
+                        <option key={participant.id} value={participant.id}>
+                          {participant.lastName} {participant.firstName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
             )}
           </div>

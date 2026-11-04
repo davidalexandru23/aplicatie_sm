@@ -1,0 +1,98 @@
+--- prisma/schema.prisma	2026-11-02 22:21:54
++++ .agents/teamwork/m1_r3_explorer_1/proposed_schema.prisma	2026-11-03 19:36:52
+@@ -39,6 +39,12 @@
+   ssmSpecialistName   String?   // Nume specialist SSM / evaluator (ex: "Ing. Mihai Popescu")
+   ssmSpecialistCert   String?   // Număr / serie certificat atestare SSM (ex: "Certificat seria EV nr. 10452/2018")
+ 
++  // Relații SEPP & Specialist Desemnat (Milestone 1 - F1)
++  providerId          String?
++  provider            SsmProvider?   @relation(fields: [providerId], references: [id], onDelete: SetNull)
++  specialistId        String?
++  specialist          SsmSpecialist? @relation(fields: [specialistId], references: [id], onDelete: SetNull)
++
+   // 3. Numiri Decizii Organizatorice Angajator (Deciziile 01-09)
+   designatedWorkerSsm String?   // Lucrător desemnat SSM (Decizia 01)
+   firstAidResponder   String?   // Responsabil acordare prim ajutor (Decizia 02)
+@@ -56,8 +62,82 @@
+ 
+   @@index([cui])
+   @@index([caenCode])
++  @@index([providerId])
++  @@index([specialistId])
++}
++
++// ==========================================
++// 1.1. PRESTATOR SERVICII EXTERNE SSM (SEPP) & SPECIALIȘTI DESEMNAȚI (MILESTONE 1 - F1)
++// ==========================================
++
++model SsmProvider {
++  id                    String         @id @default(uuid())
++  name                  String         // Denumire prestator SEPP (ex: "EXPERT SSM & SITUAȚII DE URGENȚĂ S.R.L.")
++  cui                   String         @unique // CUI / CIF prestator
++  regCom                String?        // Nr. Registrul Comerțului (ex: "J40/1234/2020")
++  address               String         // Sediu social complet prestator
++  
++  // Defalcare adresă pentru completare câmpuri șabloane
++  street                String?        // Stradă (ex: "Str. Agricultori")
++  number                String?        // Număr (ex: "35")
++  building              String?        // Bloc (ex: "A1")
++  entrance              String?        // Scara (ex: "1")
++  floor                 String?        // Etaj (ex: "2")
++  apartment             String?        // Apartament (ex: "6")
++  postalCode            String?        // Cod poștal (ex: "021481")
++  locality              String?        // Localitate (ex: "București")
++  county                String?        // Județ / Sector (ex: "Sector 2")
++
++  // Date acreditare / abilitare Ministerul Muncii - ITM
++  authorizationNumber   String?        // Nr. certificat abilitare ITM (ex: "4812/2021")
++  authorizationDate     DateTime?      // Data emiterii autorizației ITM
++  authorizationDetails  String?        // Mențiune completă certificat (ex: "Certificat abilitare Serviciu Extern SSM nr. 4812/2021 emis de Ministerul Muncii - ITM București")
++
++  // Contact & Reprezentare
++  phone                 String?        // Telefon contact
++  email                 String?        // Email contact
++  website               String?        // Website prestator
++  legalRepresentative   String?        // Nume reprezentant legal prestator (ex: "Ing. Mihai Popescu")
++  representativeRole    String?        // Calitate reprezentant (ex: "Director Executiv", "Administrator")
++  representativeDoc     String?        // Act reprezentare (ex: "Decizia Asociaților nr. 01/2020")
++
++  // Stare & Configurare
++  isDefault             Boolean        @default(false) // Profilul principal/activ în Setări
++  isActive              Boolean        @default(true)
++  createdAt             DateTime       @default(now())
++  updatedAt             DateTime       @updatedAt
++
++  specialists           SsmSpecialist[]
++  clients               Client[]
++
++  @@index([isActive])
+ }
+ 
++model SsmSpecialist {
++  id                String       @id @default(uuid())
++  providerId        String
++  provider          SsmProvider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
++  
++  name              String       // Nume și prenume specialist (ex: "Ing. Mihai Popescu")
++  role              String?      // Rol / Funcție (ex: "Specialist Principal SSM & Evaluator Riscuri", "Cadru Tehnic PSI")
++  certificateNumber String?      // Număr / serie certificat atestare SSM / evaluator (ex: "Certificat seria EV nr. 10452/2018")
++  qualification     String?      // Calificare / studii tehnice
++  phone             String?      // Telefon direct
++  email             String?      // Email contact
++  cnp               String?      // CNP (pentru acte oficiale, opțional)
++  
++  isDefault         Boolean      @default(false) // Specialist selectat implicit
++  isActive          Boolean      @default(true)
++  createdAt         DateTime     @default(now())
++  updatedAt         DateTime     @updatedAt
++
++  clients           Client[]
++
++  @@unique([providerId, name])
++  @@index([providerId])
++  @@index([isActive])
++}
++
+ model Worksite {
+   id        String   @id @default(uuid())
+   clientId  String

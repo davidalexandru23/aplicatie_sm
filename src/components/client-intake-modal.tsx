@@ -1,16 +1,41 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, X, Building2, Briefcase, UserCheck, ShieldCheck, AlertCircle, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { CaenSelector } from '@/components/caen-selector';
 import { CaenEntry } from '@/lib/caen-catalog';
+
+interface SpecialistOption {
+  id: string;
+  providerId: string;
+  name: string;
+  role?: string | null;
+  certificateNumber?: string | null;
+  qualification?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  isDefault?: boolean;
+}
+
+interface ProviderOption {
+  id: string;
+  name: string;
+  cui: string;
+  isDefault?: boolean;
+  specialists: SpecialistOption[];
+}
 
 export function ClientIntakeModal() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Provider & Specialist Dropdown State
+  const [providers, setProviders] = useState<ProviderOption[]>([]);
+  const [selectedProviderId, setSelectedProviderId] = useState<string>('');
+  const [selectedSpecialistId, setSelectedSpecialistId] = useState<string>('');
 
   // Form State
   const [formData, setFormData] = useState({
@@ -29,6 +54,96 @@ export function ClientIntakeModal() {
     ssmSpecialistName: 'Ing. Mihai Popescu',
     ssmSpecialistCert: 'Certificat seria EV nr. 10452/2018',
   });
+
+  // Fetch providers and preselect default when modal opens
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let isMounted = true;
+    const fetchProviders = async () => {
+      try {
+        const res = await fetch('/api/providers');
+        if (res.ok) {
+          const data: ProviderOption[] = await res.json();
+          if (!isMounted) return;
+          setProviders(data);
+
+          if (data.length > 0) {
+            const defProvider = data.find((p) => p.isDefault) || data[0];
+            setSelectedProviderId(defProvider.id);
+            setFormData((prev) => ({
+              ...prev,
+              ssmProviderName: defProvider.name,
+            }));
+
+            if (defProvider.specialists && defProvider.specialists.length > 0) {
+              const defSpec = defProvider.specialists.find((s) => s.isDefault) || defProvider.specialists[0];
+              setSelectedSpecialistId(defSpec.id);
+              setFormData((prev) => ({
+                ...prev,
+                ssmSpecialistName: defSpec.name,
+                ssmSpecialistCert: defSpec.certificateNumber || '',
+              }));
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Eroare la încărcarea prestatorilor:', err);
+      }
+    };
+
+    fetchProviders();
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen]);
+
+  const handleProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const pId = e.target.value;
+    setSelectedProviderId(pId);
+
+    const chosenProvider = providers.find((p) => p.id === pId);
+    if (chosenProvider) {
+      setFormData((prev) => ({
+        ...prev,
+        ssmProviderName: chosenProvider.name,
+      }));
+
+      if (chosenProvider.specialists && chosenProvider.specialists.length > 0) {
+        const defSpec = chosenProvider.specialists.find((s) => s.isDefault) || chosenProvider.specialists[0];
+        setSelectedSpecialistId(defSpec.id);
+        setFormData((prev) => ({
+          ...prev,
+          ssmSpecialistName: defSpec.name,
+          ssmSpecialistCert: defSpec.certificateNumber || '',
+        }));
+      } else {
+        setSelectedSpecialistId('');
+        setFormData((prev) => ({
+          ...prev,
+          ssmSpecialistName: '',
+          ssmSpecialistCert: '',
+        }));
+      }
+    } else {
+      setSelectedSpecialistId('');
+    }
+  };
+
+  const handleSpecialistChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const sId = e.target.value;
+    setSelectedSpecialistId(sId);
+
+    const currentProvider = providers.find((p) => p.id === selectedProviderId);
+    const chosenSpec = currentProvider?.specialists.find((s) => s.id === sId);
+    if (chosenSpec) {
+      setFormData((prev) => ({
+        ...prev,
+        ssmSpecialistName: chosenSpec.name,
+        ssmSpecialistCert: chosenSpec.certificateNumber || '',
+      }));
+    }
+  };
 
   const handleCaenSelect = (code: string, entry?: CaenEntry) => {
     setFormData((prev) => ({
@@ -59,6 +174,8 @@ export function ClientIntakeModal() {
           contactPerson: formData.contactPerson || null,
           contactPhone: formData.contactPhone || null,
           contactEmail: formData.contactEmail || null,
+          providerId: selectedProviderId || null,
+          specialistId: selectedSpecialistId || null,
           ssmProviderName: formData.ssmProviderName || null,
           ssmSpecialistName: formData.ssmSpecialistName || null,
           ssmSpecialistCert: formData.ssmSpecialistCert || null,
@@ -302,23 +419,58 @@ export function ClientIntakeModal() {
                     <label className="block text-[11px] font-semibold text-slate-700 mb-1">
                       Prestator SSM (Denumire SEPP)
                     </label>
-                    <input
-                      type="text"
-                      value={formData.ssmProviderName}
-                      onChange={(e) => setFormData({ ...formData, ssmProviderName: e.target.value })}
-                      className="w-full text-xs px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    {providers.length > 0 ? (
+                      <select
+                        value={selectedProviderId}
+                        onChange={handleProviderChange}
+                        className="w-full text-xs px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      >
+                        {providers.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name} ({p.cui})
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={formData.ssmProviderName}
+                        onChange={(e) => setFormData({ ...formData, ssmProviderName: e.target.value })}
+                        className="w-full text-xs px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    )}
                   </div>
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-700 mb-1">
                       Specialist / Evaluator SSM
                     </label>
-                    <input
-                      type="text"
-                      value={formData.ssmSpecialistName}
-                      onChange={(e) => setFormData({ ...formData, ssmSpecialistName: e.target.value })}
-                      className="w-full text-xs px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    {(() => {
+                      const currentProvider = providers.find((p) => p.id === selectedProviderId);
+                      const specialists = currentProvider?.specialists || [];
+                      if (specialists.length > 0) {
+                        return (
+                          <select
+                            value={selectedSpecialistId}
+                            onChange={handleSpecialistChange}
+                            className="w-full text-xs px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                          >
+                            {specialists.map((s) => (
+                              <option key={s.id} value={s.id}>
+                                {s.name} {s.role ? `(${s.role})` : ''}
+                              </option>
+                            ))}
+                          </select>
+                        );
+                      }
+                      return (
+                        <input
+                          type="text"
+                          value={formData.ssmSpecialistName}
+                          onChange={(e) => setFormData({ ...formData, ssmSpecialistName: e.target.value })}
+                          className="w-full text-xs px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      );
+                    })()}
                   </div>
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-700 mb-1">
@@ -328,7 +480,7 @@ export function ClientIntakeModal() {
                       type="text"
                       value={formData.ssmSpecialistCert}
                       onChange={(e) => setFormData({ ...formData, ssmSpecialistCert: e.target.value })}
-                      className="w-full text-xs px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full text-xs px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 font-mono"
                     />
                   </div>
                 </div>

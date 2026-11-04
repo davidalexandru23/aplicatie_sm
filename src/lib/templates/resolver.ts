@@ -544,14 +544,53 @@ export async function resolveTemplateData(
 
   const investMembers = client?.investigationMembers || ROMANIAN_LEGAL_DECIZII.PLACEHOLDER_MEMBRU_COMISIE;
 
-  // 4. SEPP Provider Details
-  const ssmProviderName = client?.ssmProviderName || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_PRESTATOR_SSM;
-  const ssmSpecialistName = client?.ssmSpecialistName
+  // 4. SEPP Provider Details (Dynamic relational binding with fallback)
+  let prov = client?.provider;
+  let spec = client?.specialist;
+
+  if (!prov && client?.providerId) {
+    prov = await prisma.ssmProvider.findUnique({ where: { id: client.providerId } });
+  }
+  if (!spec && client?.specialistId) {
+    spec = await prisma.ssmSpecialist.findUnique({ where: { id: client.specialistId } });
+  }
+
+  const ssmProviderName = prov?.name || client?.ssmProviderName || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_PRESTATOR_SSM;
+  const ssmSpecialistName = spec?.name
+    ? `${spec.name} (${spec.role || 'Specialist SSM abilitat'}, ${spec.certificateNumber || 'Certificat abilitare SSM'})`
+    : client?.ssmSpecialistName
     ? `${client.ssmSpecialistName} (Specialist SSM abilitat, ${client.ssmSpecialistCert || 'Certificat abilitare SSM'})`
     : ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_SPECIALIST_SSM;
-  const evaluatorName = client?.ssmSpecialistName
+  const evaluatorName = spec?.name
+    ? `${spec.name} (Evaluator risc SSM, ${spec.certificateNumber || 'Certificat atestare INCDPM'})`
+    : client?.ssmSpecialistName
     ? `${client.ssmSpecialistName} (Evaluator risc SSM, ${client.ssmSpecialistCert || 'Certificat atestare INCDPM'})`
     : ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_EVALUATOR_RISC;
+  const certificatEvaluator = spec?.certificateNumber || client?.ssmSpecialistCert || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_CERTIFICAT_EVALUATOR;
+
+  const cuiPrestator = prov?.cui || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_CUI_PRESTATOR;
+  const certFurnizor = prov?.authorizationDetails
+    ? prov.authorizationDetails
+    : prov?.authorizationNumber
+    ? `Certificat abilitare Serviciu Extern SSM nr. ${prov.authorizationNumber}${prov.authorizationDate ? ` din ${formatDateRo(prov.authorizationDate)}` : ''} emis de Ministerul Muncii - ITM București`
+    : ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_CERTIFICAT_FURNIZOR;
+  const nrCertFurnizor = prov?.authorizationNumber || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_NUMAR_CERTIFICAT_FURNIZOR;
+  const nrInregFurnizor = prov?.regCom || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_NUMAR_INREGISTRARE_FURNIZOR;
+  const stradaFurnizor = prov?.street || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_STRADA_FURNIZOR;
+  const numarFurnizor = prov?.number || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_NUMAR_FURNIZOR;
+  const blocFurnizor = prov?.building ?? (prov ? '-' : ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_BLOC_FURNIZOR);
+  const scaraFurnizor = prov?.entrance ?? (prov ? '-' : ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_SCARA_FURNIZOR);
+  const etajFurnizor = prov?.floor ?? (prov ? '-' : ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_ETAJ_FURNIZOR);
+  const apFurnizor = prov?.apartment ?? (prov ? '-' : ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_APARTAMENT_FURNIZOR);
+  const codPostalFurnizor = prov?.postalCode || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_COD_POSTAL_FURNIZOR;
+  const localitateFurnizor = prov?.locality || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_LOCALITATE_FURNIZOR;
+  const judetFurnizor = prov?.county || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_JUDET_FURNIZOR;
+  const telPrestator = prov?.phone || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_TELEFON_PRESTATOR;
+  const emailPrestator = prov?.email || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_EMAIL_PRESTATOR;
+  const sitePrestator = prov?.website || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_SITE_PRESTATOR;
+  const repPrestator = prov?.legalRepresentative || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_REPREZENTANT_PRESTATOR;
+  const rolRepPrestator = prov?.representativeRole || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_CALITATE_REPREZENTANT;
+  const actRepPrestator = prov?.representativeDoc || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_ACT_REPREZENTANT;
 
   // 5. Build 30-factor positional dictionary
   const dynamic30Factors: Record<string, string> = {};
@@ -586,12 +625,30 @@ export async function resolveTemplateData(
     PLACEHOLDER_AN_EVALUARE: currentYear,
     PLACEHOLDER_NUMAR_LUCRATORI: String(job?.workersCount || client?.employees?.length || 10),
 
-    // SEPP External Provider
+    // SEPP External Provider (24 Tokens Dynamically Bound)
     PLACEHOLDER_PRESTATOR_SSM: ssmProviderName,
     PLACEHOLDER_FURNIZOR_SSM: ssmProviderName,
+    PLACEHOLDER_CUI_PRESTATOR: cuiPrestator,
+    PLACEHOLDER_CERTIFICAT_FURNIZOR: certFurnizor,
+    PLACEHOLDER_NUMAR_CERTIFICAT_FURNIZOR: nrCertFurnizor,
+    PLACEHOLDER_NUMAR_INREGISTRARE_FURNIZOR: nrInregFurnizor,
+    PLACEHOLDER_STRADA_FURNIZOR: stradaFurnizor,
+    PLACEHOLDER_NUMAR_FURNIZOR: numarFurnizor,
+    PLACEHOLDER_BLOC_FURNIZOR: blocFurnizor,
+    PLACEHOLDER_SCARA_FURNIZOR: scaraFurnizor,
+    PLACEHOLDER_ETAJ_FURNIZOR: etajFurnizor,
+    PLACEHOLDER_APARTAMENT_FURNIZOR: apFurnizor,
+    PLACEHOLDER_COD_POSTAL_FURNIZOR: codPostalFurnizor,
+    PLACEHOLDER_LOCALITATE_FURNIZOR: localitateFurnizor,
+    PLACEHOLDER_JUDET_FURNIZOR: judetFurnizor,
+    PLACEHOLDER_TELEFON_PRESTATOR: telPrestator,
+    PLACEHOLDER_EMAIL_PRESTATOR: emailPrestator,
+    PLACEHOLDER_SITE_PRESTATOR: sitePrestator,
     PLACEHOLDER_SPECIALIST_SSM: ssmSpecialistName,
     PLACEHOLDER_EVALUATOR_RISC: evaluatorName,
-    PLACEHOLDER_CERTIFICAT_EVALUATOR: client?.ssmSpecialistCert || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_CERTIFICAT_EVALUATOR,
+    PLACEHOLDER_CERTIFICAT_EVALUATOR: certificatEvaluator,
+    PLACEHOLDER_REPREZENTANT_PRESTATOR: repPrestator,
+    PLACEHOLDER_ACT_REPREZENTANT: actRepPrestator,
 
     // Risk Evaluation Metrics
     PLACEHOLDER_NIVEL_RISC_GLOBAL: scoreNumber.toFixed(2),
@@ -745,36 +802,124 @@ export async function resolveTemplateData(
       PLACEHOLDER_NUMAR_PREZENTI: String(hygieneSession.participants?.length || 1),
       PLACEHOLDER_NUMAR_ADMISI: String(hygieneSession.participants?.length || 1),
       PLACEHOLDER_NUMAR_RESPINSI: '0',
-      participants: hygieneSession.participants || [],
-    } : {
-      participants: [
+      participants: (hygieneSession.participants || []).map((p: any, idx: number) => {
+        const pFullName = `${p.lastName} ${p.firstName}`.trim();
+        const docType = p.docType || p.employee?.identityDocument?.docType || 'CI';
+        const docSeries = p.docSeries || p.employee?.identityDocument?.series || 'RX';
+        const docNumber = p.docNumber || p.employee?.identityDocument?.number || '123456';
+        const identityDoc = `${docType} seria ${docSeries} nr. ${docNumber}`.trim();
+        const sessionDateStr = formatDateRo(hygieneSession.sessionDate);
+        const examDateStr = formatDateRo(hygieneSession.examDate);
+
+        return {
+          ...p,
+          rowNumber: idx + 1,
+          fullName: pFullName || 'Stan Alexandru',
+          identityDocument: identityDoc,
+          docType,
+          docSeries,
+          docNumber,
+          sessionDate: sessionDateStr,
+          examDate: examDateStr,
+          providerName: hygieneSession.providerName,
+          coursePeriod: `${sessionDateStr} - ${examDateStr}`,
+          module: p.employee?.hygieneModule || 'Modulul 1 - Sector Alimentar și Alimentație Publică',
+          level: 'Nivelul 1',
+        };
+      }),
+    } : (() => {
+      const clientEmployees = (client?.employees || []) as any[];
+      const dynamicParticipants = clientEmployees.map((emp: any, idx: number) => {
+        const empFullName = `${emp.lastName} ${emp.firstName}`.trim();
+        const idDoc = emp.identityDocument;
+        const docType = idDoc?.docType || 'CI';
+        const docSeries = idDoc?.series || 'RX';
+        const docNumber = idDoc?.number || '123456';
+        const identityStr = `${docType} seria ${docSeries} nr. ${docNumber}`.trim();
+        const examDateStr = emp.hygieneLastExamDate ? formatDateRo(emp.hygieneLastExamDate) : currentDateRo;
+        const sessionDateStr = examDateStr;
+
+        const defaultModule = client?.caenCode && (client.caenCode.startsWith('56') || client.caenCode.startsWith('10') || client.caenCode.startsWith('11'))
+          ? 'Modulul 1 - Sector Alimentar și Alimentație Publică'
+          : (emp.hygieneModule || 'Modulul 1 - Servicii de alimentație');
+
+        let certSeries = 'IGI';
+        let certNumber = String(idx + 1).padStart(4, '0');
+        if (emp.hygieneCertificateNumber) {
+          const parts = emp.hygieneCertificateNumber.split(/[-\s]/);
+          if (parts.length > 1) {
+            certSeries = parts[0];
+            certNumber = parts.slice(1).join('-');
+          } else {
+            certNumber = emp.hygieneCertificateNumber;
+          }
+        }
+
+        return {
+          rowNumber: idx + 1,
+          fullName: empFullName,
+          lastName: emp.lastName,
+          firstName: emp.firstName,
+          cnp: emp.cnp,
+          birthDate: emp.birthDate ? formatDateRo(emp.birthDate) : '15.03.1988',
+          birthPlace: emp.birthPlace || 'București',
+          docType,
+          docSeries,
+          docNumber,
+          identityDocument: identityStr,
+          module: emp.hygieneModule || defaultModule,
+          level: 'Nivelul 1',
+          sessionDate: sessionDateStr,
+          examDate: examDateStr,
+          examGrade: '10',
+          examResult: 'Admis',
+          certificateSeries: certSeries,
+          certificateNumber: certNumber,
+          providerName: client?.provider?.name || ssmProviderName,
+          coursePeriod: `${sessionDateStr} - ${examDateStr}`,
+        };
+      });
+
+      const participantRoster = dynamicParticipants.length > 0 ? dynamicParticipants : [
         {
           rowNumber: 1,
           fullName: fullName || 'Stan Alexandru',
           lastName: employee?.lastName || 'Stan',
           firstName: employee?.firstName || 'Alexandru',
           cnp: employee?.cnp || '1880315410127',
-          birthDate: employee?.birthDate || '15.03.1988',
+          birthDate: employee?.birthDate ? formatDateRo(employee.birthDate) : '15.03.1988',
           birthPlace: employee?.birthPlace || 'București',
           docType: identity?.docType || 'CI',
           docSeries: identity?.series || 'RX',
           docNumber: identity?.number || '123456',
           identityDocument: `${identity?.docType || 'CI'} seria ${identity?.series || 'RX'} nr. ${identity?.number || '123456'}`.trim(),
-          module: employee?.hygieneModule || 'Modulul 1',
+          module: employee?.hygieneModule || 'Modulul 1 - Servicii de alimentație',
           level: 'Nivelul 1',
-          sessionDate: '10.03.2026',
-          examDate: '15.03.2026',
+          sessionDate: currentDateRo,
+          examDate: currentDateRo,
           examGrade: '10',
           examResult: 'Admis',
           certificateSeries: 'IGI',
           certificateNumber: '0042',
-          providerName: 'EXPERT SSM & SITUAȚII DE URGENȚĂ S.R.L.',
-          coursePeriod: '01.03.2026 - 10.03.2026',
+          providerName: ssmProviderName,
+          coursePeriod: `${currentDateRo} - ${currentDateRo}`,
         },
-      ],
-    }),
+      ];
 
-    // 6. Cursant selectat (dacă există)
+      return {
+        PLACEHOLDER_DATA_SESIUNE: currentDateRo,
+        PLACEHOLDER_DATA_EXAMEN: currentDateRo,
+        PLACEHOLDER_DATA_PV: currentDateRo,
+        PLACEHOLDER_DATA_CATALOG: currentDateRo,
+        PLACEHOLDER_NUMAR_CANDIDATI: String(participantRoster.length),
+        PLACEHOLDER_NUMAR_PREZENTI: String(participantRoster.length),
+        PLACEHOLDER_NUMAR_ADMISI: String(participantRoster.length),
+        PLACEHOLDER_NUMAR_RESPINSI: '0',
+        participants: participantRoster,
+      };
+    })()),
+
+    // 6. Cursant selectat (dacă există) sau angajat selectat pentru adeverință
     ...(participant ? {
       PLACEHOLDER_NUME_COMPLET: participantFullName,
       PLACEHOLDER_NUME: participant.lastName,
@@ -786,13 +931,32 @@ export async function resolveTemplateData(
       PLACEHOLDER_SERIE_ACT: participant.docSeries,
       PLACEHOLDER_NUMAR_ACT: participant.docNumber,
       PLACEHOLDER_NR_ACT: participant.docNumber,
-      PLACEHOLDER_SERIE_ADEVERINTA: participant.certificateSeries,
-      PLACEHOLDER_NUMAR_ADEVERINTA: participant.certificateNumber,
-      PLACEHOLDER_DATA_ELIBERARE: formatDateRo(hygieneSession?.examDate),
+      PLACEHOLDER_SERIE_ADEVERINTA: participant.certificateSeries || 'ADEV-IG',
+      PLACEHOLDER_NUMAR_ADEVERINTA: participant.certificateNumber || '0042',
+      PLACEHOLDER_DATA_ELIBERARE: formatDateRo(hygieneSession?.examDate) || currentDateRo,
       PLACEHOLDER_SERIE_NUMAR_CERTIFICAT: `${participant.certificateSeries || 'IGI'} ${participant.certificateNumber || '0042'}`.trim(),
       PLACEHOLDER_REZULTAT_EXAMEN: participant.examResult || 'Admis',
-      PLACEHOLDER_MODUL_IGIENA: participant.employee?.hygieneModule || employee?.hygieneModule || 'Modulul 1',
-    } : {}),
+      PLACEHOLDER_MODUL_IGIENA: participant.employee?.hygieneModule || employee?.hygieneModule || 'Modulul 1 - Servicii de alimentație',
+      PLACEHOLDER_NIVEL_IGIENA: 'Nivelul 2',
+    } : (employee ? {
+      PLACEHOLDER_NUME_COMPLET: fullName,
+      PLACEHOLDER_NUME: employee.lastName,
+      PLACEHOLDER_PRENUME: employee.firstName,
+      PLACEHOLDER_CNP: employee.cnp,
+      PLACEHOLDER_DATA_NASTERII: formatDateRo(employee.birthDate),
+      PLACEHOLDER_LOCALITATE_NASTERII: employee.birthPlace,
+      PLACEHOLDER_TIP_ACT: identity?.docType || 'CI',
+      PLACEHOLDER_SERIE_ACT: identity?.series || 'RX',
+      PLACEHOLDER_NUMAR_ACT: identity?.number || '123456',
+      PLACEHOLDER_NR_ACT: identity?.number || '123456',
+      PLACEHOLDER_SERIE_ADEVERINTA: employee.hygieneCertificateNumber ? (employee.hygieneCertificateNumber.split(/[-\s]/)[0] || 'ADEV-IG') : 'ADEV-IG',
+      PLACEHOLDER_NUMAR_ADEVERINTA: employee.hygieneCertificateNumber || '0042',
+      PLACEHOLDER_DATA_ELIBERARE: formatDateRo(employee.hygieneCertificateIssueDate || employee.hygieneLastExamDate) || currentDateRo,
+      PLACEHOLDER_SERIE_NUMAR_CERTIFICAT: employee.hygieneCertificateNumber || 'IGI 0042',
+      PLACEHOLDER_REZULTAT_EXAMEN: 'Admis',
+      PLACEHOLDER_MODUL_IGIENA: employee.hygieneModule || 'Modulul 1 - Servicii de alimentație',
+      PLACEHOLDER_NIVEL_IGIENA: 'Nivelul 2',
+    } : {})),
   };
 
   // Compoziție în cascadă: Fallback Legal -> Date Verificate DB -> Suprascrieri Custom
@@ -841,32 +1005,38 @@ export async function resolveTemplatePlaceholders(ctx: TemplateResolutionContext
 
   const client = await prisma.client.findUnique({
     where: { id: ctx.clientId },
-    include: { jobs: true, worksites: true, employees: true },
+    include: {
+      jobs: true,
+      worksites: true,
+      employees: {
+        include: {
+          identityDocument: true,
+          residenceAddress: true,
+          currentJob: true,
+          currentWorksite: true,
+        },
+      },
+      provider: true,
+      specialist: true,
+    },
   });
   if (!client) {
     throw new Error(`Clientul nu a fost găsit.`);
   }
 
   const employee = ctx.employeeId
-    ? await prisma.employee.findFirst({
-        where: { id: ctx.employeeId, clientId: ctx.clientId },
-        include: {
-          identityDocument: true,
-          residenceAddress: true,
-          currentJob: true,
-          currentWorksite: true,
-        },
-      })
+    ? (client.employees.find((e) => e.id === ctx.employeeId) ||
+        (await prisma.employee.findFirst({
+          where: { id: ctx.employeeId, clientId: ctx.clientId },
+          include: {
+            identityDocument: true,
+            residenceAddress: true,
+            currentJob: true,
+            currentWorksite: true,
+          },
+        })))
     : client.employees && client.employees.length > 0
-    ? await prisma.employee.findFirst({
-        where: { id: client.employees[0].id },
-        include: {
-          identityDocument: true,
-          residenceAddress: true,
-          currentJob: true,
-          currentWorksite: true,
-        },
-      })
+    ? client.employees[0]
     : null;
 
   const selectedJob = client.jobs.find((j) => j.id === ctx.jobId) || employee?.currentJob || (client.jobs && client.jobs[0]) || null;
@@ -875,7 +1045,20 @@ export async function resolveTemplatePlaceholders(ctx: TemplateResolutionContext
   const hygieneSession = ctx.hygieneSessionId
     ? await prisma.hygieneSession.findUnique({
         where: { id: ctx.hygieneSessionId },
-        include: { participants: { include: { employee: true } } },
+        include: {
+          participants: {
+            include: {
+              employee: {
+                include: {
+                  identityDocument: true,
+                  residenceAddress: true,
+                  currentJob: true,
+                  currentWorksite: true,
+                },
+              },
+            },
+          },
+        },
       })
     : null;
 
@@ -893,20 +1076,22 @@ export async function resolveTemplatePlaceholders(ctx: TemplateResolutionContext
     customOverrides: ctx.customOverrides,
   });
 
-  const resolvedFields: ResolvedPlaceholderItem[] = template.fields.map((def: TemplateFieldDef) => {
-    const rawVal = resolutionResult.data[def.key];
-    const hasValue = rawVal !== undefined && rawVal !== null && String(rawVal).trim() !== '';
+  const resolvedFields: ResolvedPlaceholderItem[] = template.fields
+    .filter((def: TemplateFieldDef) => !/_\d{2,3}$/.test(def.key))
+    .map((def: TemplateFieldDef) => {
+      const rawVal = resolutionResult.data[def.key];
+      const hasValue = rawVal !== undefined && rawVal !== null && String(rawVal).trim() !== '';
 
-    return {
-      key: def.key,
-      label: def.label,
-      source: def.source,
-      type: def.type,
-      required: def.required,
-      value: hasValue ? (rawVal as string | number | boolean) : '',
-      isAutocompleted: hasValue,
-    };
-  });
+      return {
+        key: def.key,
+        label: def.label,
+        source: def.source,
+        type: def.type,
+        required: def.required,
+        value: hasValue ? (rawVal as string | number | boolean) : '',
+        isAutocompleted: hasValue,
+      };
+    });
 
   return {
     template,

@@ -20,6 +20,31 @@ export async function GET() {
         caenCode: true,
         caenActivity: true,
         foundedYear: true,
+        providerId: true,
+        specialistId: true,
+        provider: {
+          select: {
+            id: true,
+            name: true,
+            cui: true,
+            regCom: true,
+            address: true,
+            authorizationNumber: true,
+            authorizationDate: true,
+            phone: true,
+            email: true,
+          },
+        },
+        specialist: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+            certificateNumber: true,
+            phone: true,
+            email: true,
+          },
+        },
         ssmProviderName: true,
         ssmSpecialistName: true,
         ssmSpecialistCert: true,
@@ -64,6 +89,9 @@ export async function POST(request: NextRequest) {
       caenCode,
       caenActivity,
       foundedYear,
+      providerId,
+      specialistId,
+      designatedSpecialistId,
       ssmProviderName,
       ssmSpecialistName,
       ssmSpecialistCert,
@@ -123,6 +151,38 @@ export async function POST(request: NextRequest) {
       parsedDecisionsDate = isNaN(d.getTime()) ? null : d;
     }
 
+    // Resolve Provider & Specialist with dual string synchronization
+    let validProviderId: string | null = null;
+    let syncedProviderName = ssmProviderName ? String(ssmProviderName).trim() : null;
+
+    if (providerId) {
+      const p = await prisma.ssmProvider.findUnique({ where: { id: providerId } });
+      if (p) {
+        validProviderId = p.id;
+        if (!syncedProviderName) {
+          syncedProviderName = p.name;
+        }
+      }
+    }
+
+    const effSpecialistId = specialistId || designatedSpecialistId || null;
+    let validSpecialistId: string | null = null;
+    let syncedSpecialistName = ssmSpecialistName ? String(ssmSpecialistName).trim() : null;
+    let syncedSpecialistCert = ssmSpecialistCert ? String(ssmSpecialistCert).trim() : null;
+
+    if (effSpecialistId) {
+      const s = await prisma.ssmSpecialist.findUnique({ where: { id: effSpecialistId } });
+      if (s) {
+        validSpecialistId = s.id;
+        if (!syncedSpecialistName) {
+          syncedSpecialistName = s.name;
+        }
+        if (!syncedSpecialistCert) {
+          syncedSpecialistCert = s.certificateNumber;
+        }
+      }
+    }
+
     const client = await prisma.client.create({
       data: {
         name: String(name).trim(),
@@ -140,10 +200,12 @@ export async function POST(request: NextRequest) {
         caenActivity: resolvedCaenActivity,
         foundedYear: parsedYear,
 
-        // SEPP Provider Details
-        ssmProviderName: ssmProviderName ? String(ssmProviderName).trim() : null,
-        ssmSpecialistName: ssmSpecialistName ? String(ssmSpecialistName).trim() : null,
-        ssmSpecialistCert: ssmSpecialistCert ? String(ssmSpecialistCert).trim() : null,
+        // SEPP Provider Details (Dual Persistence)
+        providerId: validProviderId,
+        specialistId: validSpecialistId,
+        ssmProviderName: syncedProviderName,
+        ssmSpecialistName: syncedSpecialistName,
+        ssmSpecialistCert: syncedSpecialistCert,
 
         // Appointees
         designatedWorkerSsm: designatedWorkerSsm ? String(designatedWorkerSsm).trim() : null,
@@ -151,6 +213,10 @@ export async function POST(request: NextRequest) {
         psiResponder: psiResponder ? String(psiResponder).trim() : null,
         investigationMembers: investigationMembers ? String(investigationMembers).trim() : null,
         decisionsDate: parsedDecisionsDate,
+      },
+      include: {
+        provider: true,
+        specialist: true,
       },
     });
 

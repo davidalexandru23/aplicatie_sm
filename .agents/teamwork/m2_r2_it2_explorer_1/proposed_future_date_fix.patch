@@ -1,0 +1,31 @@
+diff --git a/src/app/api/trainings/record/route.ts b/src/app/api/trainings/record/route.ts
+--- a/src/app/api/trainings/record/route.ts
++++ b/src/app/api/trainings/record/route.ts
+@@ -40,6 +40,16 @@ export async function POST(request: NextRequest) {
+       );
+     }
+ 
++    // Validare: data instruirii nu poate fi în viitor (Legea 319/2006, HG 1425/2006, OMAI 712/2005)
++    const now = new Date();
++    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
++    if (parsedDate.getTime() > endOfToday.getTime()) {
++      return NextResponse.json(
++        { error: 'Data instruirii nu poate fi în viitor.' },
++        { status: 400 }
++      );
++    }
++
+     const duration = Number(durationHours);
+     if (isNaN(duration) || duration <= 0) {
+       return NextResponse.json(
+diff --git a/src/components/training-planner-modal.tsx b/src/components/training-planner-modal.tsx
+--- a/src/components/training-planner-modal.tsx
++++ b/src/components/training-planner-modal.tsx
+@@ -351,6 +351,7 @@ export function TrainingPlannerModal({
+                   <input
+                     type="date"
+                     required
++                    max={new Date().toISOString().split('T')[0]}
+                     value={eventDate}
+                     onChange={(e) => setEventDate(e.target.value)}
+                     className="w-full text-xs px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"

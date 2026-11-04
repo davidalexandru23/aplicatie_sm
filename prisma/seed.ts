@@ -1,9 +1,135 @@
 import { PrismaClient } from '@prisma/client';
+import { seedTemplates } from '../src/lib/templates/seed';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('--- Inițializare Seed Bază de Date SSM (Milestone 1) ---');
+
+  // =========================================================================
+  // 0. CATALOG ȘABLOANE OFICIALE (25 ȘABLOANE)
+  // =========================================================================
+  console.log('0. Seeding Catalog Șabloane Oficiale...');
+  await seedTemplates();
+
+  // =========================================================================
+  // PRESTATOR EXTERN SSM (SEPP) & SPECIALIȘTI (MILESTONE 1 - F1)
+  // =========================================================================
+  console.log('1. Seeding Prestator Extern SSM & Specialiști...');
+  const defaultProvider = await prisma.ssmProvider.upsert({
+    where: { cui: 'RO34567890' },
+    update: {
+      name: 'EXPERT SSM & SITUAȚII DE URGENȚĂ S.R.L.',
+      regCom: 'J40/1234/2020',
+      address: 'București, Str. Agricultori nr. 35, Sector 2',
+      street: 'Str. Agricultori',
+      number: '35',
+      building: 'A1',
+      entrance: '1',
+      floor: '2',
+      apartment: '6',
+      postalCode: '021481',
+      locality: 'București',
+      county: 'Sector 2',
+      authorizationNumber: '4812/2021',
+      authorizationDate: new Date('2021-06-15T00:00:00.000Z'),
+      authorizationDetails:
+        'Certificat abilitare Serviciu Extern SSM nr. 4812/2021 emis de Ministerul Muncii - ITM București',
+      phone: '0722.123.456',
+      email: 'contact@expert-ssm.ro',
+      website: 'www.expert-ssm.ro',
+      legalRepresentative: 'Ing. Mihai Popescu',
+      representativeRole: 'Director Executiv',
+      representativeDoc: 'Decizia Asociaților nr. 01/2020',
+      isDefault: true,
+      isActive: true,
+    },
+    create: {
+      name: 'EXPERT SSM & SITUAȚII DE URGENȚĂ S.R.L.',
+      cui: 'RO34567890',
+      regCom: 'J40/1234/2020',
+      address: 'București, Str. Agricultori nr. 35, Sector 2',
+      street: 'Str. Agricultori',
+      number: '35',
+      building: 'A1',
+      entrance: '1',
+      floor: '2',
+      apartment: '6',
+      postalCode: '021481',
+      locality: 'București',
+      county: 'Sector 2',
+      authorizationNumber: '4812/2021',
+      authorizationDate: new Date('2021-06-15T00:00:00.000Z'),
+      authorizationDetails:
+        'Certificat abilitare Serviciu Extern SSM nr. 4812/2021 emis de Ministerul Muncii - ITM București',
+      phone: '0722.123.456',
+      email: 'contact@expert-ssm.ro',
+      website: 'www.expert-ssm.ro',
+      legalRepresentative: 'Ing. Mihai Popescu',
+      representativeRole: 'Director Executiv',
+      representativeDoc: 'Decizia Asociaților nr. 01/2020',
+      isDefault: true,
+      isActive: true,
+    },
+  });
+
+  const specialistPopescu = await prisma.ssmSpecialist.upsert({
+    where: {
+      providerId_name: {
+        providerId: defaultProvider.id,
+        name: 'Ing. Mihai Popescu',
+      },
+    },
+    update: {
+      role: 'Specialist Principal SSM & Evaluator Riscuri',
+      certificateNumber: 'Certificat seria EV nr. 10452/2018',
+      qualification: 'Inginer Securitate în Muncă, Evaluator atestat INCDPM București',
+      phone: '0722.123.456',
+      email: 'mihai.popescu@expert-ssm.ro',
+      isDefault: true,
+      isActive: true,
+    },
+    create: {
+      providerId: defaultProvider.id,
+      name: 'Ing. Mihai Popescu',
+      role: 'Specialist Principal SSM & Evaluator Riscuri',
+      certificateNumber: 'Certificat seria EV nr. 10452/2018',
+      qualification: 'Inginer Securitate în Muncă, Evaluator atestat INCDPM București',
+      phone: '0722.123.456',
+      email: 'mihai.popescu@expert-ssm.ro',
+      isDefault: true,
+      isActive: true,
+    },
+  });
+
+  const specialistVasilescu = await prisma.ssmSpecialist.upsert({
+    where: {
+      providerId_name: {
+        providerId: defaultProvider.id,
+        name: 'Ing. Elena Vasilescu',
+      },
+    },
+    update: {
+      role: 'Specialist SSM & Coordonator SU / PSI',
+      certificateNumber: 'Certificat seria SSM nr. 8765/2020',
+      qualification: 'Inginer Securitatea Muncii, Cadru Tehnic PSI atestat IGSU',
+      phone: '0722.987.654',
+      email: 'elena.vasilescu@expert-ssm.ro',
+      isDefault: false,
+      isActive: true,
+    },
+    create: {
+      providerId: defaultProvider.id,
+      name: 'Ing. Elena Vasilescu',
+      role: 'Specialist SSM & Coordonator SU / PSI',
+      certificateNumber: 'Certificat seria SSM nr. 8765/2020',
+      qualification: 'Inginer Securitatea Muncii, Cadru Tehnic PSI atestat IGSU',
+      phone: '0722.987.654',
+      email: 'elena.vasilescu@expert-ssm.ro',
+      isDefault: false,
+      isActive: true,
+    },
+  });
 
   // =========================================================================
   // CLIENT 1: NEXUS SOLUTIONS S.R.L. (Consultanță IT & Inginerie)
@@ -26,6 +152,8 @@ async function main() {
       caenCode: '6201',
       caenActivity: 'Activități de realizare a software-ului la comandă (software orientat client)',
       foundedYear: 2021,
+      providerId: defaultProvider.id,
+      specialistId: specialistPopescu.id,
       ssmProviderName: 'EXPERT SSM & SITUAȚII DE URGENȚĂ S.R.L.',
       ssmSpecialistName: 'Ing. Mihai Popescu',
       ssmSpecialistCert: 'Certificat seria EV nr. 10452/2018',
@@ -49,6 +177,8 @@ async function main() {
       caenCode: '6201',
       caenActivity: 'Activități de realizare a software-ului la comandă (software orientat client)',
       foundedYear: 2021,
+      providerId: defaultProvider.id,
+      specialistId: specialistPopescu.id,
       ssmProviderName: 'EXPERT SSM & SITUAȚII DE URGENȚĂ S.R.L.',
       ssmSpecialistName: 'Ing. Mihai Popescu',
       ssmSpecialistCert: 'Certificat seria EV nr. 10452/2018',
@@ -625,6 +755,8 @@ async function main() {
       caenCode: '5610',
       caenActivity: 'Restaurante și alte activități de servicii de alimentație',
       foundedYear: 2022,
+      providerId: defaultProvider.id,
+      specialistId: specialistPopescu.id,
       ssmProviderName: 'EXPERT SSM & SITUAȚII DE URGENȚĂ S.R.L.',
       ssmSpecialistName: 'Ing. Mihai Popescu',
       ssmSpecialistCert: 'Certificat seria EV nr. 10452/2018',
@@ -648,6 +780,8 @@ async function main() {
       caenCode: '5610',
       caenActivity: 'Restaurante și alte activități de servicii de alimentație',
       foundedYear: 2022,
+      providerId: defaultProvider.id,
+      specialistId: specialistPopescu.id,
       ssmProviderName: 'EXPERT SSM & SITUAȚII DE URGENȚĂ S.R.L.',
       ssmSpecialistName: 'Ing. Mihai Popescu',
       ssmSpecialistCert: 'Certificat seria EV nr. 10452/2018',
@@ -1184,12 +1318,176 @@ async function main() {
     });
   }
 
+  // =========================================================================
+  // 3. SESIUNI ȘI CURSANȚI DE IGIENĂ DEMONSTRATIVI (MILESTONE 2 - F4)
+  // =========================================================================
+  console.log('\n3. Seeding Sesiuni și Cursanți de Igienă (Bistro Gourmet & Nexus)...');
+
+  // Idempotency: curățare sesiuni demo anterioare după seria/numărul PV-ului
+  const demoPvNumbers = ['PV-EX-2025-0042', 'PV-EX-2026-0089', 'PV-EX-2026-0112'];
+  await prisma.hygieneSession.deleteMany({
+    where: {
+      pvSeriesNumber: { in: demoPvNumbers },
+    },
+  });
+
+  // 3.1 Sesiune 1: BISTRO GOURMET SRL (Modulul 1 - Finalizată & Certificate Emise)
+  console.log('  -> Seeding Sesiune 1: BISTRO GOURMET S.R.L. (Modulul 1 Horeca - Certificate Emise)...');
+  if (empRadu) {
+    await prisma.hygieneSession.create({
+      data: {
+        providerName: defaultProvider.name,
+        msAuthorization: 'Aviz Ministerul Sănătății nr. 4512/12.05.2022',
+        meAuthorization: 'Aviz Ministerul Educației nr. 3821/28.05.2022',
+        sessionDate: new Date('2025-04-05T09:00:00.000Z'),
+        examDate: new Date('2025-04-10T10:00:00.000Z'),
+        location: 'București, Calea Floreasca nr. 120, Sector 1',
+        commissionPresident: 'Dr. Alexandru Ionescu - Medic Primar DSP București',
+        commissionMember1: 'Ing. Mihai Popescu - Specialist Principal SSM',
+        commissionMember2: 'Dr. Elena Dumitrescu - Medic Specialist DSP',
+        commissionSecretary: 'Mirela Iacob',
+        pvSeriesNumber: 'PV-EX-2025-0042',
+        status: 'certificate_emise',
+        participants: {
+          create: [
+            {
+              employeeId: empRadu.id,
+              clientName: clientBistro.name,
+              lastName: empRadu.lastName,
+              firstName: empRadu.firstName,
+              cnp: empRadu.cnp,
+              birthDate: empRadu.birthDate,
+              birthPlace: empRadu.birthPlace,
+              docType: 'CI',
+              docSeries: 'PH',
+              docNumber: '654321',
+              jobTitle: 'Bucătar Specialist',
+              attendance: 'prezent',
+              examGrade: 10.0,
+              examResult: 'admis',
+              certificateSeries: 'DSP-B',
+              certificateNumber: '2025-10442',
+            },
+          ],
+        },
+      },
+    });
+  }
+
+  // 3.2 Sesiune 2: NEXUS SOLUTIONS SRL (Modulul 2 - În Desfășurare)
+  console.log('  -> Seeding Sesiune 2: NEXUS SOLUTIONS S.R.L. (Modulul 2 Mentenanță - În Desfășurare)...');
+  if (empBarbu && empStan) {
+    await prisma.hygieneSession.create({
+      data: {
+        providerName: defaultProvider.name,
+        msAuthorization: 'Aviz MS nr. 102/2024 din 15.01.2024',
+        meAuthorization: 'Aviz ME nr. 55/2024 din 20.01.2024',
+        sessionDate: new Date('2026-11-02T09:00:00.000Z'),
+        examDate: new Date('2026-11-06T10:00:00.000Z'),
+        location: 'București, Bd. Aviatorilor nr. 45, Sector 1',
+        commissionPresident: 'Dr. Radu Ionescu - Medic Primar DSP București',
+        commissionMember1: 'Ing. Mihai Popescu - Specialist SSM',
+        commissionMember2: 'Insp. Dan Mihai - Inspector DSP',
+        commissionSecretary: 'Simona Georgescu',
+        pvSeriesNumber: 'PV-EX-2026-0089',
+        status: 'in_desfasurare',
+        participants: {
+          create: [
+            {
+              employeeId: empBarbu.id,
+              clientName: clientNexus.name,
+              lastName: empBarbu.lastName,
+              firstName: empBarbu.firstName,
+              cnp: empBarbu.cnp,
+              birthDate: empBarbu.birthDate,
+              birthPlace: empBarbu.birthPlace,
+              docType: 'CI',
+              docSeries: 'BV',
+              docNumber: '789123',
+              jobTitle: 'Tehnician Mentenanță și Suport',
+              attendance: 'prezent',
+              examGrade: 9.5,
+              examResult: 'admis',
+              certificateSeries: 'IGI-B',
+              certificateNumber: '2026-0045',
+            },
+            {
+              employeeId: empStan.id,
+              clientName: clientNexus.name,
+              lastName: empStan.lastName,
+              firstName: empStan.firstName,
+              cnp: empStan.cnp,
+              birthDate: empStan.birthDate,
+              birthPlace: empStan.birthPlace,
+              docType: 'CI',
+              docSeries: 'RD',
+              docNumber: '123456',
+              jobTitle: 'Inginer Sisteme Software',
+              attendance: 'prezent',
+              examGrade: 10.0,
+              examResult: 'admis',
+              certificateSeries: 'IGI-B',
+              certificateNumber: '2026-0046',
+            },
+          ],
+        },
+      },
+    });
+  }
+
+  // 3.3 Sesiune 3: BISTRO GOURMET SRL (Modulul 1 - Programată / Înscrieri Deschise)
+  console.log('  -> Seeding Sesiune 3: BISTRO GOURMET S.R.L. (Modulul 1 Re-instruire - Programată)...');
+  if (empMarin) {
+    await prisma.hygieneSession.create({
+      data: {
+        providerName: defaultProvider.name,
+        msAuthorization: 'Aviz MS nr. 102/2024 din 15.01.2024',
+        meAuthorization: 'Aviz ME nr. 55/2024 din 20.01.2024',
+        sessionDate: new Date('2026-11-25T09:00:00.000Z'),
+        examDate: new Date('2026-11-28T10:00:00.000Z'),
+        location: 'București, Sala de Instruire SSM - Str. Agricultori nr. 35, Sector 2',
+        commissionPresident: 'Dr. Alexandru Ionescu - Medic Primar DSP',
+        commissionMember1: 'Ing. Elena Vasilescu - Specialist SSM',
+        commissionMember2: 'Insp. Elena Dumitrescu - Reprezentant DSP',
+        commissionSecretary: 'Secretar Mirela Iacob',
+        pvSeriesNumber: 'PV-EX-2026-0112',
+        status: 'programata',
+        participants: {
+          create: [
+            {
+              employeeId: empMarin.id,
+              clientName: clientBistro.name,
+              lastName: empMarin.lastName,
+              firstName: empMarin.firstName,
+              cnp: empMarin.cnp,
+              birthDate: empMarin.birthDate,
+              birthPlace: empMarin.birthPlace,
+              docType: 'CI',
+              docSeries: 'DP',
+              docNumber: '852963',
+              jobTitle: 'Ospătar / Chelner',
+              attendance: 'prezent',
+              examGrade: null,
+              examResult: 'admis',
+              certificateSeries: null,
+              certificateNumber: null,
+            },
+          ],
+        },
+      },
+    });
+  }
+
   console.log('\n✅ Seed finalizat cu succes!');
   console.log('Rezumat date create/actualizate:');
+  console.log(`- Prestatori SSM: ${await prisma.ssmProvider.count()}`);
+  console.log(`- Specialiști SSM: ${await prisma.ssmSpecialist.count()}`);
   console.log(`- Clienți: ${await prisma.client.count()}`);
   console.log(`- Puncte de lucru: ${await prisma.worksite.count()}`);
   console.log(`- Posturi / Funcții: ${await prisma.job.count()}`);
   console.log(`- Angajați: ${await prisma.employee.count()}`);
+  console.log(`- Sesiuni Igienă: ${await prisma.hygieneSession.count()}`);
+  console.log(`- Cursanți Igienă: ${await prisma.hygieneParticipant.count()}`);
 }
 
 main()

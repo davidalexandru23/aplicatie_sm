@@ -14,6 +14,8 @@ export async function GET(
       include: {
         worksites: { orderBy: { name: 'asc' } },
         jobs: { orderBy: { title: 'asc' } },
+        provider: true,
+        specialist: true,
         _count: {
           select: {
             employees: true,
@@ -64,6 +66,9 @@ export async function PATCH(
       caenCode,
       caenActivity,
       foundedYear,
+      providerId,
+      specialistId,
+      designatedSpecialistId,
       ssmProviderName,
       ssmSpecialistName,
       ssmSpecialistCert,
@@ -136,6 +141,50 @@ export async function PATCH(
       }
     }
 
+    // Resolve Provider & Specialist with dual string synchronization
+    let targetProviderId: string | null | undefined = undefined;
+    let syncedProviderName = ssmProviderName !== undefined ? (ssmProviderName ? String(ssmProviderName).trim() : null) : undefined;
+
+    if (providerId !== undefined) {
+      if (providerId === null || providerId === '') {
+        targetProviderId = null;
+      } else {
+        const p = await prisma.ssmProvider.findUnique({ where: { id: providerId } });
+        if (p) {
+          targetProviderId = p.id;
+          if (syncedProviderName === undefined) {
+            syncedProviderName = p.name;
+          }
+        } else {
+          targetProviderId = null;
+        }
+      }
+    }
+
+    const rawSpecialistId = specialistId !== undefined ? specialistId : designatedSpecialistId;
+    let targetSpecialistId: string | null | undefined = undefined;
+    let syncedSpecialistName = ssmSpecialistName !== undefined ? (ssmSpecialistName ? String(ssmSpecialistName).trim() : null) : undefined;
+    let syncedSpecialistCert = ssmSpecialistCert !== undefined ? (ssmSpecialistCert ? String(ssmSpecialistCert).trim() : null) : undefined;
+
+    if (rawSpecialistId !== undefined) {
+      if (rawSpecialistId === null || rawSpecialistId === '') {
+        targetSpecialistId = null;
+      } else {
+        const s = await prisma.ssmSpecialist.findUnique({ where: { id: rawSpecialistId } });
+        if (s) {
+          targetSpecialistId = s.id;
+          if (syncedSpecialistName === undefined) {
+            syncedSpecialistName = s.name;
+          }
+          if (syncedSpecialistCert === undefined) {
+            syncedSpecialistCert = s.certificateNumber;
+          }
+        } else {
+          targetSpecialistId = null;
+        }
+      }
+    }
+
     const updatedClient = await prisma.client.update({
       where: { id },
       data: {
@@ -164,16 +213,12 @@ export async function PATCH(
         }),
         ...(parsedYear !== undefined && { foundedYear: parsedYear }),
 
-        // SEPP Provider Details
-        ...(ssmProviderName !== undefined && {
-          ssmProviderName: ssmProviderName ? String(ssmProviderName).trim() : null,
-        }),
-        ...(ssmSpecialistName !== undefined && {
-          ssmSpecialistName: ssmSpecialistName ? String(ssmSpecialistName).trim() : null,
-        }),
-        ...(ssmSpecialistCert !== undefined && {
-          ssmSpecialistCert: ssmSpecialistCert ? String(ssmSpecialistCert).trim() : null,
-        }),
+        // SEPP Provider Details (Dual Persistence)
+        ...(targetProviderId !== undefined && { providerId: targetProviderId }),
+        ...(targetSpecialistId !== undefined && { specialistId: targetSpecialistId }),
+        ...(syncedProviderName !== undefined && { ssmProviderName: syncedProviderName }),
+        ...(syncedSpecialistName !== undefined && { ssmSpecialistName: syncedSpecialistName }),
+        ...(syncedSpecialistCert !== undefined && { ssmSpecialistCert: syncedSpecialistCert }),
 
         // Appointees (Deciziile 01-09)
         ...(designatedWorkerSsm !== undefined && {
@@ -189,6 +234,10 @@ export async function PATCH(
           investigationMembers: investigationMembers ? String(investigationMembers).trim() : null,
         }),
         ...(parsedDecisionsDate !== undefined && { decisionsDate: parsedDecisionsDate }),
+      },
+      include: {
+        provider: true,
+        specialist: true,
       },
     });
 

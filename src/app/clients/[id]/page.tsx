@@ -48,6 +48,8 @@ export default async function ClientDetailPage({
     include: {
       worksites: { orderBy: { name: 'asc' } },
       jobs: { orderBy: { title: 'asc' } },
+      provider: true,
+      specialist: true,
       employees: {
         orderBy: [{ status: 'asc' }, { lastName: 'asc' }],
         include: {
@@ -258,28 +260,56 @@ export default async function ClientDetailPage({
 
           {/* Dreapta: Serviciu Extern de Prevenire și Protecție (SEPP) */}
           <div className="space-y-3 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Serviciu Extern de Prevenire și Protecție (SEPP)</span>
+            <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <span>Serviciu Extern de Prevenire și Protecție (SEPP)</span>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                {client.provider?.authorizationNumber ? `ITM: ${client.provider.authorizationNumber}` : 'ABILITAT ITM'}
+              </span>
             </div>
 
-            <div className="space-y-2 text-xs">
+            <div className="space-y-2.5 text-xs">
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase">Prestator Abilitat ITM:</span>
-                <span className="font-medium text-slate-900">
-                  {client.ssmProviderName || <span className="text-slate-400 italic">Nespecificat</span>}
-                </span>
+                <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Prestator Abilitat:</span>
+                <div className="font-semibold text-slate-900 flex items-center gap-1.5 mt-0.5">
+                  <span>{client.provider?.name || client.ssmProviderName || <span className="text-slate-400 italic">Nespecificat</span>}</span>
+                  {client.provider?.cui && (
+                    <span className="font-mono text-[10px] text-slate-500 bg-slate-200/60 px-1 rounded">
+                      {client.provider.cui}
+                    </span>
+                  )}
+                </div>
+                {client.provider?.address && (
+                  <div className="text-[11px] text-slate-500 mt-0.5">
+                    {client.provider.address}
+                  </div>
+                )}
               </div>
+
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase">Specialist / Evaluator Desemnat:</span>
-                <span className="font-medium text-slate-900">
-                  {client.ssmSpecialistName || <span className="text-slate-400 italic">Nespecificat</span>}
-                </span>
+                <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Specialist / Evaluator Desemnat:</span>
+                <div className="font-semibold text-slate-900 mt-0.5 flex items-center gap-1.5">
+                  <span>{client.specialist?.name || client.ssmSpecialistName || <span className="text-slate-400 italic">Nespecificat</span>}</span>
+                  {client.specialist?.role && (
+                    <span className="text-[10px] font-medium text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.2 rounded">
+                      {client.specialist.role}
+                    </span>
+                  )}
+                </div>
+                {(client.specialist?.phone || client.specialist?.email) && (
+                  <div className="text-[11px] text-slate-500 mt-0.5 flex gap-2">
+                    {client.specialist.phone && <span>Tel: {client.specialist.phone}</span>}
+                    {client.specialist.email && <span>Email: {client.specialist.email}</span>}
+                  </div>
+                )}
               </div>
+
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase">Certificat Atestare / Abilitare:</span>
-                <span className="font-mono text-slate-700">
-                  {client.ssmSpecialistCert || <span className="text-slate-400 italic font-sans">Nespecificat</span>}
+                <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Certificat Atestare / Abilitare:</span>
+                <span className="font-mono text-slate-700 text-[11px] mt-0.5 block">
+                  {client.specialist?.certificateNumber || client.ssmSpecialistCert || <span className="text-slate-400 italic font-sans">Nespecificat</span>}
                 </span>
               </div>
             </div>

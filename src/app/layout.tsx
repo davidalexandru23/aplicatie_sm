@@ -48,6 +48,9 @@ export default function RootLayout({
                 <Link href="/documents" className="px-3 py-2 rounded-md hover:bg-slate-800 transition">
                   Documente Emise
                 </Link>
+                <Link href="/settings" className="px-3 py-2 rounded-md hover:bg-slate-800 transition">
+                  Setări SEPP
+                </Link>
               </nav>
             </div>
             <div className="flex items-center space-x-4">

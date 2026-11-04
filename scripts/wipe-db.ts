@@ -13,12 +13,21 @@ async function main() {
   const delClients = await prisma.client.deleteMany();
   console.log(`✓ Clienți șterși: ${delClients.count}`);
 
+  // 2.1 Ștergere prestatori și specialiști SSM
+  const delSpecialists = await prisma.ssmSpecialist.deleteMany();
+  console.log(`✓ Specialiști SSM șterși: ${delSpecialists.count}`);
+
+  const delProviders = await prisma.ssmProvider.deleteMany();
+  console.log(`✓ Prestatori SSM șterși: ${delProviders.count}`);
+
   // 3. Ștergere audit events
   const delAudits = await prisma.auditEvent.deleteMany();
   console.log(`✓ Înregistrări de audit șterse: ${delAudits.count}`);
 
   // 4. Verificare tabele
   const counts = {
+    providers: await prisma.ssmProvider.count(),
+    specialists: await prisma.ssmSpecialist.count(),
     clients: await prisma.client.count(),
     worksites: await prisma.worksite.count(),
     jobs: await prisma.job.count(),
