@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { calculateEmployeeCompliance } from '@/lib/compliance';
 
 export async function GET(
   request: NextRequest,
@@ -16,6 +17,17 @@ export async function GET(
       lastName: true,
       cnp: true,
       status: true,
+      medicalLastExamDate: true,
+      medicalIntervalMonths: true,
+      medicalFitnessVerdict: true,
+      ssmLastTrainingDate: true,
+      ssmIntervalMonths: true,
+      psiLastTrainingDate: true,
+      psiIntervalMonths: true,
+      hygieneRequested: true,
+      hygieneLastExamDate: true,
+      hygieneIntervalMonths: true,
+      hygieneCertificateNumber: true,
       currentJobId: true,
       currentJob: {
         select: {
@@ -38,5 +50,10 @@ export async function GET(
     },
   });
 
-  return NextResponse.json(employees);
+  const enriched = employees.map((emp) => ({
+    ...emp,
+    compliance: calculateEmployeeCompliance(emp),
+  }));
+
+  return NextResponse.json(enriched);
 }

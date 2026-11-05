@@ -15,7 +15,12 @@ import {
   SlidersHorizontal,
   ChevronDown,
   ChevronUp,
-  Briefcase
+  Briefcase,
+  Archive,
+  CheckSquare,
+  Square,
+  ShieldAlert,
+  UserCheck
 } from 'lucide-react';
 
 interface ClientOption {
@@ -49,6 +54,13 @@ interface EmployeeOption {
     corCode?: string | null;
     mainActivities?: string | null;
   } | null;
+  compliance?: {
+    occupationalMedicine?: { status: string; dueDate: string | null; daysRemaining: number | null; label: string };
+    ssmTraining?: { status: string; dueDate: string | null; daysRemaining: number | null; label: string };
+    psiTraining?: { status: string; dueDate: string | null; daysRemaining: number | null; label: string };
+    hygieneCertificate?: { status: string; dueDate: string | null; daysRemaining: number | null; label: string } | null;
+    overallStatus?: string;
+  };
 }
 
 interface JobOption {
@@ -56,6 +68,105 @@ interface JobOption {
   title: string;
   corCode?: string;
   mainActivities?: string;
+}
+
+export function getEmployeeExpiryInfo(templateCode: string, employee: EmployeeOption): {
+  isExpired: boolean;
+  badgeText: string;
+  badgeClass: string;
+  reason: string;
+} {
+  if (!employee.compliance) {
+    return { isExpired: false, badgeText: 'Conform', badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200', reason: '' };
+  }
+
+  const code = (templateCode || '').toLowerCase();
+
+  // 1. Instruire SSM (Legea 319/2006, HG 1425/2006)
+  if (code.includes('ssm') || code.includes('instruire') || code === 'training-detaliu-introductiv' || code === 'training-tematica-loc-munca') {
+    const ssm = employee.compliance.ssmTraining;
+    if (ssm && ssm.status === 'OVERDUE') {
+      const days = Math.abs(ssm.daysRemaining ?? 0);
+      const dueStr = ssm.dueDate ? new Date(ssm.dueDate).toLocaleDateString('ro-RO') : '';
+      return {
+        isExpired: true,
+        badgeText: `Expirat (${days} zile)`,
+        badgeClass: 'bg-rose-100 text-rose-800 border-rose-300 font-bold',
+        reason: `Instructaj SSM depășit la data de ${dueStr} (HG 1425/2006). Conform legii, documentul nu poate fi emis înainte de reinstruire.`,
+      };
+    }
+    if (ssm && ssm.status === 'UPCOMING') {
+      return {
+        isExpired: false,
+        badgeText: `Expiră în ${ssm.daysRemaining} zile`,
+        badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
+        reason: '',
+      };
+    }
+    if (ssm && ssm.status === 'VALID') {
+      const dueStr = ssm.dueDate ? new Date(ssm.dueDate).toLocaleDateString('ro-RO') : '';
+      return {
+        isExpired: false,
+        badgeText: `Conform SSM (valabil până la ${dueStr})`,
+        badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        reason: '',
+      };
+    }
+  }
+
+  // 2. Instruire PSI/SU (Legea 307/2006, OMAI 712/2005)
+  if (code.includes('psi')) {
+    const psi = employee.compliance.psiTraining;
+    if (psi && psi.status === 'OVERDUE') {
+      const days = Math.abs(psi.daysRemaining ?? 0);
+      const dueStr = psi.dueDate ? new Date(psi.dueDate).toLocaleDateString('ro-RO') : '';
+      return {
+        isExpired: true,
+        badgeText: `Expirat (${days} zile)`,
+        badgeClass: 'bg-rose-100 text-rose-800 border-rose-300 font-bold',
+        reason: `Instructaj PSI depășit la data de ${dueStr} (OMAI 712/2005). Documentul este blocat conform legii.`,
+      };
+    }
+    if (psi && psi.status === 'UPCOMING') {
+      return {
+        isExpired: false,
+        badgeText: `Expiră în ${psi.daysRemaining} zile`,
+        badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
+        reason: '',
+      };
+    }
+  }
+
+  // 3. Medicină a Muncii (HG 355/2007)
+  if (code.includes('med-') || code.includes('medical')) {
+    const med = employee.compliance.occupationalMedicine;
+    if (med && med.status === 'OVERDUE') {
+      const days = Math.abs(med.daysRemaining ?? 0);
+      const dueStr = med.dueDate ? new Date(med.dueDate).toLocaleDateString('ro-RO') : '';
+      return {
+        isExpired: true,
+        badgeText: `Expirat (${days} zile)`,
+        badgeClass: 'bg-rose-100 text-rose-800 border-rose-300 font-bold',
+        reason: `Examen Medicină a Muncii depășit la data de ${dueStr} (HG 355/2007). Necesită fișă de aptitudine validă.`,
+      };
+    }
+  }
+
+  // 4. Igienă (Ord. 2209/2022)
+  if (code.includes('hygiene') || code.includes('igiena')) {
+    const hyg = employee.compliance.hygieneCertificate;
+    if (hyg && hyg.status === 'OVERDUE') {
+      const days = Math.abs(hyg.daysRemaining ?? 0);
+      return {
+        isExpired: true,
+        badgeText: `Expirat (${days} zile)`,
+        badgeClass: 'bg-rose-100 text-rose-800 border-rose-300 font-bold',
+        reason: `Certificat de igienă expirat de ${days} zile conform Ord. 2209/2022.`,
+      };
+    }
+  }
+
+  return { isExpired: false, badgeText: 'Conform', badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200', reason: '' };
 }
 
 interface HygieneParticipantOption {
@@ -113,6 +224,11 @@ function DocumentGeneratorContent() {
   const [selectedHygieneSessionId, setSelectedHygieneSessionId] = useState<string>(initialHygieneSessionId);
   const [selectedHygieneParticipantId, setSelectedHygieneParticipantId] = useState<string>(initialHygieneParticipantId);
   const [hygieneScope, setHygieneScope] = useState<'client' | 'session'>(initialHygieneSessionId ? 'session' : 'client');
+
+  // Multi-Salariat / Batch Generation Mode
+  const [generationMode, setGenerationMode] = useState<'single' | 'batch'>('single');
+  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>([]);
+  const [batchResult, setBatchResult] = useState<any | null>(null);
 
   // Dynamic fields state
   const [fields, setFields] = useState<PlaceholderFieldItem[]>([]);
@@ -326,6 +442,57 @@ function DocumentGeneratorContent() {
       return;
     }
 
+    // Branching: BATCH MODE FOR EMPLOYEES
+    if ((isEmployeeRequired || isAdeverinta) && generationMode === 'batch') {
+      if (selectedEmployeeIds.length === 0) {
+        setError('Trebuie să selectați cel puțin un salariat eligibil pentru generarea colectivă.');
+        return;
+      }
+
+      // Check if any selected employee is expired
+      for (const empId of selectedEmployeeIds) {
+        const emp = employees.find((e) => e.id === empId);
+        if (emp) {
+          const exp = getEmployeeExpiryInfo(selectedTemplateCode, emp);
+          if (exp.isExpired) {
+            setError(`Generare blocată: Salariatul ${emp.lastName} ${emp.firstName} are termenul expirat (${exp.reason})`);
+            return;
+          }
+        }
+      }
+
+      setGenerating(true);
+      setError(null);
+      setGenerationResult(null);
+      setBatchResult(null);
+
+      try {
+        const res = await fetch('/api/documents/generate-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            templateCode: selectedTemplateCode,
+            clientId: selectedClientId,
+            employeeIds: selectedEmployeeIds,
+            customFields: formValues,
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Eroare la generarea colectivă a documentelor.');
+        }
+
+        setBatchResult(data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setGenerating(false);
+      }
+      return;
+    }
+
+    // SINGLE MODE VALIDATION
     if (isHygieneTemplate) {
       if (hygieneScope === 'session') {
         if (!selectedHygieneSessionId) {
@@ -348,9 +515,22 @@ function DocumentGeneratorContent() {
       return;
     }
 
+    // Single mode: check if selected employee is expired
+    if (selectedEmployeeId) {
+      const emp = employees.find((e) => e.id === selectedEmployeeId);
+      if (emp) {
+        const exp = getEmployeeExpiryInfo(selectedTemplateCode, emp);
+        if (exp.isExpired) {
+          setError(`Generare blocată conform legii: Salariatul ${emp.lastName} ${emp.firstName} are termenul expirat (${exp.reason})`);
+          return;
+        }
+      }
+    }
+
     setGenerating(true);
     setError(null);
     setGenerationResult(null);
+    setBatchResult(null);
 
     try {
       const effectiveJobId =
@@ -567,61 +747,270 @@ function DocumentGeneratorContent() {
           </div>
         </div>
 
-        {/* Employee Selection for employee-level templates (Postul se preia automat, fără select) */}
-        {isEmployeeRequired && (
-          <div className="pt-2 border-t border-slate-100 space-y-2">
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Salariat Destinatar *
-            </label>
-            <select
-              value={selectedEmployeeId}
-              onChange={(e) => {
-                const empId = e.target.value;
-                setSelectedEmployeeId(empId);
-                const emp = employees.find((x) => x.id === empId);
-                setSelectedJobId(emp?.currentJobId || (emp?.currentJob as any)?.id || '');
-              }}
-              className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">-- Alege salariatul din firmă --</option>
-              {employees.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.lastName} {emp.firstName} — {emp.currentJob?.title || 'Fără post'}
-                </option>
-              ))}
-            </select>
+        {/* Employee Selection for employee-level templates (Suport Salariat Individual & Generare Colectivă) */}
+        {(isEmployeeRequired || (isHygieneTemplate && hygieneScope === 'client' && isAdeverinta)) && (
+          <div className="pt-3 border-t border-slate-100 space-y-3">
+            {/* Mode Switcher Tabs */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100">
+              <div>
+                <label className="block text-xs font-semibold text-slate-800">
+                  Destinatari Document (Salariați) *
+                </label>
+                <p className="text-[11px] text-slate-500">
+                  Selectați regimul de generare: individual sau colectiv (pentru mai mulți salariați simultan).
+                </p>
+              </div>
 
-            {/* Preluare automată a postului salariatului */}
-            {selectedEmployeeId && (() => {
-              const emp = employees.find((x) => x.id === selectedEmployeeId);
-              if (emp?.currentJob?.title) {
-                return (
-                  <div className="flex items-center gap-2 p-2.5 bg-blue-50/80 border border-blue-200/90 rounded-lg text-xs text-blue-900">
-                    <Briefcase className="w-4 h-4 text-blue-600 flex-shrink-0" />
+              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setGenerationMode('single')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                    generationMode === 'single'
+                      ? 'bg-white text-blue-700 shadow-sm font-semibold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Salariat Individual</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGenerationMode('batch')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                    generationMode === 'batch'
+                      ? 'bg-white text-blue-700 shadow-sm font-semibold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Archive className="w-3.5 h-3.5" />
+                  <span>Generare Colectivă (Multi-Salariați)</span>
+                  <span className="px-1.5 py-0.5 bg-blue-100 text-blue-800 text-[10px] rounded font-bold">ZIP</span>
+                </button>
+              </div>
+            </div>
+
+            {/* SINGLE MODE */}
+            {generationMode === 'single' ? (
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Salariat Destinatar *
+                </label>
+                <select
+                  value={selectedEmployeeId}
+                  onChange={(e) => {
+                    const empId = e.target.value;
+                    setSelectedEmployeeId(empId);
+                    const emp = employees.find((x) => x.id === empId);
+                    setSelectedJobId(emp?.currentJobId || (emp?.currentJob as any)?.id || '');
+                  }}
+                  className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">-- Alege salariatul din firmă --</option>
+                  {employees.map((emp) => {
+                    const exp = getEmployeeExpiryInfo(selectedTemplateCode, emp);
+                    return (
+                      <option
+                        key={emp.id}
+                        value={emp.id}
+                        disabled={exp.isExpired}
+                        className={exp.isExpired ? 'text-rose-600 font-medium bg-rose-50' : ''}
+                      >
+                        {exp.isExpired ? '🚫 [EXPIRAT - BLOCAT] ' : ''}
+                        {emp.lastName} {emp.firstName} — {emp.currentJob?.title || 'Fără post'}
+                        {exp.isExpired ? ` (${exp.badgeText})` : ''}
+                      </option>
+                    );
+                  })}
+                </select>
+
+                {/* Expiry Alert for single mode */}
+                {selectedEmployeeId && (() => {
+                  const emp = employees.find((x) => x.id === selectedEmployeeId);
+                  if (emp) {
+                    const exp = getEmployeeExpiryInfo(selectedTemplateCode, emp);
+                    if (exp.isExpired) {
+                      return (
+                        <div className="p-3 bg-rose-50 border border-rose-300 rounded-lg text-xs text-rose-900 flex items-start gap-2.5">
+                          <ShieldAlert className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <span className="font-bold text-rose-950">Atenție: Salariat blocat pentru acest tip de document! </span>
+                            <span>{exp.reason}</span>
+                          </div>
+                        </div>
+                      );
+                    }
+                  }
+                  return null;
+                })()}
+
+                {/* Preluare automată a postului salariatului */}
+                {selectedEmployeeId && (() => {
+                  const emp = employees.find((x) => x.id === selectedEmployeeId);
+                  if (emp?.currentJob?.title) {
+                    return (
+                      <div className="flex items-center gap-2 p-2.5 bg-blue-50/80 border border-blue-200/90 rounded-lg text-xs text-blue-900">
+                        <Briefcase className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                        <div>
+                          <span className="font-semibold text-blue-950">Post preluat automat din fișa salariatului: </span>
+                          <span className="font-medium">{emp.currentJob.title}</span>
+                          {emp.currentJob.corCode && (
+                            <span className="ml-1.5 px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded font-mono text-[11px]">
+                              COR {emp.currentJob.corCode}
+                            </span>
+                          )}
+                          <span className="text-blue-700 ml-2 text-[11px] block sm:inline">
+                            (Atribuțiile, condițiile și cerințele specifice postului sunt sincronizate automat)
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+            ) : (
+              /* BATCH / MULTI-SALARIAT MODE */
+              <div className="space-y-3">
+                {(() => {
+                  const eligibleList = employees.filter((e) => !getEmployeeExpiryInfo(selectedTemplateCode, e).isExpired);
+                  const expiredList = employees.filter((e) => getEmployeeExpiryInfo(selectedTemplateCode, e).isExpired);
+                  const isAllEligibleSelected = eligibleList.length > 0 && eligibleList.every((e) => selectedEmployeeIds.includes(e.id));
+
+                  return (
                     <div>
-                      <span className="font-semibold text-blue-950">Post preluat automat din fișa salariatului: </span>
-                      <span className="font-medium">{emp.currentJob.title}</span>
-                      {emp.currentJob.corCode && (
-                        <span className="ml-1.5 px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded font-mono text-[11px]">
-                          COR {emp.currentJob.corCode}
-                        </span>
-                      )}
-                      <span className="text-blue-700 ml-2 text-[11px] block sm:inline">
-                        (Atribuțiile, condițiile și cerințele specifice postului sunt sincronizate automat)
-                      </span>
+                      {/* Summary & Toolbar */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-slate-800">
+                            {selectedEmployeeIds.length} salariați selectați
+                          </span>
+                          <span className="text-slate-400">•</span>
+                          <span className="text-emerald-700 font-medium">
+                            {eligibleList.length} eligibili
+                          </span>
+                          {expiredList.length > 0 && (
+                            <>
+                              <span className="text-slate-400">•</span>
+                              <span className="text-rose-700 font-medium flex items-center gap-1">
+                                <ShieldAlert className="w-3.5 h-3.5" />
+                                {expiredList.length} blocați (termen expirat)
+                              </span>
+                            </>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (isAllEligibleSelected) {
+                                setSelectedEmployeeIds([]);
+                              } else {
+                                setSelectedEmployeeIds(eligibleList.map((e) => e.id));
+                              }
+                            }}
+                            disabled={eligibleList.length === 0}
+                            className="px-2.5 py-1 bg-white hover:bg-slate-100 disabled:opacity-50 border border-slate-300 rounded text-slate-700 text-xs font-medium transition"
+                          >
+                            {isAllEligibleSelected ? 'Deselectează toți' : `Selectează toți cei eligibili (${eligibleList.length})`}
+                          </button>
+                          {selectedEmployeeIds.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedEmployeeIds([])}
+                              className="px-2 py-1 text-slate-500 hover:text-slate-700 text-xs font-medium"
+                            >
+                              Resetează
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Employees List with Expiry Lock */}
+                      <div className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white max-h-72 overflow-y-auto">
+                        {employees.map((emp) => {
+                          const exp = getEmployeeExpiryInfo(selectedTemplateCode, emp);
+                          const isSelected = selectedEmployeeIds.includes(emp.id);
+
+                          return (
+                            <div
+                              key={emp.id}
+                              onClick={() => {
+                                if (exp.isExpired) return;
+                                if (isSelected) {
+                                  setSelectedEmployeeIds((prev) => prev.filter((id) => id !== emp.id));
+                                } else {
+                                  setSelectedEmployeeIds((prev) => [...prev, emp.id]);
+                                }
+                              }}
+                              className={`p-3 flex items-center justify-between gap-3 text-xs transition ${
+                                exp.isExpired
+                                  ? 'bg-rose-50/40 text-slate-400 cursor-not-allowed select-none'
+                                  : isSelected
+                                  ? 'bg-blue-50/70 text-slate-900 cursor-pointer'
+                                  : 'hover:bg-slate-50 text-slate-800 cursor-pointer'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  disabled={exp.isExpired}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    if (exp.isExpired) return;
+                                    if (e.target.checked) {
+                                      setSelectedEmployeeIds((prev) => [...prev, emp.id]);
+                                    } else {
+                                      setSelectedEmployeeIds((prev) => prev.filter((id) => id !== emp.id));
+                                    }
+                                  }}
+                                  className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
+                                />
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className={`font-semibold ${exp.isExpired ? 'text-slate-500 line-through' : 'text-slate-900'}`}>
+                                      {emp.lastName} {emp.firstName}
+                                    </span>
+                                    {emp.currentJob?.title && (
+                                      <span className="text-slate-500 text-[11px]">
+                                        • {emp.currentJob.title}
+                                      </span>
+                                    )}
+                                    {emp.currentJob?.corCode && (
+                                      <span className="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded font-mono text-[10px]">
+                                        COR {emp.currentJob.corCode}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {exp.isExpired ? (
+                                    <p className="text-[11px] text-rose-700 mt-0.5 font-medium flex items-center gap-1">
+                                      <ShieldAlert className="w-3 h-3 text-rose-600 flex-shrink-0" />
+                                      <span>{exp.reason}</span>
+                                    </p>
+                                  ) : (
+                                    <p className="text-[11px] text-slate-400 mt-0.5">
+                                      CNP: {emp.cnp ? `${emp.cnp.slice(0, 4)}•••••${emp.cnp.slice(-4)}` : 'Nespecificat'}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div>
+                                <span className={`text-[10px] px-2 py-0.5 rounded-full border ${exp.badgeClass}`}>
+                                  {exp.isExpired ? `🚫 ${exp.badgeText}` : exp.badgeText}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                );
-              }
-              return (
-                <div className="flex items-center gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                  <span>
-                    Salariatul selectat nu are un post asociat în profil. Se vor utiliza datele generale ale firmei.
-                  </span>
-                </div>
-              );
-            })()}
+                  );
+                })()}
+              </div>
+            )}
           </div>
         )}
 
@@ -871,31 +1260,140 @@ function DocumentGeneratorContent() {
         )}
 
         {/* Action Button */}
-        <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+        <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="text-xs text-slate-500">
             Format ieșire: <span className="font-bold uppercase text-slate-700">{currentTemplate?.format || 'DOCX'}</span>
-          </div>
-          <button
-            onClick={handleGenerate}
-            disabled={generating || !selectedClientId || !selectedTemplateCode}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-semibold px-5 py-2.5 rounded-lg shadow-sm transition-colors"
-          >
-            {generating ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                <span>Se generează...</span>
-              </>
-            ) : (
-              <>
-                <FileCheck className="w-4 h-4" />
-                <span>Generează Document</span>
-              </>
+            {(isEmployeeRequired || isAdeverinta) && generationMode === 'batch' && (
+              <span className="ml-2 font-medium text-blue-700">
+                • {selectedEmployeeIds.length} fișiere vor fi generate și asamblate automat într-o arhivă ZIP
+              </span>
             )}
-          </button>
+          </div>
+
+          {(() => {
+            const isSingleModeExpired =
+              (isEmployeeRequired || isAdeverinta) &&
+              generationMode === 'single' &&
+              selectedEmployeeId &&
+              (() => {
+                const emp = employees.find((e) => e.id === selectedEmployeeId);
+                return emp ? getEmployeeExpiryInfo(selectedTemplateCode, emp).isExpired : false;
+              })();
+
+            const isBatchModeEmpty =
+              (isEmployeeRequired || isAdeverinta) &&
+              generationMode === 'batch' &&
+              selectedEmployeeIds.length === 0;
+
+            const isGenerateDisabled =
+              generating ||
+              !selectedClientId ||
+              !selectedTemplateCode ||
+              Boolean(isSingleModeExpired) ||
+              isBatchModeEmpty;
+
+            return (
+              <button
+                onClick={handleGenerate}
+                disabled={isGenerateDisabled}
+                className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold px-5 py-2.5 rounded-lg shadow-sm transition-colors"
+              >
+                {generating ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>
+                      {(isEmployeeRequired || isAdeverinta) && generationMode === 'batch'
+                        ? `Se generează ${selectedEmployeeIds.length} documente & ZIP...`
+                        : 'Se generează...'}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    {isSingleModeExpired ? (
+                      <>
+                        <ShieldAlert className="w-4 h-4 text-rose-300" />
+                        <span>Salariat blocat (termen expirat)</span>
+                      </>
+                    ) : (isEmployeeRequired || isAdeverinta) && generationMode === 'batch' ? (
+                      <>
+                        <Archive className="w-4 h-4" />
+                        <span>Generează Colectiv ({selectedEmployeeIds.length} Salariați) & ZIP</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileCheck className="w-4 h-4" />
+                        <span>Generează Document</span>
+                      </>
+                    )}
+                  </>
+                )}
+              </button>
+            );
+          })()}
         </div>
       </div>
 
-      {/* Generation Result Card */}
+      {/* BATCH GENERATION RESULT CARD */}
+      {batchResult && (
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4 animate-in fade-in duration-300">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-emerald-100 text-emerald-700 rounded-xl">
+                <Archive className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Generare Colectivă Finalizată cu Succes ({batchResult.totalGenerated} documente)
+                  </h3>
+                  <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full">
+                    PACHET ZIP GATA DE DESCĂRCARE
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Șablon: <span className="font-semibold text-slate-700">{batchResult.templateName}</span> • Companie: <span className="font-semibold text-slate-700">{batchResult.clientName}</span>
+                </p>
+              </div>
+            </div>
+            <div>
+              <a
+                href={batchResult.zipDownloadUrl}
+                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                <span>Descarcă Arhiva ZIP ({batchResult.totalGenerated} fișiere)</span>
+              </a>
+            </div>
+          </div>
+
+          {/* List of individual generated documents */}
+          <div className="space-y-2">
+            <div className="text-xs font-semibold text-slate-700 flex items-center justify-between">
+              <span>Documente individuale generate și incluse în arhivă:</span>
+              <span className="text-slate-400 font-normal">{(batchResult.zipSizeBytes / 1024).toFixed(1)} KB arhivă</span>
+            </div>
+            <div className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-slate-50/50 max-h-64 overflow-y-auto">
+              {batchResult.documents.map((doc: any) => (
+                <div key={doc.documentId} className="p-3 flex items-center justify-between gap-3 text-xs bg-white">
+                  <div>
+                    <div className="font-semibold text-slate-900">{doc.employeeName}</div>
+                    <div className="text-slate-500 text-[11px]">{doc.jobTitle} • {doc.fileName}</div>
+                  </div>
+                  <a
+                    href={doc.downloadUrl}
+                    className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-medium px-2.5 py-1 bg-white border border-slate-200 rounded hover:border-blue-300 transition"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Descarcă</span>
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Generation Result Card (Single Mode) */}
       {generationResult && (
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4 animate-in fade-in duration-300">
           <div className="flex items-center justify-between">
