@@ -24,7 +24,7 @@ interface ClientOption {
   cui: string;
 }
 
-interface TemplateOption {
+interface TemplateItem {
   id: string;
   code: string;
   name: string;
@@ -32,7 +32,10 @@ interface TemplateOption {
   format: string;
   contextLevel: string;
   manifestJson: string;
+  fields?: { source: string; [key: string]: any }[];
 }
+
+type TemplateOption = TemplateItem;
 
 interface EmployeeOption {
   id: string;
@@ -159,9 +162,17 @@ function DocumentGeneratorContent() {
     currentTemplate?.contextLevel === 'hygiene_session' ||
     selectedTemplateCode.startsWith('hygiene-');
   const isEmployeeRequired =
-    !isHygieneTemplate &&
-    (currentTemplate?.contextLevel === 'employee' || currentTemplate?.contextLevel === 'job');
+    !isHygieneTemplate && currentTemplate?.contextLevel === 'employee';
   const isAdeverinta = selectedTemplateCode === 'hygiene-adeverinta';
+  const isJobContext =
+    !isEmployeeRequired &&
+    !isHygieneTemplate &&
+    Boolean(
+      currentTemplate?.contextLevel === 'job' ||
+      currentTemplate?.family === 'risk' ||
+      currentTemplate?.code?.includes('loc-munca') ||
+      currentTemplate?.fields?.some((f) => f?.source?.startsWith('job.'))
+    );
 
   // Load employees & jobs when client changes
   useEffect(() => {
@@ -182,12 +193,19 @@ function DocumentGeneratorContent() {
       .then((data) => {
         if (data && Array.isArray(data.jobs)) {
           setJobs(data.jobs);
-          if (!isEmployeeRequired && !selectedJobId && data.jobs.length > 0) {
-            setSelectedJobId(data.jobs[0].id);
+          if (isJobContext && data.jobs.length > 0) {
+            setSelectedJobId((prev) =>
+              data.jobs.some((j: any) => j.id === prev) ? prev : data.jobs[0].id
+            );
+          } else {
+            setSelectedJobId('');
           }
+        } else {
+          setJobs([]);
+          setSelectedJobId('');
         }
       });
-  }, [selectedClientId, isEmployeeRequired]);
+  }, [selectedClientId, isEmployeeRequired, isHygieneTemplate, currentTemplate, isJobContext]);
 
   // When selected employee changes, update job automatically from employee's assigned job
   useEffect(() => {
@@ -199,6 +217,17 @@ function DocumentGeneratorContent() {
       setSelectedJobId('');
     }
   }, [selectedEmployeeId, employees, isEmployeeRequired]);
+
+  // State reset logic when template changes
+  useEffect(() => {
+    if (!selectedTemplateCode) return;
+    if (isHygieneTemplate || !isJobContext) {
+      setSelectedJobId('');
+    }
+    if (!isEmployeeRequired && !isAdeverinta) {
+      setSelectedEmployeeId('');
+    }
+  }, [selectedTemplateCode, isHygieneTemplate, isEmployeeRequired, isAdeverinta, isJobContext]);
 
   const selectedClient = clients.find((c) => c.id === selectedClientId);
   const filteredSessions = hygieneSessions.filter((session) => {
@@ -220,12 +249,17 @@ function DocumentGeneratorContent() {
       return;
     }
 
+    const effectiveJobId =
+      isHygieneTemplate || !isJobContext
+        ? undefined
+        : (selectedJobId || undefined);
+
     setLoadingFields(true);
     const params = new URLSearchParams({
       clientId: selectedClientId,
     });
     if (selectedEmployeeId) params.append('employeeId', selectedEmployeeId);
-    if (selectedJobId) params.append('jobId', selectedJobId);
+    if (effectiveJobId) params.append('jobId', effectiveJobId);
     if (!isHygieneTemplate || hygieneScope === 'session') {
       if (selectedHygieneSessionId) params.append('hygieneSessionId', selectedHygieneSessionId);
       if (selectedHygieneParticipantId) params.append('hygieneParticipantId', selectedHygieneParticipantId);
@@ -262,6 +296,9 @@ function DocumentGeneratorContent() {
     selectedHygieneParticipantId,
     hygieneScope,
     isHygieneTemplate,
+    isEmployeeRequired,
+    currentTemplate,
+    isJobContext,
   ]);
 
   const handleFieldChange = (key: string, value: string) => {
@@ -304,6 +341,11 @@ function DocumentGeneratorContent() {
     setGenerationResult(null);
 
     try {
+      const effectiveJobId =
+        isHygieneTemplate || !isJobContext
+          ? undefined
+          : (selectedJobId || undefined);
+
       const res = await fetch('/api/documents/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -311,7 +353,7 @@ function DocumentGeneratorContent() {
           templateCode: selectedTemplateCode,
           clientId: selectedClientId,
           employeeId: selectedEmployeeId || undefined,
-          jobId: selectedJobId || undefined,
+          jobId: effectiveJobId,
           hygieneSessionId: (isHygieneTemplate && hygieneScope === 'client') ? undefined : (selectedHygieneSessionId || undefined),
           hygieneParticipantId: (isHygieneTemplate && hygieneScope === 'client') ? undefined : (selectedHygieneParticipantId || undefined),
           customFields: formValues,
@@ -375,6 +417,7 @@ function DocumentGeneratorContent() {
               onChange={(e) => {
                 setSelectedClientId(e.target.value);
                 setSelectedEmployeeId('');
+                setSelectedJobId('');
                 setSelectedHygieneParticipantId('');
               }}
               className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -395,7 +438,32 @@ function DocumentGeneratorContent() {
             </label>
             <select
               value={selectedTemplateCode}
-              onChange={(e) => setSelectedTemplateCode(e.target.value)}
+              onChange={(e) => {
+                const newCode = e.target.value;
+                setSelectedTemplateCode(newCode);
+                const nextTpl = templates.find((t) => t.code === newCode);
+                const isNextHygiene =
+                  nextTpl?.family === 'hygiene' ||
+                  nextTpl?.contextLevel === 'hygiene_session' ||
+                  newCode.startsWith('hygiene-');
+                const isNextEmployee = !isNextHygiene && nextTpl?.contextLevel === 'employee';
+                const isNextJob =
+                  !isNextEmployee &&
+                  !isNextHygiene &&
+                  Boolean(
+                    nextTpl?.contextLevel === 'job' ||
+                    nextTpl?.family === 'risk' ||
+                    nextTpl?.code?.includes('loc-munca') ||
+                    nextTpl?.fields?.some((f) => f?.source?.startsWith('job.'))
+                  );
+
+                if (isNextHygiene || !isNextJob) {
+                  setSelectedJobId('');
+                }
+                if (!isNextEmployee && newCode !== 'hygiene-adeverinta') {
+                  setSelectedEmployeeId('');
+                }
+              }}
               className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">-- Alege șablonul --</option>
@@ -467,7 +535,7 @@ function DocumentGeneratorContent() {
         )}
 
         {/* Job / Funcție Selector (DOAR pentru documente de nivel companie/evaluare riscuri unde nu este implicat un angajat individual) */}
-        {!isEmployeeRequired && selectedClientId && jobs.length > 0 && (
+        {isJobContext && selectedClientId && jobs.length > 0 && (
           <div className="pt-2 border-t border-slate-100">
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               Funcție / Post de Lucru (opțional - pentru evaluarea riscurilor sau instructaj specific postului)

@@ -416,7 +416,8 @@ export async function renderTemplateBuffer(
 
     return Buffer.from(await pdfDoc.save());
   } else if (templateFormat === 'xlsx') {
-    const wb = XLSX.readFile(templateFilePath);
+    const fileBuffer = fs.readFileSync(templateFilePath);
+    const wb = XLSX.read(fileBuffer, { type: 'buffer', cellDates: false });
     let participants = Array.isArray(data.participants)
       ? (data.participants as Record<string, unknown>[])
       : [];
