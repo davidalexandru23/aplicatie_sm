@@ -1,72 +1,67 @@
-# BRIEFING — 2026-11-01T21:46:00Z
+# BRIEFING — 2026-11-05T01:32:00Z
 
 ## Mission
-Adversarially challenge and stress-test Milestone 2 UI components and pages (zero states, missing relations, boundary layouts, XSS/special characters, React rendering stability) to deliver an empirical APPROVE or REJECT verdict.
+Empirically stress-test the expanded 31-template generation engine (focusing on the 6 new statutory templates and dynamic training log tables) with adversarial inputs, token leakage detection, special XML characters, extreme inputs, and representative vs employee separation, providing a binary gate verdict (APPROVE or REQUEST_CHANGES).
 
 ## 🔒 My Identity
-- Archetype: EMPIRICAL CHALLENGER
+- Archetype: Empirical Challenger
 - Roles: critic, specialist
 - Working directory: /Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_challenger_1
-- Original parent: 24ce85c8-5dd2-4649-94bf-3b3a1567784b
-- Milestone: M2 (Compliance UI Tracking & Alerts)
+- Original parent: d4389872-2ec2-44c4-b4b6-52d9b0f4a82d
+- Milestone: Milestone 2 Gate (Pillar 2: Catalog Expansion to 31 Statutory Templates, F7–F11)
 - Instance: 1 of 1
 
 ## 🔒 Key Constraints
-- Review-only — do NOT modify implementation code
-- Write only inside working directory (.agents/teamwork/m2_challenger_1/)
-- Never place source code, tests, or data files in .agents/teamwork/
-- All test scripts and verification routines must be run directly to reproduce any bugs empirically
+- Review-only — do NOT modify implementation code (report bugs as findings)
+- Must execute verification code ourselves (no relying on unverified claims)
 - If cannot reproduce a bug empirically, it does not count
+- Target: 0 residual unmapped tokens (/PLACEHOLDER_[A-Z0-9_]+/)
+- Explicit binary verdict: APPROVE or REQUEST_CHANGES
 
 ## Current Parent
-- Conversation ID: 24ce85c8-5dd2-4649-94bf-3b3a1567784b
-- Updated: 2026-11-01T21:46:00Z
+- Conversation ID: d4389872-2ec2-44c4-b4b6-52d9b0f4a82d
+- Updated: 2026-11-05T01:32:00Z
 
 ## Review Scope
-- **Files to review**:
-  - `src/components/compliance-badge.tsx`
-  - `src/components/compliance-alerts.tsx`
-  - `src/app/employees/employee-registry-client.tsx`
-  - `src/app/employees/page.tsx`
-  - `src/app/clients/[id]/page.tsx`
-  - `src/app/page.tsx`
-  - `src/lib/compliance.ts`
+- **Files reviewed**:
+  - `templates_registry/normalized/*.docx` (the 6 new templates: `ssm-fisa-instruire-individuala`, `psi-fisa-instructaj-individuala`, `med-fisa-solicitare-examen`, `med-fisa-identificare-riscuri`, `eip-fisa-acordare-individuala`, `hr-cim-model-cadru-2022`)
+  - `src/lib/templates/definitions.ts`
+  - `src/lib/templates/resolver.ts`
+  - `src/lib/templates/generator.ts`
+  - `scripts/test-all-templates-generation.ts`
+  - `scripts/verify-all.ts`
 - **Interface contracts**:
-  - `ComplianceStatus`, `ComplianceItemResult`, `EmployeeComplianceSummary`, `CompanyComplianceMetrics` in `src/lib/compliance.ts`
-- **Review criteria**:
-  - Zero states: 0 employees, 0 clients, 0 overdue/upcoming items, empty search results
-  - Missing relations: null job, null worksite, null client, missing CNP, undefined fields
-  - Boundary layouts: ultra-long employee names, extreme job titles, special characters, XSS vectors, Romanian diacritics
-  - SSR / React 19 rendering stability, hydration safety, build reproducibility (`npm run build`)
-  - Correctness of metrics and filter logic under adversarial data
+  - `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/ORIGINAL_REQUEST.md`
+  - `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/PROJECT.md`
+  - `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_worker_1/handoff.md`
 
 ## Attack Surface
 - **Hypotheses tested**:
-  - H1: Company with 0 employees crashes score gauge or breakdown pills with NaN% -> DISPROVEN (clean 100%, 0/0, safe clamping).
-  - H2: Employee with null currentJob, currentWorksite, or identityDocument triggers unhandled property access in table render or search -> DISPROVEN (safe fallbacks `Fără funcție consemnată`, optional chaining everywhere).
-  - H3: Hostile XSS strings in names or titles execute in DOM -> DISPROVEN (React escapes to `&lt;script&gt;`).
-  - H4: Boundary daysRemaining (0d, -1d, 30d, 31d) trigger off-by-one status labels -> DISPROVEN (`SCADENT AZI`, `EXPIRAT (1z)`, `SCADENT (30z)`, `VALID (31z)` rendered accurately).
-  - H5: Empty search results break table pagination/layout -> DISPROVEN (clean empty-state message and reset button).
-- **Vulnerabilities found**:
-  - No blocking vulnerabilities or runtime crashes found.
-  - Minor visual observation: In `employee-registry-client.tsx`, `medicalFitnessVerdict` is styled in `text-emerald-700` regardless of whether verdict is `APT`, `APT_CONDITIONAT`, or `INAPT`.
-  - Minor visual observation: `ComplianceAlerts` renders `alert.notes` on overdue alerts, but not on upcoming alerts.
+  1. *Hypothesis*: Dynamic table rendering for `ssm-fisa-instruire-individuala` and `psi-fisa-instructaj-individuala` breaks or leaks unmapped tokens when given 0, 1, 5, or 20 events.
+     *Result*: Refuted. 0 unmapped tokens across all event counts. Empty cells render cleanly for pen signing. Direct rendering of 20 events expands table dynamically to 20 rows cleanly.
+  2. *Hypothesis*: Empty padded cells for physical pen signing leave raw loop variables or residual tokens.
+     *Result*: Refuted. Padded cells with `''` strings render cleanly with 0 unmapped tokens and 0 unparsed loop syntax tags.
+  3. *Hypothesis*: Romanian diacritics and XML special characters (`&`, `<`, `>`, `"`, `'`) corrupt XML or throw parse errors.
+     *Result*: Refuted. Docxtemplater and generator handle XML escaping properly; all 6 generated DOCX files are valid zip packages with well-formed XML and no raw `&`.
+  4. *Hypothesis*: Extreme inputs (missing optionals, 10,000-char string overflow, unusual leap/boundary dates, offline blank generation) cause crashes or NaN errors.
+     *Result*: Refuted. Handled cleanly with 0 crashes, 0 unmapped tokens, and valid date formats.
+  5. *Hypothesis*: Legal representative (`Munteanu Cristian`) leaks into employee fields (`Stan Alexandru` / `Barbu Gheorghe`) or vice versa.
+     *Result*: Refuted. Strict separation verified across all 6 templates.
+- **Vulnerabilities / Observations found**:
+  - [F-M2-01]: In `src/lib/templates/resolver.ts`, `TARGET_SSM_ROWS = 16` and `TARGET_PSI_ROWS = 16` are fixed loop boundaries (`for (let i = 0; i < TARGET_SSM_ROWS; i++)`). If an employee has >16 events in DB, the resolver only populates the first 16 events. Does not crash and direct rendering supports >16 events, but automated DB resolution drops events 17+. Recommendation for Milestone 3/refactor: use `Math.max(TARGET_SSM_ROWS, ssmEvents.length)`.
 - **Untested angles**:
-  - End-to-end browser click actions under live Cypress/Playwright sessions (covered by dedicated E2E agent).
+  - None within Milestone 2 scope.
 
 ## Loaded Skills
-- None specified by user/orchestrator.
+- Standard empirical challenge protocol.
 
 ## Key Decisions Made
-- Created and executed empirical adversarial test harness `scripts/adversarial-m2-ui-stress.ts` with 32 assertions covering 6 distinct stress suites; all 32 passed.
-- Verified Next.js 16.4.3 production build (`npm run build`) compiles 22 routes cleanly in 422ms.
-- Verified TypeScript checks (`npx tsc --noEmit`) with 0 errors.
-- Delivered final verdict: **APPROVE**.
+- Created and executed empirical test harness `scripts/stress-test-m2-challenger1.ts` (28 test cases, 350 assertions, 100% pass rate).
+- Validated `verify-all.ts` (130/130 items passed) and `npm run build` (Next.js Turbopack build succeeded in 480ms).
+- Formulated verdict: **APPROVE**.
 
 ## Artifact Index
-- `.agents/teamwork/m2_challenger_1/BRIEFING.md` — Persistent working memory
-- `.agents/teamwork/m2_challenger_1/DISPATCH.md` — Dispatch log
-- `.agents/teamwork/m2_challenger_1/progress.md` — Liveness heartbeat & progress log
-- `.agents/teamwork/m2_challenger_1/challenge_report.md` — Comprehensive adversarial challenge report
-- `.agents/teamwork/m2_challenger_1/handoff.md` — 5-component handoff report with APPROVE verdict
-- `scripts/adversarial-m2-ui-stress.ts` — Empirical 32-assertion UI stress test suite
+- `scripts/stress-test-m2-challenger1.ts` — Empirical adversarial test harness
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_challenger_1/BRIEFING.md` — persistent memory
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_challenger_1/progress.md` — liveness heartbeat
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_challenger_1/handoff.md` — final gate handoff report

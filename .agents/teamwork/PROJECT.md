@@ -1,64 +1,28 @@
-# Project: Romanian SSM, DSP, and DSVSA Compliance and Document Generation System
+# Project: Modernizare Strategică SSM, Igienă și HR Externalizat (Pilonii 1-5)
 
 ## Architecture
 
-The system is a Next.js 15 (App Router, Turbopack) web application with Prisma ORM 6 on PostgreSQL, Tailwind CSS v4, and a dual document generation engine (`docxtemplater` for DOCX, `xlsx` for XLSX, `pdf-lib` for overlays).
+The system is a Next.js 15 (App Router, Turbopack) web application with Prisma ORM 6 on PostgreSQL, Tailwind CSS v4, and a dual document generation engine (`docxtemplater` & `pizzip` for DOCX, `xlsx` for XLSX).
 
-### Core Layers
+### Core Layers & Components
 1. **Data Model Layer (`prisma/schema.prisma`)**:
-   - PostgreSQL persistence for clients, jobs, worksites, and employees.
-   - **External Service Provider Subsystem (R2)**: Dedicated `SsmProvider` and `SsmSpecialist` relational entities linked to `Client` via `providerId` and `specialistId` (with legacy string synchronization for backwards compatibility).
-   - **Hygiene Compliance Subsystem (R1)**: `Employee` extensions (`hygieneCertificateSeries`, `hygieneExamResult`, `hygieneExamGrade`, `hygieneExpirationDate`), `HygieneSession` extensions (`clientId`, `trainingModule`, `coursePeriod`), and `HygieneParticipant` extensions (`module`, `expirationDate`, `clientId`).
-2. **SSM, DSP & DSVSA Domain Compliance Engine (`src/lib/`)**:
-   - `compliance.ts`: Deterministic calculation engine for Romanian legal intervals (HG 355/2007, Legea 319/2006, HG 1425/2006, Legea 307/2006, Ordinul comun MS/ME 1225/5031/2003, 2209/4469/2022) with `addMonthsSafe` 36-month validity clamping.
-   - `caen-catalog.ts`: Official Romanian CAEN Rev. 2 catalog with statutory risk tiers and hygiene module designations (Module 1 Food, Module 2 Cleaning/Healthcare, Module 3 Body Care).
-   - `risk/caen-risk-presets.ts`: Contextual INCDPM Pece risk factors and prevention measures.
-3. **UI / Presentation Layer (`src/app/`)**:
-   - `/settings` & `/settings/provider`: External SSM provider profile management (CUI, Reg. Com., official address, ITM authorization number/date) and specialist team CRUD.
-   - `/clients` & `/clients/[id]`: Client intake and edit modals with Provider and Specialist dropdown selection and persistence.
-   - `/documents/generate`: Direct client-level hygiene document selection and generation flow ("Tabel evidenta cursanti igiena", "Anexe Curs igiena", "Adeverinta participare") with dynamic employee roster assembly.
-   - `/employees`, `/trainings`, `/risk-assessments`, `/imports/new`.
-4. **Document Generation Engine Layer (`src/lib/templates/`)**:
-   - `definitions.ts`: Ground-truth catalog for all 25 official templates (23 DOCX and 2 XLSX).
-   - `resolver.ts`: High-fidelity contextual placeholder resolver dynamically binding client data, assigned external provider & specialist data, employee rosters, and graceful handling of missing optional fields (supplying `'-'` for sub-addresses rather than fabricating mock IDs or throwing exceptions).
-   - `generator.ts`: Multi-part XML generator and dynamic XLSX cell formatter.
+   - PostgreSQL persistence for clients, jobs, worksites, employees, risk assessments, training events, hygiene sessions, and document templates.
+   - External SSM provider subsystem (`SsmProvider`, `SsmSpecialist`) with `isDefault: true` fallback resolution.
+   - Job contextual profile (`mainActivities`, `equipmentUsed`, `workConditions`, `corCode`).
+2. **SSM & HR Document Template Catalog (`src/lib/templates/`)**:
+   - `definitions.ts`: Ground-truth catalog expanded from 25 to 31 templates with complete token schemas, legal citations, and required fields.
+   - `resolver.ts`: High-fidelity data resolution engine connecting real database entities, `isDefault: true` providers, `Job` operational context, dynamic gender salutations (`Dl.`/`Dna.`), and graceful `missing_data` flagging for non-statutory variables (stopping mock salaries).
+   - `generator.ts`: Template rendering with PizZip, Docxtemplater, and dynamic XML/table injection.
+   - `caen-risk-presets.ts`: Contextual INCDPM Pece risk profiles dynamically populating measures in Prevention & Protection Plans.
+3. **Bulk Generation & Package Subsystem (`src/app/api/documents/packages/`)**:
+   - In-memory multi-file ZIP packaging via `pizzip` without external heavy dependencies.
+   - Three operational packages: Onboarding Salariat ZIP, Înființare Dosar SSM Client ZIP, and Export Arhivă Control ITM/ISU ZIP.
+4. **UI & User Workflows (`src/app/`)**:
+   - `/documents/generate`: Post/Job selector (`jobId`) allowing generation of workplace risk evaluations and training topics without requiring an employee roster.
+   - `/risk-assessments`: Interactive visual risk assessment configurator allowing CAEN and Job selection with dynamic Pece gravity/probability adjustment.
+   - `/clients/[id]` & `/employees`: 1-Click ZIP package generation triggers.
 5. **Automated Verification Suite (`scripts/`)**:
-   - `verify-provider-and-hygiene.ts`: Dedicated verification script for provider CRUD, client dropdown assignment, hygiene roster generation, and template rendering.
-   - `verify-all.ts`: Unified acceptance test runner executing all suites.
-
----
-
-## Code Layout
-
-```
-/Users/davidalexandru/Documents/Proiect_SSM/
-├── prisma/
-│   ├── schema.prisma                  # Data models including SsmProvider, SsmSpecialist, and Hygiene extensions
-│   ├── seed.ts                        # Realistic seed data for providers, specialists, clients, employees
-│   └── migrations/                    # Prisma migrations
-├── src/
-│   ├── app/
-│   │   ├── settings/                  # External SSM Provider Profile & Specialist Management UI
-│   │   ├── clients/                   # Client directory with Provider/Specialist dropdowns
-│   │   ├── documents/generate/        # Document generation catalog & direct Hygiene flow
-│   │   └── api/
-│   │       ├── settings/provider/     # Provider profile & specialist CRUD APIs
-│   │       ├── providers/             # Provider & specialist dropdown query API
-│   │       ├── clients/               # Client endpoints persisting provider/specialist
-│   │       └── documents/generate/    # Document generation API
-│   └── lib/
-│       ├── compliance.ts              # Legal deadline calculation engine (36-month hygiene clamping)
-│       ├── caen-catalog.ts            # CAEN Rev. 2 catalog with hygiene requirements
-│       └── templates/
-│           ├── definitions.ts         # Catalog of 25 templates with complete token schemas
-│           ├── resolver.ts            # Contextual data resolver with provider & dynamic hygiene binding
-│           └── generator.ts           # Multi-part DOCX/XLSX generation engine
-├── scripts/
-│   ├── verify-provider-and-hygiene.ts # Dedicated verification suite for R1 and R2
-│   ├── test-all-templates-generation.ts # 25/25 Zero-placeholder generation test
-│   └── verify-all.ts                  # Unified acceptance verification suite
-└── handoff/ssm-template-placeholder-pack/templates/ # 25 official templates
-```
+   - `scripts/verify-all.ts`: Unified acceptance suite validating all 31 templates, zero unmapped placeholders, database relations, and clean builds (`npm run build`).
 
 ---
 
@@ -66,18 +30,29 @@ The system is a Next.js 15 (App Router, Turbopack) web application with Prisma O
 
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| F1 | SsmProvider & SsmSpecialist Models | Relational models in Prisma schema for provider corporate data, ITM authorization, and designated specialists | M1 | Survey R2 (Explorer 2) |
-| F2 | Provider Settings UI & Specialist CRUD | Dedicated Settings section (`/settings`) for managing provider profile and specialist team | M1 | Survey R2 (Explorer 2) |
-| F3 | Client Provider & Specialist Persistence | Dropdown selectors in client intake and edit modals persisting `providerId` and `specialistId` | M1 | Survey R2 (Explorer 2) |
-| F4 | Hygiene Data Model Extensions | Extend `Employee`, `HygieneSession`, and `HygieneParticipant` with modules, certificate series, results, and 3-year expiration dates | M2 | Survey R1 (Explorer 1) |
-| F5 | Direct Client Hygiene Document Flow | Update `/documents/generate` to directly select and configure hygiene documents for client companies | M2 | Survey R1 (Explorer 1) |
-| F6 | Dynamic Hygiene Roster Generation | Dynamically assemble employee rosters with Order 1225/2209 modules, 3-year expiry, and cert data in `resolver.ts` & `generator.ts` | M2 | Survey R1 (Explorer 1) |
-| F7 | 25-Template Catalog & Token Review | Full review of all 25 templates in `definitions.ts`, mapping provider placeholders dynamically | M3 | Survey R3 (Spec Miner 3) |
-| F8 | Graceful Missing Field Handling | Handle missing optional employee/company fields cleanly (sub-address `'-'`, manual flags for unrecorded IDs, zero exceptions) | M3 | Survey R3 (Spec Miner 3) |
-| F9 | Provider & Hygiene Verification Suite | Deliver `scripts/verify-provider-and-hygiene.ts` validating migrations, provider CRUD, client dropdowns, and hygiene rosters | M4 | Survey R4 & R4 |
-| F10 | Comprehensive Test Pass & Build | Enhance `prisma/seed.ts`, update `scripts/verify-all.ts`, clean `npm run build`, forensic audit clean verdict | M4 | Project Pattern & R4 |
+| F1 | Rectificare EVALUAREA RISCURILOR.docx | Corectare token RegCom, eliminare „București” static, curățare date istorice și text licență, restaurare Cap 6-7 | M1 | Pilonul 1 (Survey 1) |
+| F2 | Rectificare IPSSM Birou & Alunecări | Înlocuire „agenților de pază” cu personal birou, adăugare `{PLACEHOLDER_FIRMA}` în antet | M1 | Pilonul 1 (Survey 1) |
+| F3 | Curățare Reclamă Tematică Loc Muncă | Ștergere imagine TinyPic comercială din footers, adăugare `{PLACEHOLDER_FUNCTIE}` | M1 | Pilonul 1 (Survey 1) |
+| F4 | Apelative Dinamice & Decizia 10 | Înlocuire 24 apariții `Dna.` cu `{PLACEHOLDER_APELATIV_*}` dinamic și `{PLACEHOLDER_NUMAR_DECIZIE_10}` | M1 | Pilonul 1 (Survey 1) |
+| F5 | Rectificare Anexă Fișă Post & GDPR | Adăugare tokenuri identificare/COR/CIM în fișa postului; trecere GDPR la Art. 6(1)(b)/(c) și eliminare puncte suspensie | M1 | Pilonul 1 (Survey 1) |
+| F6 | Curățare Excel Igienă & Adeverință | Eliminare Sheet1 (Registru Casă); corectare stutter aviz și adaptare dinamică Nivel 1/2 în adeverință | M1 | Pilonul 1 (Survey 1) |
+| F7 | Fișă Individuală Instruire SSM | Creare șablon Anexa 11 HG 1425/2006 (`ssm-fisa-instruire-individuala`) cu tabel periodic multianual | M2 | Pilonul 2 (Spec Miner 2) |
+| F8 | Fișă Individuală Instructaj PSI/SU | Creare șablon Anexa OMAI 712/2005 (`psi-fisa-instructaj-individuala`) | M2 | Pilonul 2 (Spec Miner 2) |
+| F9 | Formulare Medicină a Muncii | Creare Fișă Trimitere Examen (Anexa 2) și Fișă Identificare Riscuri (Anexa 3) HG 355/2007 | M2 | Pilonul 2 (Spec Miner 2) |
+| F10 | Fișă Dotare EIP & Model CIM 2022 | Creare Fișă EIP HG 1048/2006 și Contract Individual Muncă Model-Cadru Ordin MMSS 2171/2022 (Cap A-P) | M2 | Pilonul 2 (Spec Miner 2) |
+| F11 | Extindere Catalog la 31 Șabloane | Integrare definiții TypeScript în `definitions.ts`, sincronizare `seed.ts` și schemă DB | M2 | Pilonul 2 (Spec Miner 2) |
+| F12 | Oprire Date Fictive în Resolver | Eliminare salariu fictiv (6500 lei) și CIM generic; marcare curată `missing_data` cu raportare câmpuri lipsă | M3 | Pilonul 3 (Survey 3) |
+| F13 | Fallback Automat Provider Implicit | Interogare automată `SsmProvider` și `SsmSpecialist` cu `isDefault: true` dacă clientul nu are alocare manuală | M3 | Pilonul 3 (Survey 3) |
+| F14 | Conectare Context Post (Job) | Mapare `mainActivities`, `equipmentUsed`, `workConditions`, `corCode` în tokenurile de tematică și fișă post | M3 | Pilonul 3 (Survey 3) |
+| F15 | Corelare Dinamică Măsuri CAEN | Populare Plan de Prevenire cu măsuri specifice codului CAEN din `caen-risk-presets.ts` | M3 | Pilonul 3 (Survey 3) |
+| F16 | Pachet Onboarding Salariat (ZIP) | Endpoint și generator bulk ZIP 1-Click cu cele 7-9 documente necesare la angajare | M4 | Pilonul 4 (Survey 3) |
+| F17 | Pachet Înființare Dosar SSM (ZIP) | Endpoint și generator bulk ZIP 1-Click cu decizii, evaluare, plan prevenire și tematici de bază | M4 | Pilonul 4 (Survey 3) |
+| F18 | Export Arhivă Control ITM/ISU (ZIP) | Arhivă structurată pe foldere tematice pentru inspecții de control | M4 | Pilonul 4 (Survey 3) |
+| F19 | Selector Post/Job în Document Generator | Selector `jobId` în `/documents/generate` pentru documente de post fără salariat obligatoriu | M5 | Pilonul 5 (Survey 3) |
+| F20 | Configurator Vizual Evaluare Riscuri | Configurator interactiv în `/risk-assessments` cu ajustare coeficienți Pece și calcul dinamic $N_{rg}$ | M5 | Pilonul 5 (Survey 3) |
+| F21 | Suită Verificare Automată 31 Șabloane | Rulare teste automate complete, verificare 31/31 șabloane fără tokenuri nepopulate și `npm run build` curat | M5 | Pilonul 5 (Survey 3) |
 
-All 10 features are assigned to milestones. Zero unassigned features.
+Toate cele 21 de funcționalități sunt atribuite milestoanelor M1-M5. Zero funcționalități neatribuite.
 
 ---
 
@@ -85,26 +60,27 @@ All 10 features are assigned to milestones. Zero unassigned features.
 
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| M1 | SSM Provider Profile & Client Assignment Subsystem | F1, F2, F3: SsmProvider & SsmSpecialist models, Settings UI, Specialist CRUD, Client intake/edit dropdown persistence | none | DONE (Verified: SsmProvider/Specialist models, Settings UI, Client modals dual persistence, 131/131 checks pass) |
-| M2 | Hygiene Compliance Engine & Document Generation Flow | F4, F5, F6: Hygiene schema extensions, `/documents/generate` direct client hygiene flow, dynamic employee roster generation | M1 | DONE (Verified: 3 demo sessions seeded, dynamic client/session rosters, Scope Selector, 1-click downloads, 0 unreplaced tokens) |
-| M3 | Comprehensive 25-Template & Pipeline Legal Realism Review | F7, F8: 25-template catalog review, provider token binding, graceful missing field handling with zero unhandled exceptions | M1, M2 | DONE (Verified: 25/25 templates generate with 0 missing placeholders, clean array token filtering) |
-| M4 | Automated Verification Suite, Seed Data & Acceptance Pass | F9, F10: `verify-provider-and-hygiene.ts`, seed data update, unified `verify-all.ts` pass, clean build, clean forensic audit | M1, M2, M3 | DONE (Verified: 130/130 checks pass across all 5 suites, 0 build errors, CLEAN forensic audit) |
+| M1 | Rectificarea Textuală a Celor 9 Șabloane Existente | F1, F2, F3, F4, F5, F6: Curățare XML, antete, reclame, apelative Dl/Dna, ștergere Sheet1 casă, sincronizare definitions & resolver | none | DONE |
+| M2 | Extinderea Catalogului la 31 Șabloane Statutare | F7, F8, F9, F10, F11: Creare fișiere DOCX statutare (Anexa 11 SSM, Anexa PSI, Anexa 2 & 3 Med, Fișă EIP, CIM 2022), extindere definitions.ts, actualizare seed | M1 | DONE |
+| M3 | Reconfigurarea Resolverului & Conectarea Datelor Reale | F12, F13, F14, F15: Oprire date fictive, fallback isDefault: true, conectare Job context, corelare măsuri CAEN | M1, M2 | IN_PROGRESS |
+| M4 | Generare în Lot pe Fluxuri Operaționale (Bulk ZIP) | F16, F17, F18: Pachet Onboarding ZIP, Pachet Dosar SSM ZIP, Export Arhivă Control ITM/ISU ZIP via PizZip | M2, M3 | PLANNED |
+| M5 | Rafinarea Interfeței UI/UX, Configurator Riscuri & Build Pass | F19, F20, F21: Selector Job în generator, configurator interactiv în /risk-assessments, verificare 31/31 șabloane, build & audit curat | M1, M2, M3, M4 | PLANNED |
 
 ---
 
 ## Interface Contracts
 
-### `src/app/api/settings/provider/route.ts` & `src/app/api/providers/route.ts`
-- `GET /api/settings/provider`: Returns default/active provider profile including its `specialists`.
-- `PUT /api/settings/provider`: Updates corporate info, ITM authorization certificate number, issue date, and address.
-- `GET /api/providers`: Returns array of active providers with their active specialists for dropdown options.
-- `POST /api/settings/provider/specialists`: Creates a new specialist under the provider.
-- `PATCH /api/settings/provider/specialists/[id]`: Updates specialist details.
-- `DELETE /api/settings/provider/specialists/[id]`: Deactivates or removes a specialist.
-
-### `src/app/api/clients/route.ts` & `src/app/api/clients/[id]/route.ts`
-- Accepts `providerId?: string` and `specialistId?: string` (or `designatedSpecialistId?: string`).
-- Persists relations in database and updates cached legacy string fields (`ssmProviderName`, `ssmSpecialistName`, `ssmSpecialistCert`) for seamless backwards compatibility.
+### `src/lib/templates/definitions.ts`
+- Catalogul conține exact 31 de șabloane tipizate.
+- Tokenuri noi adăugate în schema oficială:
+  - `PLACEHOLDER_NUMAR_DECIZIE_10`: Numărul deciziei 10 din registrul de decizii.
+  - `PLACEHOLDER_APELATIV_ADMINISTRATOR`: „Dl.” sau „Dna.” determinat dinamic din sexul sau prenumele administratorului.
+  - `PLACEHOLDER_APELATIV_PSI`: „Dl.” sau „Dna.” determinat dinamic din sexul sau prenumele responsabilului PSI.
+  - `PLACEHOLDER_ACTIVITATI_POST`: Preluat din `job.mainActivities`.
+  - `PLACEHOLDER_ECHIPAMENTE_POST`: Preluat din `job.equipmentUsed`.
+  - `PLACEHOLDER_CONDITII_POST`: Preluat din `job.workConditions`.
+  - `PLACEHOLDER_COD_COR`: Preluat din `job.corCode`.
+  - `PLACEHOLDER_NUMAR_CIM`: Preluat din datele salariatului sau lăsat curat pentru completare manuală.
 
 ### `src/lib/templates/resolver.ts`
 ```typescript
@@ -114,22 +90,13 @@ export interface TemplateResolutionOptions {
   job?: Job;
   hygieneSession?: HygieneSessionWithRelations;
   manualOverrides?: Record<string, string>;
+  jobId?: string;
 }
-
-export function resolveTemplateData(
-  templateCode: string,
-  options: TemplateResolutionOptions
-): Promise<TemplateDataResult>;
 ```
-- Populates all 24 provider tokens (`PLACEHOLDER_PRESTATOR_SSM`, `PLACEHOLDER_CUI_PRESTATOR`, `PLACEHOLDER_CERTIFICAT_FURNIZOR`, `PLACEHOLDER_ADRESA_PRESTATOR`, etc.) from assigned client provider/specialist.
-- Populates hygiene participant rosters dynamically from `client.employees` when `hygieneSession` is not specified.
-- Supplies `'-'` for non-applicable sub-addresses and leaves unrecorded required fields for manual entry without throwing unhandled exceptions.
+- Dacă `client.providerId` sau `client.specialistId` este null, resolverul interoghează `SsmProvider` și `SsmSpecialist` cu `isDefault: true`.
+- Salariul și variabilele tranzacționale nespecificate nu sunt fabricate; se returnează `missing_data` cu lista rubricilor necompletate.
 
-### `scripts/verify-provider-and-hygiene.ts`
-- Verifies:
-  1. Provider profile CRUD and ITM authorization persistence.
-  2. Designated specialist management.
-  3. Client dropdown assignment persistence.
-  4. Direct client hygiene document generation for "Tabel evidenta cursanti igiena", "Anexe Curs igiena", and "Adeverinta participare".
-  5. Hygiene employee roster accuracy: Order 1225/5031/2003 Modules 1–3+, 3-year expiration dates, certificate series/numbers, and evaluation results.
-  6. Zero unreplaced placeholders and uncorrupted file outputs.
+### `src/app/api/documents/packages/route.ts`
+- `POST /api/documents/packages/onboarding`: Returnează ZIP cu pachetul complet de onboarding pentru `employeeId`.
+- `POST /api/documents/packages/dossier`: Returnează ZIP cu dosarul SSM de înființare pentru `clientId`.
+- `POST /api/documents/packages/inspection-archive`: Returnează ZIP structurat pe foldere tematice pentru controale ITM/ISU.

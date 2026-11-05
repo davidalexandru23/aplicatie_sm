@@ -7,9 +7,9 @@ async function main() {
   console.log('--- Inițializare Seed Bază de Date SSM (Milestone 1) ---');
 
   // =========================================================================
-  // 0. CATALOG ȘABLOANE OFICIALE (25 ȘABLOANE)
+  // 0. CATALOG ȘABLOANE OFICIALE (31 ȘABLOANE STATUTARE)
   // =========================================================================
-  console.log('0. Seeding Catalog Șabloane Oficiale...');
+  console.log('0. Seeding Catalog Șabloane Oficiale (31 șabloane)...');
   await seedTemplates();
 
   // =========================================================================

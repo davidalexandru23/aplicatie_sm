@@ -1,39 +1,42 @@
-# DISPATCH: Milestone 2 Reviewer 2 (Data Flow & Compliance Display Conformance)
+# DISPATCH — m2_reviewer_2
 
-## Assignment
-You are Reviewer 2 for Milestone 2: Compliance UI Tracking & Alerts.
-Review the compliance data representation across `/employees`, `/clients/[id]`, and `/`.
+**Milestone**: Milestone 2 Gate (Pillar 2: Catalog Expansion to 31 Statutory Templates, F7–F11)  
+**Assigned Role**: `teamwork_reviewer`  
+**Working Directory**: `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_reviewer_2`  
+**Date**: 2026-11-05T01:25:00Z  
 
-## Mandatory Reading
-1. `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/ORIGINAL_REQUEST.md`
-2. `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/PROJECT.md`
-3. `/Users/davidalexandru/Documents/Proiect_SSM/src/lib/compliance.ts`
-4. `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_worker_1/handoff.md`
+## Objective
+Review legal correctness, statutory annex compliance (HG 1425/2006, OMAI 712/2005, HG 355/2007, HG 1048/2006, Ordin MMSS 2171/2022), separation of Legal Representative vs Employee, and zero unmapped placeholder tokens.
 
-## Focus Areas
-- Verify that status badges on `/employees` and `/clients/[id]` correctly reflect `src/lib/compliance.ts` calculations:
-  - Alexandru Stan -> VALID
-  - Ioana-Raluca Dumitru -> UPCOMING
-  - Gheorghe Barbu -> OVERDUE
-  - Elena Vasilescu -> MISSING
-  - Marius Radu -> VALID (Igienă VALID)
-  - Andreea Marin -> UPCOMING (Igienă UPCOMING)
-- Verify dashboard alert cards link correctly to actions and deep links.
-- Run `npm run build` and `npx tsx scripts/verify-compliance.ts`.
-- Deliver a clear verdict: `APPROVE` or `REQUEST_CHANGES`.
+## Key Files to Review
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/ORIGINAL_REQUEST.md`
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/PROJECT.md`
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_worker_1/handoff.md`
+- `src/lib/templates/definitions.ts`
+- `src/lib/templates/resolver.ts`
+- `templates_registry/normalized/` (all 6 new statutory DOCX files)
 
-## Output Requirements
-Write your review report to:
-`/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_reviewer_2/review.md`
-And summarize with your verdict in:
-`/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_reviewer_2/handoff.md`
+## 2026-11-05T01:24:38Z
+You are m2_reviewer_2, the Statutory & Legal Compliance Reviewer for Milestone 2 Gate.
+Your working directory is: /Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_reviewer_2
 
-Keep `progress.md` updated. Send message when complete.
+Read DISPATCH.md in your working directory and the following authoritative sources:
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/ORIGINAL_REQUEST.md`
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/PROJECT.md`
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_worker_1/handoff.md`
 
+Examine:
+1. Legal compliance of the 6 new statutory templates:
+   - `ssm-fisa-instruire-individuala` (Anexa 11 HG 1425/2006)
+   - `psi-fisa-instructaj-individuala` (Anexa OMAI 712/2005)
+   - `med-fisa-solicitare-examen` (Anexa 2 HG 355/2007)
+   - `med-fisa-identificare-riscuri` (Anexa 3 HG 355/2007, all 11 sections)
+   - `eip-fisa-acordare-individuala` (HG 1048/2006, 10-row allocation grid and harmonized EN standards)
+   - `hr-cim-model-cadru-2022` (Ordin MMSS 2171/2022, Chapters A–P with Legea 283/2022 provisions)
+2. Strict separation of Legal Representative (`Munteanu Cristian`) vs Employee (`Stan Alexandru` / `Barbu Gheorghe`).
+3. Verify that zero unmapped `/PLACEHOLDER_[A-Z0-9_]+/` tokens appear in generated documents.
+4. Run test commands: `npx tsx scripts/test-all-templates-generation.ts`, `npx tsx scripts/verify-all.ts`.
 
-## 2026-11-01T21:38:14Z
-You are Reviewer 2 for Milestone 2 in .agents/teamwork/m2_reviewer_2/.
-Read /Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_reviewer_2/DISPATCH.md, /Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/ORIGINAL_REQUEST.md, /Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/PROJECT.md, /Users/davidalexandru/Documents/Proiect_SSM/src/lib/compliance.ts, and /Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_worker_1/handoff.md.
-Review data flow from compliance engine into pages, verify badge rendering, run build & tests, and deliver your APPROVE / REQUEST_CHANGES verdict.
-Write review.md and handoff.md in .agents/teamwork/m2_reviewer_2/.
-Keep progress.md updated. Send message when complete.
+Provide an explicit binary verdict: APPROVE or REQUEST_CHANGES.
+Write your complete report to `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_reviewer_2/handoff.md` and send a message back.
+

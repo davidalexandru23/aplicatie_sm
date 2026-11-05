@@ -132,14 +132,14 @@ async function runUnifiedVerification() {
   const results: SuiteExecutionResult[] = [];
 
   // --------------------------------------------------------------------------
-  // SUITE 1: 25/25 Document Templates Auto-Completion & Zero Placeholders
+  // SUITE 1: 31/31 Document Templates Auto-Completion & Zero Placeholders
   // --------------------------------------------------------------------------
-  console.log(`${COLORS.bright}${COLORS.blue}▶ SUITE 1: Document Auto-Completion (25/25 Official Templates)${COLORS.reset}`);
+  console.log(`${COLORS.bright}${COLORS.blue}▶ SUITE 1: Document Auto-Completion (31/31 Official Statutory Templates)${COLORS.reset}`);
   console.log(`${COLORS.dim}  Executing scripts/test-all-templates-generation.ts...${COLORS.reset}`);
 
   const s1 = await runSubprocess('npx', ['tsx', 'scripts/test-all-templates-generation.ts']);
 
-  // Programmatic disk verification of all 25 generated files
+  // Programmatic disk verification of all 31 generated files
   const testDocsDir = path.join(process.cwd(), 'storage', 'test_documents');
   let diskUnmappedTotal = 0;
   let diskMissingFiles = 0;
@@ -159,24 +159,24 @@ async function runUnifiedVerification() {
     s1.exitCode === 0 &&
     diskMissingFiles === 0 &&
     diskUnmappedTotal === 0 &&
-    s1.stdout.includes('TRECUTE (PASS): 25') &&
+    s1.stdout.includes('TRECUTE (PASS): 31') &&
     s1.stdout.includes('EȘUATE (FAIL): 0');
 
   results.push({
     id: 1,
-    name: 'Document Auto-Completion (25/25)',
-    scope: '23 DOCX + 2 XLSX Templates',
-    passedCount: s1Passed ? 25 : 0,
-    totalCount: 25,
+    name: 'Document Auto-Completion (31/31)',
+    scope: '29 DOCX + 2 XLSX Templates',
+    passedCount: s1Passed ? TEMPLATE_CATALOG.length : 0,
+    totalCount: TEMPLATE_CATALOG.length,
     durationMs: s1.durationMs,
     status: s1Passed ? 'PASS' : 'FAIL',
     details: s1Passed
-      ? 'All 25 templates approved_for_print with 0 unmapped tokens on disk'
+      ? 'All 31 statutory templates approved_for_print with 0 unmapped tokens on disk'
       : `Exit code: ${s1.exitCode}, missing: ${diskMissingFiles}, unmapped tokens: ${diskUnmappedTotal}`,
   });
 
   if (s1Passed) {
-    console.log(`  ${COLORS.green}✓${COLORS.reset} Suite 1 Passed: 25/25 templates generated cleanly (${s1.durationMs}ms)`);
+    console.log(`  ${COLORS.green}✓${COLORS.reset} Suite 1 Passed: 31/31 templates generated cleanly (${s1.durationMs}ms)`);
   } else {
     console.log(`  ${COLORS.red}✗${COLORS.reset} Suite 1 Failed (${s1.durationMs}ms)`);
     console.error(s1.stderr || s1.stdout);
@@ -345,9 +345,9 @@ async function runUnifiedVerification() {
   console.log(`${COLORS.dim}Total Elapsed Time:${COLORS.reset} ${(totalDuration / 1000).toFixed(2)}s`);
   console.log(`${COLORS.dim}Total Verified Items:${COLORS.reset} ${totalPassedItems} / ${totalItemsCount} passed`);
 
-  if (allSuitesPassed && totalPassedItems === 130 && totalItemsCount === 130) {
+  if (allSuitesPassed && totalPassedItems === totalItemsCount) {
     console.log(`\n${COLORS.bgGreen}${COLORS.bright}${COLORS.white}                                                                                                                          ${COLORS.reset}`);
-    console.log(`${COLORS.bgGreen}${COLORS.bright}${COLORS.white}   ✓ OVERALL VERDICT: ACCEPTANCE PASSED (100% PASS RATE ACROSS ALL 5 SUITES — 130/130 ITEMS)                               ${COLORS.reset}`);
+    console.log(`${COLORS.bgGreen}${COLORS.bright}${COLORS.white}   ✓ OVERALL VERDICT: ACCEPTANCE PASSED (100% PASS RATE ACROSS ALL 5 SUITES — ${totalPassedItems}/${totalItemsCount} ITEMS)                               ${COLORS.reset}`);
     console.log(`${COLORS.bgGreen}${COLORS.bright}${COLORS.white}     Acceptance Criteria R1, R2, R3, and R4 are completely and demonstrably satisfied.                                   ${COLORS.reset}`);
     console.log(`${COLORS.bgGreen}${COLORS.bright}${COLORS.white}                                                                                                                          ${COLORS.reset}\n`);
     process.exit(0);

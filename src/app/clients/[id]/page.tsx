@@ -162,6 +162,24 @@ export default async function ClientDetailPage({
             <Download className="w-4 h-4" />
             <span>Exportă Registru Excel</span>
           </a>
+          <a
+            href={`/api/clients/${client.id}/packages/dossier`}
+            className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm transition"
+            download
+            title="Descarcă dosarul complet de organizare SSM la nivel de companie (16 documente DOCX)"
+          >
+            <Download className="w-4 h-4" />
+            <span>Dosar SSM Companie (ZIP)</span>
+          </a>
+          <a
+            href={`/api/clients/${client.id}/packages/inspection-archive`}
+            className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm transition"
+            download
+            title="Descarcă arhiva completă structurată pe foldere pentru inspecția ITM / ISU"
+          >
+            <Download className="w-4 h-4" />
+            <span>Arhivă Inspecție ITM/ISU (ZIP)</span>
+          </a>
           <Link
             href={`/imports/new?clientId=${client.id}`}
             className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm transition"
@@ -535,6 +553,15 @@ export default async function ClientDetailPage({
                         >
                           CIM
                         </Link>
+                        <a
+                          href={`/api/clients/${client.id}/packages/onboarding?employeeId=${emp.id}`}
+                          className="text-[11px] text-emerald-700 hover:text-emerald-900 font-semibold px-2 py-1 bg-emerald-50 hover:bg-emerald-100 rounded inline-flex items-center gap-1 border border-emerald-200"
+                          title="Descarcă dosar complet de onboarding salariat (11 documente DOCX în ZIP)"
+                          download
+                        >
+                          <Download className="w-3 h-3" />
+                          <span>Onboarding ZIP</span>
+                        </a>
                       </td>
                     </tr>
                   );

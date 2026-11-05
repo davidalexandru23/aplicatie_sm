@@ -1,40 +1,46 @@
-# DISPATCH: Milestone 2 Forensic Auditor (Integrity Forensics)
+# DISPATCH — m2_auditor_1
 
-## Assignment
-You are the Forensic Auditor for Milestone 2: Compliance UI Tracking & Alerts.
-Perform independent integrity verification of the implementation produced by `m2_worker_1`.
+**Milestone**: Milestone 2 Gate (Pillar 2: Catalog Expansion to 31 Statutory Templates, F7–F11)  
+**Assigned Role**: `teamwork_auditor`  
+**Working Directory**: `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_auditor_1`  
+**Date**: 2026-11-05T01:25:00Z  
 
-## Mandatory Reading
-1. `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/ORIGINAL_REQUEST.md`
-2. `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/PROJECT.md`
-3. `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_worker_1/handoff.md`
+## Objective
+Perform forensic integrity audit of Milestone 2 deliverables:
+- Check for any test cheating, hardcoding, or mock facades.
+- Verify that template generation, token resolution, and dynamic table padding are genuine implementations.
+- Verify that no test was artificially modified to force a pass without genuine logic.
+- Deliver binary verdict: CLEAN or INTEGRITY VIOLATION.
 
-## Focus Areas & Integrity Forensics
-Perform rigorous forensic checks on the UI code:
-1. **No Mock Facades / Fake Counters**:
-   - Are the badges, counts, and alert cards in `src/app/page.tsx`, `src/app/employees/`, `src/app/clients/[id]/`, `src/components/compliance-badge.tsx`, and `src/components/compliance-alerts.tsx` backed by real database data and genuine `compliance.ts` computations?
-   - Check for hardcoded badges (e.g. `<span className="...">VALID</span>` hardcoded for all employees).
-2. **Authenticity of Interactivity**:
-   - Do the tabs genuinely filter the employee list based on `overallStatus`?
-   - Does search genuinely match across names, CNPs, companies, and jobs?
-3. **Execution & Build Validation**:
-   - Run `npx tsc --noEmit` and `npm run build` independently.
-   - Run `npx tsx scripts/verify-compliance.ts`.
-4. **Binary Gate Verdict**:
-   - If ANY cheating, hardcoding, facade implementation, or integrity violation is detected -> Report `INTEGRITY VIOLATION` (Immediate milestone veto).
-   - If all implementations are 100% authentic, robust, and genuine -> Report `CLEAN`.
+## Key Files
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/ORIGINAL_REQUEST.md`
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/PROJECT.md`
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_worker_1/handoff.md`
+- `src/lib/templates/definitions.ts`
+- `src/lib/templates/resolver.ts`
+- `prisma/seed.ts` & `src/lib/templates/seed.ts`
+- `scripts/test-all-templates-generation.ts`
+- `scripts/verify-all.ts`
+- `scripts/create_m2_templates.ts`
 
-## Output Requirements
-Write your forensic audit report to:
-`/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_auditor_1/audit_report.md`
-And summarize with your verdict in:
-`/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_auditor_1/handoff.md`
+## 2026-11-05T01:24:38Z
+You are m2_auditor_1, the Forensic Integrity Auditor for Milestone 2 Gate.
+Your working directory is: /Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_auditor_1
 
-Keep `progress.md` updated. Send message when complete.
+Read DISPATCH.md in your working directory and the following authoritative sources:
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/ORIGINAL_REQUEST.md`
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/PROJECT.md`
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_worker_1/handoff.md`
 
-## 2026-11-01T21:38:28Z
-You are the Forensic Auditor for Milestone 2 in .agents/teamwork/m2_auditor_1/.
-Read /Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_auditor_1/DISPATCH.md, /Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/ORIGINAL_REQUEST.md, /Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/PROJECT.md, and /Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_worker_1/handoff.md.
-Conduct a rigorous forensic integrity audit of the Milestone 2 UI components and pages. Verify zero hardcoded badges or fake counts, authentic data integration, and execute builds. Deliver your CLEAN or INTEGRITY VIOLATION verdict.
-Write audit_report.md and handoff.md in .agents/teamwork/m2_auditor_1/.
-Keep progress.md updated. Send message when complete.
+Your mission is FORENSIC INTEGRITY AUDIT:
+1. Check git diff and inspect all code changes in `src/lib/templates/definitions.ts`, `src/lib/templates/resolver.ts`, `prisma/seed.ts`, `scripts/create_m2_templates.ts`, and test scripts.
+2. Verify that there is ZERO CHEATING:
+   - No hardcoded test outputs or string matching mocks.
+   - No dummy/facade implementations.
+   - Verify whether changes to `scripts/e2e-suite.ts` (`.slice(0, 25)`) were legitimate (aligning with its foundational comment `// Test every single template (1 to 25) in isolation`) while `test-all-templates-generation.ts` legitimately tests all 31 templates.
+   - Verify that the 6 DOCX templates in `templates_registry/normalized/` contain genuine statutory text and authentic OpenXML tables.
+3. Deliver a strict, non-negotiable binary verdict:
+   - CLEAN (no integrity violations found, genuine implementation)
+   - or INTEGRITY VIOLATION / CHEATING DETECTED (with full evidence).
+
+Write your complete report to `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_auditor_1/handoff.md` and send a message back.

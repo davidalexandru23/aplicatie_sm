@@ -20,6 +20,19 @@ export interface TemplateResolutionContext {
   hygieneSessionId?: string;
   hygieneParticipantId?: string;
   customOverrides?: Record<string, unknown>;
+  allowOfflineBlank?: boolean;
+}
+
+export interface TemplateResolutionOptions {
+  client: any;
+  employee?: any;
+  worksite?: any;
+  job?: any;
+  jobId?: string;
+  hygieneSession?: any;
+  hygieneParticipant?: any;
+  customOverrides?: Record<string, unknown>;
+  allowOfflineBlank?: boolean;
 }
 
 export interface TemplateResolutionResult {
@@ -57,6 +70,7 @@ export const ROMANIAN_LEGAL_SSM_PROVIDER = {
   PLACEHOLDER_TELEFON_PRESTATOR: '0722.123.456',
   PLACEHOLDER_EMAIL_PRESTATOR: 'contact@expert-ssm.ro',
   PLACEHOLDER_SITE_PRESTATOR: 'www.expert-ssm.ro',
+  PLACEHOLDER_ADRESA_PRESTATOR: 'București, Str. Agricultori nr. 35, Sector 2',
   PLACEHOLDER_SPECIALIST_SSM: 'Ing. Mihai Popescu (Specialist SSM abilitat, Certificat seria EV nr. 10452/2018)',
   PLACEHOLDER_EVALUATOR_RISC: 'Ing. Mihai Popescu (Evaluator risc SSM atestat INCDPM București)',
   PLACEHOLDER_CERTIFICAT_EVALUATOR: 'Certificat Evaluator Riscuri SSM seria EV nr. 10452/2018 emis de INCDPM București',
@@ -79,7 +93,11 @@ export const ROMANIAN_LEGAL_DECIZII = {
   PLACEHOLDER_NUMAR_DECIZIE_07: '07/15.01.2026',
   PLACEHOLDER_NUMAR_DECIZIE_08: '08/15.01.2026',
   PLACEHOLDER_NUMAR_DECIZIE_09: '09/15.01.2026',
+  PLACEHOLDER_NUMAR_DECIZIE_10: '10/15.01.2026',
   PLACEHOLDER_NUMAR_DECIZIE_11: '11/15.01.2026',
+  PLACEHOLDER_APELATIV_ADMINISTRATOR: 'Dl.',
+  PLACEHOLDER_APELATIV_PSI: 'Dl.',
+  PLACEHOLDER_APELATIV_MEMBRU_COMISIE: 'Dl.',
   PLACEHOLDER_LUCRATOR_DESEMNAT_SSM: 'Ing. Mihai Popescu (Specialist SSM abilitat conform HG 1425/2006)',
   PLACEHOLDER_RESPONSABIL_PRIM_AJUTOR: 'Ioana-Raluca Dumitru (Personal instruit prim ajutor, Certificat Crucea Roșie Română)',
   PLACEHOLDER_RESPONSABIL_PSI: 'Gheorghe Barbu (Cadru tehnic cu atribuții PSI atestat IGSU)',
@@ -144,8 +162,8 @@ export const ROMANIAN_LEGAL_TRAINING = {
  * Baza legală: Ordinul comun MS/ME 2209/4469/2022
  */
 export const ROMANIAN_LEGAL_HYGIENE = {
-  PLACEHOLDER_AVIZ_MS: 'Aviz MS nr. 1225/2023 din 15.03.2023 emis de Ministerul Sănătății - DSP București',
-  PLACEHOLDER_AVIZ_ME: 'Aviz ME nr. 8941/2023 din 22.03.2023 emis de Ministerul Educației',
+  PLACEHOLDER_AVIZ_MS: '1225/2023 din 15.03.2023 emis de DSP București',
+  PLACEHOLDER_AVIZ_ME: '8941/2023 din 22.03.2023 emis de Ministerul Educației',
   PLACEHOLDER_NUMAR_AVIZ_MS: '1225/2023',
   PLACEHOLDER_DATA_AVIZ_MS: '15.03.2023',
   PLACEHOLDER_NUMAR_AVIZ_ME: '8941/2023',
@@ -274,23 +292,335 @@ export const ROMANIAN_LEGAL_RISK = {
 };
 
 /**
- * Clauze Contractuale HR conform Codului Muncii 2026 (Legea 53/2003)
+ * Fișe Individuale de Instruire SSM și PSI/SU (F7 & F8)
+ * Baza legală: Legea 319/2006, HG 1425/2006 Anexa 11, Legea 307/2006, OMAI 712/2005 Anexa
+ */
+export const ROMANIAN_LEGAL_TRAINING_SHEETS = {
+  // F7: SSM
+  PLACEHOLDER_LOC_MUNCA: 'Sediul social / Punctul de lucru al angajatorului',
+  PLACEHOLDER_MARCA: 'M-042',
+  PLACEHOLDER_GRUPA_SANGUINA: 'AII / Rh+',
+  PLACEHOLDER_DOMICILIU: 'București, Sector 1, Str. Victoriei nr. 10',
+  PLACEHOLDER_CALIFICARE: 'Studii superioare tehnice / Inginer IT',
+  PLACEHOLDER_AUTORIZATII: 'Nu este cazul',
+  PLACEHOLDER_TRASEU_DEPLASARE: 'Domiciliu (București, Sector 1) - Metrou - Sediul Central (București, Sector 1) și retur',
+  PLACEHOLDER_DURATA_TRASEU: '30 minute',
+  PLACEHOLDER_DATA_INSTRUIRE_IG: '15.01.2026',
+  PLACEHOLDER_DURATA_INSTRUIRE_IG: '8 ore',
+  PLACEHOLDER_INSTRUCTOR_IG: 'Ing. Mihai Popescu (Specialist SSM abilitat)',
+  PLACEHOLDER_TEMATICA_IG: 'Legislația generală SSM (Legea 319/2006, HG 1425/2006), drepturi și obligații ale lucrătorilor, riscuri generale la locul de muncă, măsuri de prim ajutor, acordare și utilizare EIP',
+  PLACEHOLDER_VERIFICATOR_IG: 'Munteanu Cristian (Reprezentant Legal)',
+  PLACEHOLDER_DATA_INSTRUIRE_LM: '15.01.2026',
+  PLACEHOLDER_DURATA_INSTRUIRE_LM: '8 ore',
+  PLACEHOLDER_LOC_MUNCA_LM: 'Birou / Punct de lucru - Departamentul IT & Proiectare',
+  PLACEHOLDER_INSTRUCTOR_LM: 'Ing. Mihai Popescu (Conducătorul locului de muncă)',
+  PLACEHOLDER_TEMATICA_LM: 'Instrucțiuni proprii specifice SSM (IPSSM activități de birou, lucrul la videoterminale), riscuri mecanice și electrice, proceduri de urgență în caz de pericol grav și iminent',
+  PLACEHOLDER_VERIFICATOR_LM: 'Munteanu Cristian (Conducător ierarhic superior)',
+  PLACEHOLDER_DATA_ADMITERE: '15.01.2026',
+  PLACEHOLDER_ADMITERE_NUME: 'Munteanu Cristian',
+
+  // F8: PSI
+  PLACEHOLDER_DATA_INSTRUCTAJ_IG_PSI: '15.01.2026',
+  PLACEHOLDER_DURATA_INSTRUCTAJ_IG_PSI: '8 ore',
+  PLACEHOLDER_INSTRUCTOR_IG_PSI: 'Gheorghe Barbu (Cadru tehnic PSI)',
+  PLACEHOLDER_TEMATICA_IG_PSI: 'Legislația apărării împotriva incendiilor (Legea 307/2006, OMAI 712/2005, OMAI 163/2007); Obligațiile salariaților; Cauze generale de incendiu; Procedura de evacuare; Folosirea stingătoarelor P6 și CO2',
+  PLACEHOLDER_VERIFICATOR_IG_PSI: 'Munteanu Cristian (Administrator)',
+  PLACEHOLDER_DATA_INSTRUCTAJ_LM_PSI: '15.01.2026',
+  PLACEHOLDER_DURATA_INSTRUCTAJ_LM_PSI: '8 ore',
+  PLACEHOLDER_LOC_MUNCA_LM_PSI: 'Birou / Punct de lucru - Departamentul IT & Proiectare',
+  PLACEHOLDER_INSTRUCTOR_LM_PSI: 'Gheorghe Barbu (Conducătorul locului de muncă)',
+  PLACEHOLDER_TEMATICA_LM_PSI: 'Instrucțiuni specifice de apărare împotriva incendiilor la locul de muncă; Surse posibile de aprindere la echipamente electrice; Căi de evacuare și salvare; Poziționarea mijloacelor de primă intervenție',
+  PLACEHOLDER_VERIFICATOR_LM_PSI: 'Munteanu Cristian (Administrator)',
+  PLACEHOLDER_DATA_ADMITERE_PSI: '15.01.2026',
+  PLACEHOLDER_ADMITERE_NUME_PSI: 'Munteanu Cristian',
+};
+
+/**
+ * Medicina Muncii: Fisa Solicitare Examen (Anexa 2) & Fisa Identificare Riscuri (Anexa 3 HG 355/2007)
+ */
+export const ROMANIAN_LEGAL_OCCUPATIONAL_HEALTH = {
+  // Anexa 2: Solicitare examen
+  PLACEHOLDER_TELEFON_FIRMA: '0722334455',
+  PLACEHOLDER_EMAIL_FIRMA: 'contact@client.ro',
+  PLACEHOLDER_ACTIVITATE_CAEN: 'Activități de realizare a software-ului la comandă (software orientat client)',
+  PLACEHOLDER_NUMAR_INREGISTRARE_SOLICITARE: 'SOL-MED-042/2026',
+  PLACEHOLDER_CABINET_MEDICINA_MUNCII: 'CENTRU MEDICAL DE MEDICINA MUNCII S.R.L.',
+  PLACEHOLDER_MEDIC_MEDICINA_MUNCII: 'Dr. Alexandrescu Victor (Medic Primar Medicina Muncii, Cabinet Atestat DSP)',
+  PLACEHOLDER_ADRESA_CABINET_MEDICINA_MUNCII: 'București, Bd. Aviatorilor nr. 15, Sector 1',
+  PLACEHOLDER_TIP_EXAMEN_MEDICAL: 'Control medical periodic',
+  PLACEHOLDER_BIFAT_ANGAJARE: '[  ]',
+  PLACEHOLDER_BIFAT_PERIODIC: '[X]',
+  PLACEHOLDER_BIFAT_ADAPTARE: '[  ]',
+  PLACEHOLDER_BIFAT_RELUARE: '[  ]',
+  PLACEHOLDER_BIFAT_SPECIALA: '[  ]',
+  PLACEHOLDER_BIFAT_SCHIMBARE_LOC: '[  ]',
+  PLACEHOLDER_BIFAT_LA_CERERE: '[  ]',
+  PLACEHOLDER_BIFAT_ALTELE: '[  ]',
+  PLACEHOLDER_NUME_ANTERIOR: '-',
+  PLACEHOLDER_SEX: 'M',
+  PLACEHOLDER_APELATIV_SALARIAT: 'Dl.',
+  PLACEHOLDER_PROFESIE_OCUPATIE: 'Inginer sisteme software',
+  PLACEHOLDER_SECTIE_COMPARTIMENT: 'Departament IT & Dezvoltare Software',
+  PLACEHOLDER_VECHIME_TOTALA: '5 ani',
+  PLACEHOLDER_VECHIME_MESERIE: '3 ani',
+  PLACEHOLDER_VECHIME_LOC_MUNCA: '2 ani',
+  PLACEHOLDER_TRASEU_PROFESIONAL: 'Fără expunere anterioară documentată la noxe profesionale sau factori nocivi deosebiți',
+  PLACEHOLDER_DATA_SOLICITARII: '15.01.2026',
+  PLACEHOLDER_FUNCTIE_REPREZENTANT: 'Administrator',
+
+  // Anexa 3: Fisa Identificare Factori de Risc Profesional
+  PLACEHOLDER_SUBUNITATE: 'Sediul Central București',
+  PLACEHOLDER_NAVETA_STATUS: 'Nu',
+  PLACEHOLDER_NAVETA_ORE: '0 ore (deplasare urbană sub 30 minute)',
+  PLACEHOLDER_LUCRU_ECHIPA: 'Da',
+  PLACEHOLDER_NUMAR_SCHIMBURI: '1',
+  PLACEHOLDER_SCHIMB_NOAPTE: 'Nu',
+  PLACEHOLDER_PAUZE_ORGANIZATE: 'Da (pauză de masă de 30 minute și pauze ergonomice de 10 minute la 2 ore)',
+  PLACEHOLDER_BANDA_RULANTA: 'Nu',
+  PLACEHOLDER_ACTIVITATI_POST: 'Activitate intelectuală de birou, dezvoltare de aplicații software, analiză de cod, documentare tehnică și comunicare online',
+  PLACEHOLDER_DESCRIERE_ACTIVITATE: 'Activitate intelectuală de birou, dezvoltare de aplicații software, analiză de cod, documentare tehnică și comunicare online',
+  PLACEHOLDER_ECHIPAMENTE_POST: 'Laptop / unitate PC, monitoare LED, tastatură, mouse, imprimantă de rețea, echipamente de comunicație',
+  PLACEHOLDER_CONDITII_POST: 'Activitate de interior în încăpere climatizată, iluminat combinat (natural și artificial) conform normelor, mobilier ergonomic',
+  PLACEHOLDER_RISC_INFECTARE: 'Nu',
+  PLACEHOLDER_RISC_ELECTROCUTARE: 'Nu (risc redus la cordoanele de alimentare protejate ale calculatoarelor)',
+  PLACEHOLDER_RISC_INEC: 'Nu',
+  PLACEHOLDER_RISC_ASFIXIERE: 'Nu',
+  PLACEHOLDER_RISC_BLOCARE: 'Nu',
+  PLACEHOLDER_RISC_MICROTRAUMATISME: 'Nu',
+  PLACEHOLDER_RISC_LOVIRE: 'Nu',
+  PLACEHOLDER_RISC_MUSCATURA: 'Nu',
+  PLACEHOLDER_RISC_STRIVIRE: 'Nu',
+  PLACEHOLDER_RISC_TAIERE: 'Nu',
+  PLACEHOLDER_RISC_INTEPARE: 'Nu',
+  PLACEHOLDER_RISC_IMPUSCARE: 'Nu',
+  PLACEHOLDER_RISC_ARSURI_OPARIRE: 'Nu',
+  PLACEHOLDER_MISCARI_REPETITIVE: 'Da (tastare la tastatură și manevrare mouse în ritm moderat)',
+  PLACEHOLDER_AUTO_INSTITUTIE: 'Nu',
+  PLACEHOLDER_CATEGORIE_PERMIS: 'Nu este cazul (opțional categoria B)',
+  PLACEHOLDER_CONDITII_DEOSEBITE_SPECIALE: 'Nu',
+  PLACEHOLDER_SECTOR_ALIMENTAR: 'Nu',
+  PLACEHOLDER_PORT_ARMA: 'Nu',
+  PLACEHOLDER_LUCRU_INALTIME: 'Nu',
+  PLACEHOLDER_SPATII_IZOLATE: 'Nu',
+  PLACEHOLDER_DIMENSIUNI_INCAPERE: 'L = 12 m, l = 8 m, h = 3 m (volum cca. 288 mc)',
+  PLACEHOLDER_SUPRAFATA_LUCRU: 'Suprafață medie de lucru > 6 mp per salariat',
+  PLACEHOLDER_MEDIU_ACTIVITATE: 'La sol (clădire modernă de birouri, etaj intermediar)',
+  PLACEHOLDER_NIVEL_EFORT_FIZIC: 'Mic (solicitare posturală statică la birou)',
+  PLACEHOLDER_POZITIE_LUCRU: 'Așezat pe scaun ergonomic reglabil (> 70% din programul de lucru)',
+  PLACEHOLDER_POZITII_VICIOASE: 'Poziție așezată prelungită (se previn prin pauze de dezmorțire și reglarea mobilierului)',
+  PLACEHOLDER_MANIPULARE_MASE: 'Nu',
+  PLACEHOLDER_GREUTATE_MAXIMA_MANIPULATA: 'Sub 3 kg (dosare, topuri hârtie, laptop)',
+  PLACEHOLDER_SUPRASOLICITARE_VIZUALA: 'Da - lucru cu ecran de vizualizare (videoterminal/laptop) peste 4 ore/zi conform Fișei 243 din HG 355/2007',
+  PLACEHOLDER_SUPRASOLICITARE_AUDITIVA: 'Nu',
+  PLACEHOLDER_SUPRASOLICITARE_NEUROPSIHICA: 'Medie (concentrare susținută, atenție la detalii tehnice și termene de proiect)',
+  PLACEHOLDER_SOLICITARE_OSTEOARTICULARA: 'Coloană cervicală și lombară, articulații radiocarpiene (prevenite prin ergonomia postului)',
+  PLACEHOLDER_AGENTI_CHIMICI: 'Nu este cazul',
+  PLACEHOLDER_AGENTI_CHIMICI_VLE: 'Sub valorile limită admisibile (V.L.E.)',
+  PLACEHOLDER_PULBERI_PROFESIONALE: 'Nu este cazul',
+  PLACEHOLDER_PULBERI_VLE: 'Sub V.L.E.',
+  PLACEHOLDER_ZGOMOT_PROFESIONAL: 'Sub limita superioară de acțiune (Leq < 55 dB(A))',
+  PLACEHOLDER_ZGOMOTE_IMPULSIVE: 'Nu',
+  PLACEHOLDER_VIBRATII: 'Nu este cazul',
+  PLACEHOLDER_TEMPERATURA_AER: '21 - 24 °C (climatizare controlată automat)',
+  PLACEHOLDER_VARIATII_TEMPERATURA: 'Nu',
+  PLACEHOLDER_UMIDITATE_AER: '45 - 60 %',
+  PLACEHOLDER_PRESIUNE_AER: 'Presiune atmosferică normală',
+  PLACEHOLDER_RADIATII_NEIONIZANTE: 'Nu (ecrane conforme directivelor CE fără emisii periculoase)',
+  PLACEHOLDER_RADIATII_IONIZANTE: 'Nu',
+  PLACEHOLDER_AGENTI_BIOLOGICI: 'Nu',
+  PLACEHOLDER_PROTECTIE_COLECTIVA: 'Sistem climatizare-ventilație mecanică, împământare carcase echipamente IT, protecție diferențială 30mA, iluminat fără pâlpâire',
+  PLACEHOLDER_PROTECTIE_INDIVIDUALA: 'Ochelari de protecție la monitor (filtru lumină albastră), scaun birou ergonomic reglabil tri-dimensional',
+  PLACEHOLDER_DATA_INTOCMIRII: '15.01.2026',
+};
+
+/**
+ * EIP: Fisa Individuala de Acordare si Dotare a EIP (HG 1048/2006)
+ */
+export const ROMANIAN_LEGAL_EIP = {
+  PLACEHOLDER_DATA_ELIBERARII_FISEI: '15.01.2026',
+  PLACEHOLDER_MARIME_HAINE: 'M / 48',
+  PLACEHOLDER_MARIME_INCALTAMINTE: '42',
+  PLACEHOLDER_MARIME_MANUSI: '9 (L)',
+  PLACEHOLDER_MARIME_CASCA: 'Reglabilă (54-62 cm)',
+  PLACEHOLDER_DATA_SEMNARII_EIP: '15.01.2026',
+  PLACEHOLDER_NUME_SALARIAT: 'Stan Alexandru',
+  PLACEHOLDER_GESTIONAR_EIP: 'Ion Ionescu (Responsabil Magazie EIP)',
+  PLACEHOLDER_SEF_LOC_MUNCA: 'Ing. Mihai Popescu (Conducător Loc de Muncă)',
+
+  // 10 rânduri de dotare EIP:
+  PLACEHOLDER_EIP_DENUMIRE_01: 'Încălțăminte de protecție cu bombeu și talpă antiderapantă',
+  PLACEHOLDER_EIP_STANDARD_01: 'SR EN ISO 20345:2022 (S1P SRC)',
+  PLACEHOLDER_EIP_UM_01: 'pereche',
+  PLACEHOLDER_EIP_CANTITATE_01: '1',
+  PLACEHOLDER_EIP_DURATA_01: '12 luni',
+  PLACEHOLDER_EIP_DATA_ACORDARII_01: '15.01.2026',
+  PLACEHOLDER_EIP_SEMNATURA_PRIMIRE_01: 'Semnat salariat',
+  PLACEHOLDER_EIP_DATA_RESTITUIRII_01: '-',
+  PLACEHOLDER_EIP_MOTIV_01: '-',
+  PLACEHOLDER_EIP_SEMNATURA_RETUR_01: '-',
+
+  PLACEHOLDER_EIP_DENUMIRE_02: 'Ochelari de protecție la ecran cu filtru anti-lumină albastră',
+  PLACEHOLDER_EIP_STANDARD_02: 'SR EN 166:2003 / SR EN 170',
+  PLACEHOLDER_EIP_UM_02: 'buc.',
+  PLACEHOLDER_EIP_CANTITATE_02: '1',
+  PLACEHOLDER_EIP_DURATA_02: '24 luni',
+  PLACEHOLDER_EIP_DATA_ACORDARII_02: '15.01.2026',
+  PLACEHOLDER_EIP_SEMNATURA_PRIMIRE_02: 'Semnat salariat',
+  PLACEHOLDER_EIP_DATA_RESTITUIRII_02: '-',
+  PLACEHOLDER_EIP_MOTIV_02: '-',
+  PLACEHOLDER_EIP_SEMNATURA_RETUR_02: '-',
+
+  PLACEHOLDER_EIP_DENUMIRE_03: 'Costum / Halat de protecție bumbac',
+  PLACEHOLDER_EIP_STANDARD_03: 'SR EN ISO 13688:2013',
+  PLACEHOLDER_EIP_UM_03: 'buc.',
+  PLACEHOLDER_EIP_CANTITATE_03: '1',
+  PLACEHOLDER_EIP_DURATA_03: '12 luni',
+  PLACEHOLDER_EIP_DATA_ACORDARII_03: '15.01.2026',
+  PLACEHOLDER_EIP_SEMNATURA_PRIMIRE_03: 'Semnat salariat',
+  PLACEHOLDER_EIP_DATA_RESTITUIRII_03: '-',
+  PLACEHOLDER_EIP_MOTIV_03: '-',
+  PLACEHOLDER_EIP_SEMNATURA_RETUR_03: '-',
+
+  PLACEHOLDER_EIP_DENUMIRE_04: 'Vestă avertizoare de mare vizibilitate',
+  PLACEHOLDER_EIP_STANDARD_04: 'SR EN ISO 20471:2013 Clasa 2',
+  PLACEHOLDER_EIP_UM_04: 'buc.',
+  PLACEHOLDER_EIP_CANTITATE_04: '1',
+  PLACEHOLDER_EIP_DURATA_04: '24 luni',
+  PLACEHOLDER_EIP_DATA_ACORDARII_04: '15.01.2026',
+  PLACEHOLDER_EIP_SEMNATURA_PRIMIRE_04: 'Semnat salariat',
+  PLACEHOLDER_EIP_DATA_RESTITUIRII_04: '-',
+  PLACEHOLDER_EIP_MOTIV_04: '-',
+  PLACEHOLDER_EIP_SEMNATURA_RETUR_04: '-',
+
+  PLACEHOLDER_EIP_DENUMIRE_05: 'Cască de protecție pentru vizite în șantier/ateliere',
+  PLACEHOLDER_EIP_STANDARD_05: 'SR EN 397:2012+A1:2012',
+  PLACEHOLDER_EIP_UM_05: 'buc.',
+  PLACEHOLDER_EIP_CANTITATE_05: '1',
+  PLACEHOLDER_EIP_DURATA_05: '36 luni',
+  PLACEHOLDER_EIP_DATA_ACORDARII_05: '15.01.2026',
+  PLACEHOLDER_EIP_SEMNATURA_PRIMIRE_05: 'Semnat salariat',
+  PLACEHOLDER_EIP_DATA_RESTITUIRII_05: '-',
+  PLACEHOLDER_EIP_MOTIV_05: '-',
+  PLACEHOLDER_EIP_SEMNATURA_RETUR_05: '-',
+
+  PLACEHOLDER_EIP_DENUMIRE_06: 'Mănuși de protecție împotriva riscurilor mecanice',
+  PLACEHOLDER_EIP_STANDARD_06: 'SR EN 388:2016+A1:2018 (3121X)',
+  PLACEHOLDER_EIP_UM_06: 'pereche',
+  PLACEHOLDER_EIP_CANTITATE_06: '2',
+  PLACEHOLDER_EIP_DURATA_06: '6 luni',
+  PLACEHOLDER_EIP_DATA_ACORDARII_06: '15.01.2026',
+  PLACEHOLDER_EIP_SEMNATURA_PRIMIRE_06: 'Semnat salariat',
+  PLACEHOLDER_EIP_DATA_RESTITUIRII_06: '-',
+  PLACEHOLDER_EIP_MOTIV_06: '-',
+  PLACEHOLDER_EIP_SEMNATURA_RETUR_06: '-',
+
+  PLACEHOLDER_EIP_DENUMIRE_07: 'Antifoane externe / dopuri protecție auditivă',
+  PLACEHOLDER_EIP_STANDARD_07: 'SR EN 352-1:2020 / SR EN 352-2:2020',
+  PLACEHOLDER_EIP_UM_07: 'buc.',
+  PLACEHOLDER_EIP_CANTITATE_07: '1',
+  PLACEHOLDER_EIP_DURATA_07: '12 luni',
+  PLACEHOLDER_EIP_DATA_ACORDARII_07: '15.01.2026',
+  PLACEHOLDER_EIP_SEMNATURA_PRIMIRE_07: 'Semnat salariat',
+  PLACEHOLDER_EIP_DATA_RESTITUIRII_07: '-',
+  PLACEHOLDER_EIP_MOTIV_07: '-',
+  PLACEHOLDER_EIP_SEMNATURA_RETUR_07: '-',
+
+  PLACEHOLDER_EIP_DENUMIRE_08: 'Semimască de protecție respiratorie FFP2',
+  PLACEHOLDER_EIP_STANDARD_08: 'SR EN 149:2001+A1:2009',
+  PLACEHOLDER_EIP_UM_08: 'buc.',
+  PLACEHOLDER_EIP_CANTITATE_08: '5',
+  PLACEHOLDER_EIP_DURATA_08: 'La uzură / lunar',
+  PLACEHOLDER_EIP_DATA_ACORDARII_08: '15.01.2026',
+  PLACEHOLDER_EIP_SEMNATURA_PRIMIRE_08: 'Semnat salariat',
+  PLACEHOLDER_EIP_DATA_RESTITUIRII_08: '-',
+  PLACEHOLDER_EIP_MOTIV_08: '-',
+  PLACEHOLDER_EIP_SEMNATURA_RETUR_08: '-',
+
+  PLACEHOLDER_EIP_DENUMIRE_09: 'Pelerină de ploaie impermeabilă',
+  PLACEHOLDER_EIP_STANDARD_09: 'SR EN 343:2019',
+  PLACEHOLDER_EIP_UM_09: 'buc.',
+  PLACEHOLDER_EIP_CANTITATE_09: '1',
+  PLACEHOLDER_EIP_DURATA_09: '36 luni',
+  PLACEHOLDER_EIP_DATA_ACORDARII_09: '15.01.2026',
+  PLACEHOLDER_EIP_SEMNATURA_PRIMIRE_09: 'Semnat salariat',
+  PLACEHOLDER_EIP_DATA_RESTITUIRII_09: '-',
+  PLACEHOLDER_EIP_MOTIV_09: '-',
+  PLACEHOLDER_EIP_SEMNATURA_RETUR_09: '-',
+
+  PLACEHOLDER_EIP_DENUMIRE_10: 'Trusă individuală prim ajutor de buzunar',
+  PLACEHOLDER_EIP_STANDARD_10: 'Ordin MS 427/2002',
+  PLACEHOLDER_EIP_UM_10: 'set',
+  PLACEHOLDER_EIP_CANTITATE_10: '1',
+  PLACEHOLDER_EIP_DURATA_10: '24 luni',
+  PLACEHOLDER_EIP_DATA_ACORDARII_10: '15.01.2026',
+  PLACEHOLDER_EIP_SEMNATURA_PRIMIRE_10: 'Semnat salariat',
+  PLACEHOLDER_EIP_DATA_RESTITUIRII_10: '-',
+  PLACEHOLDER_EIP_MOTIV_10: '-',
+  PLACEHOLDER_EIP_SEMNATURA_RETUR_10: '-',
+};
+
+/**
+ * Clauze Contractuale HR conform Codului Muncii (Legea 53/2003) și Ordinului MMSS 2171/2022
  */
 export const ROMANIAN_LEGAL_HR_CIM = {
-  PLACEHOLDER_NUMAR_CIM: 'CIM-2026-0042',
+  PLACEHOLDER_NUMAR_CIM: '',
+  PLACEHOLDER_DATA_CIM: '',
+  PLACEHOLDER_DATA_SEMNARII: '',
   PLACEHOLDER_DATA_SFARSIT: '- (nedeterminată)',
   PLACEHOLDER_ARTICOL_DURATA_DETERMINATA: 'Nedeterminată conform art. 12 alin. (1) din Legea nr. 53/2003 - Codul Muncii',
   PLACEHOLDER_PERMIS_MUNCA: 'Nu este cazul (cetățean român)',
   PLACEHOLDER_ORE_PE_ZI: '8',
+  PLACEHOLDER_ORE_PE_SAPTAMANA: '40',
+  PLACEHOLDER_TIP_NORMA: 'Normă întreagă (8 ore/zi, 40 ore/săptămână)',
+  PLACEHOLDER_NORMA_LUCRU: 'Normă întreagă (8 ore/zi, 40 ore/săptămână)',
   PLACEHOLDER_PROGRAM_LUCRU: 'Normă întreagă de 8 ore/zi, 40 ore/săptămână, Luni - Vineri între 08:30 - 17:00',
-  PLACEHOLDER_SALARIU_BRUT: '6500 lei',
+  PLACEHOLDER_REPARTIZARE_PROGRAM: 'Uniformă, 8 ore/zi, repartizate de luni până vineri, cu 2 zile consecutive de repaus săptămânal',
+  PLACEHOLDER_CONDITII_ORE_SUPLIMENTARE: 'Munca suplimentară se efectuează numai cu acordul salariatului și se compensează prin ore libere plătite sau spor salarial conform art. 122-123 din Legea 53/2003',
+  PLACEHOLDER_ORGANIZARE_SCHIMBURI: 'Nu este cazul (schimb unic de zi)',
+  PLACEHOLDER_SALARIU_BRUT: '',
+  PLACEHOLDER_SPORURI_SALARIU: 'Nu este cazul',
+  PLACEHOLDER_INDEMNIZATII_SALARIU: 'Nu este cazul',
+  PLACEHOLDER_ALTE_ADAOSURI_BENEFICII: 'Tichete de masă conform Legii nr. 165/2018',
   PLACEHOLDER_DATA_PLATA: 'data de 15 a fiecărei luni pentru luna precedentă',
+  PLACEHOLDER_METODA_PLATA: 'Virament bancar în contul IBAN al salariatului',
   PLACEHOLDER_ALTE_DREPTURI_SALARIALE: 'Tichete de masă conform Legii 165/2018, servicii medicale private',
   PLACEHOLDER_ZILE_CONCEDIU: '21 de zile lucrătoare',
+  PLACEHOLDER_ZILE_CONCEDIU_SUPLIMENTAR: 'Nu este cazul',
   PLACEHOLDER_ZILE_PROBA: '90 de zile calendaristice conform art. 31 alin. (1) din Legea 53/2003',
+  PLACEHOLDER_DURATA_PROBA: '90 de zile calendaristice conform art. 31 din Legea 53/2003',
+  PLACEHOLDER_CONDITII_PROBA: 'Pe durata sau la sfârșitul perioadei de probă, contractul poate înceta exclusiv printr-o notificare scrisă, fără preaviz, la inițiativa oricăreia dintre părți, fără a fi necesară motivarea acesteia.',
+  PLACEHOLDER_TIP_LOC_MUNCA: 'Loc de muncă fix la adresa punctului de lucru / sediului social',
+  PLACEHOLDER_LOC_MUNCA: 'Sediul social / Punctul de lucru al angajatorului',
+  PLACEHOLDER_DECONTARE_TRANSPORT: 'Nu este cazul (activitate la sediu stabil; cheltuielile de transport se decontează conform procedurii interne dacă deplasarea este impusă în interes de serviciu)',
+  PLACEHOLDER_TIP_DURATA_CIM: 'Nedeterminată',
+  PLACEHOLDER_DURATA_LUNI_DETERMINATA: '-',
+  PLACEHOLDER_DATA_INCEPUT: '15.01.2026',
+  PLACEHOLDER_DATA_INCEPERE: '15.01.2026',
+  PLACEHOLDER_ECHIPAMENT_PROTECTIE: 'Echipament individual de protecție acordat gratuit conform normativului intern și HG 1048/2006',
+  PLACEHOLDER_ECHIPAMENT_LUCRU: 'Ținută de birou conform regulamentului intern al angajatorului',
+  PLACEHOLDER_MATERIALE_IGIENICO_SANITARE: 'Materiale igienico-sanitare asigurate gratuit la locul de muncă conform art. 13 lit. r din Legea 319/2006',
+  PLACEHOLDER_ALIMENTATIE_PROTECTIE: 'Nu este cazul',
+  PLACEHOLDER_ZILE_PREAVIZ_CONCEDIERE: '20 de zile lucrătoare conform art. 75 alin. (1) din Legea 53/2003',
   PLACEHOLDER_ZILE_PREAVIZ_DEMISIONARE: '20 de zile lucrătoare conform art. 81 alin. (4) din Legea 53/2003',
+  PLACEHOLDER_PERIODICITATE_FORMARE: 'Cel puțin o dată la 2 ani conform art. 193 din Legea nr. 53/2003 - Codul Muncii',
+  PLACEHOLDER_CONDITII_FORMARE: 'Cheltuielile cu participarea la programele de formare profesională inițiate de angajator sunt suportate integral de acesta conform art. 194 Codul Muncii.',
+  PLACEHOLDER_ASIGURARE_MEDICALA_PRIVATA: 'Abonament de servicii medicale la o clinică privată de sănătate suportat de angajator',
+  PLACEHOLDER_PENSIE_FACULTATIVA: 'Nu este cazul',
+  PLACEHOLDER_ALTE_BENEFICII_SOCIALE: 'Nu este cazul',
+  PLACEHOLDER_CLAUZE_SPECIALE: 'Clauză de confidențialitate și de protecție a datelor cu caracter personal conform Regulamentului (UE) 2016/679 (GDPR)',
+  PLACEHOLDER_NUMAR_EXEMPLARE_CIM: '2 exemplare originale, câte unul pentru fiecare parte',
+  PLACEHOLDER_OBIECT_CONTRACT: 'Prestarea muncii în condițiile stabilite de prezentul contract individual de muncă și de fișa postului, cu plata salariului corespunzător de către angajator.',
   PLACEHOLDER_CASA_SANATATE: 'C.A.S. Municipiul București',
   PLACEHOLDER_TIP_PENSIE: 'Nu este cazul (nu beneficiază de pensie)',
+  PLACEHOLDER_COD_POSTAL_FIRMA: '010001',
+  PLACEHOLDER_CONT_BANCA_FIRMA: '',
+  PLACEHOLDER_BANCA_FIRMA: '',
+  PLACEHOLDER_TELEFON_SALARIAT: '',
+  PLACEHOLDER_EMAIL_SALARIAT: '',
+  PLACEHOLDER_CONT_BANCA_SALARIAT: '',
+  PLACEHOLDER_BANCA_SALARIAT: '',
+  PLACEHOLDER_DOMICILIU: 'București, Sector 1, Str. Victoriei nr. 10',
+  PLACEHOLDER_MARCA: '',
   PLACEHOLDER_NUME_COMPLET_PERSOANA_01: '-',
   PLACEHOLDER_CNP_PERSOANA_01: '-',
   PLACEHOLDER_CALITATE_PERSOANA_01: '-',
@@ -310,6 +640,9 @@ export const ALL_ROMANIAN_LEGAL_FALLBACKS: Record<string, unknown> = {
   ...ROMANIAN_LEGAL_DECIZII,
   ...ROMANIAN_LEGAL_IPSSM,
   ...ROMANIAN_LEGAL_TRAINING,
+  ...ROMANIAN_LEGAL_TRAINING_SHEETS,
+  ...ROMANIAN_LEGAL_OCCUPATIONAL_HEALTH,
+  ...ROMANIAN_LEGAL_EIP,
   ...ROMANIAN_LEGAL_HYGIENE,
   ...ROMANIAN_LEGAL_RISK,
   ...INCDPM_30_FACTORS,
@@ -319,6 +652,282 @@ export const ALL_ROMANIAN_LEGAL_FALLBACKS: Record<string, unknown> = {
 // ============================================================================
 // FUNCȚII UTILITARE DE FORMATARE
 // ============================================================================
+
+/**
+ * Normalizare diacritice românești pentru potrivire lexicală robustă (ex. Chirilă -> chirila).
+ */
+function normalizeRomanianName(str: string): string {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+/**
+ * Excepții feminine notabile: prenume feminine care NU se termină în -a
+ */
+const FEMALE_EXCEPTIONS = new Set([
+  'carmen', 'alice', 'beatrice', 'ingrid', 'astrid', 'catrinel',
+  'damaris', 'rachel', 'zoe', 'iris', 'ruth', 'ester', 'bebe',
+  'miriam', 'evelin', 'eveline', 'nicole', 'vivien', 'lili', 'neli',
+  'nelly', 'noemi', 'naomi', 'ines', 'agnes', 'karin'
+]);
+
+/**
+ * Excepții masculine notabile: prenume masculine românești care SE TERMINĂ în -a
+ */
+const MALE_EXCEPTIONS = new Set([
+  'mircea', 'horia', 'horea', 'mihnea', 'toma', 'luca', 'costea',
+  'dima', 'sava', 'mateia', 'necula', 'oprea', 'petrea',
+  'nichita', 'danila', 'gheorghita', 'costica', 'mitica', 'irimia'
+]);
+
+/**
+ * Nume de familie frecvente românești terminate în -a (care nu trebuie confundate cu prenume feminine)
+ */
+const MALE_SURNAMES_ENDING_IN_A = new Set([
+  'popa', 'manea', 'badea', 'enache', 'voinea', 'mitrea', 'sandu', 'vrancea',
+  'florea', 'chirila', 'moga', 'marica', 'ciurea', 'ganea', 'buruiana',
+  'danaila', 'bercea', 'sporea', 'mirea', 'cornea', 'cretea', 'dobrea'
+]);
+
+/**
+ * Catalog extins de prenume feminine românești frecvente
+ */
+const COMMON_FEMALE_NAMES = new Set([
+  'maria', 'elena', 'ioana', 'andreea', 'cristina', 'ana', 'mihaela',
+  'gabriela', 'simona', 'roxana', 'diana', 'laura', 'daniela', 'camelia',
+  'monica', 'rodica', 'doina', 'mariana', 'nicoleta', 'alina', 'ramona',
+  'oana', 'silvia', 'irina', 'emilia', 'iulia', 'georgeta', 'stefania',
+  'larisa', 'denisa', 'madalina', 'georgiana', 'luminita', 'viorica',
+  'liliana', 'florentina', 'claudia', 'anca', 'bianca', 'raluca', 'adriana',
+  'alexandra', 'patricia', 'teodora', 'eugenia', 'paula', 'lorena', 'otilia',
+  'corina', 'valentina', 'felicia', 'delia', 'ligia', 'gina', 'lia', 'sorina',
+  'adelina', 'adela', 'anastasia', 'antonia', 'aura', 'aurelia', 'aurora',
+  'crina', 'daria', 'dorina', 'ecaterina', 'eliza', 'flavia', 'florina',
+  'florica', 'ilinca', 'lavinia', 'luiza', 'magdalena', 'manuela', 'marcela',
+  'marina', 'mirela', 'nadia', 'narcisa', 'natalia', 'olga', 'olimpia',
+  'paulina', 'rebeca', 'roberta', 'ruxandra', 'sabina', 'sanziana',
+  'sofia', 'sonia', 'stela', 'suzana', 'tania', 'tatiana', 'valeria',
+  'vasilica', 'veronica', 'victoria', 'violeta'
+]);
+
+/**
+ * Prenume masculine românești frecvente utilizate pentru a valida ordinea inversată (Nume Prenume vs Prenume Nume)
+ */
+const COMMON_MALE_NAMES = new Set([
+  'ion', 'ioan', 'ionel', 'ionut', 'gheorghe', 'vasile', 'mihai', 'mihaita',
+  'andrei', 'alexandru', 'alex', 'constantin', 'costel', 'stefan', 'cristian',
+  'cristi', 'gabriel', 'gabi', 'florin', 'florentin', 'radu', 'dan', 'danut',
+  'bogdan', 'marius', 'tudor', 'ciprian', 'silviu', 'valentin', 'vali',
+  'dorin', 'dorinel', 'claudiu', 'liviu', 'sergiu', 'cornel', 'corneliu',
+  'paul', 'vlad', 'vladimir', 'victor', 'george', 'adrian', 'adi', 'catalin',
+  'cosmin', 'razvan', 'sorin', 'laurentiu', 'iulian', 'octavian', 'marian',
+  'marin', 'daniel', 'eugen', 'emil', 'aurel', 'traian', 'petre', 'petru',
+  'dumitru', 'ilie', 'nicolae', 'nicu', 'nicusor', 'dragos', 'calin',
+  'romeo', 'remus', 'tiberiu', 'ovidiu', 'virgil', 'viorel', 'marcel',
+  'miron', 'teodor', 'felix', 'dorel', 'sebastian'
+]);
+
+/**
+ * Determinare automată și robustă a apelativului („Dl.” / „Dna.”) pentru limba română.
+ * Analizează prioritar prima cifră a CNP-ului, urmată de analiza lingvistică a antroponimului.
+ */
+export function detectRomanianSalutation(
+  fullName?: string | null,
+  cnp?: string | null
+): 'Dl.' | 'Dna.' {
+  // 1. Verificare prioritară pe baza CNP-ului (cifra 1)
+  if (cnp && typeof cnp === 'string') {
+    const cleanCnp = cnp.trim();
+    if (cleanCnp.length >= 1) {
+      const firstDigit = cleanCnp.charAt(0);
+      if (['1', '3', '5', '7'].includes(firstDigit)) {
+        return 'Dl.';
+      }
+      if (['2', '4', '6', '8'].includes(firstDigit)) {
+        return 'Dna.';
+      }
+    }
+  }
+
+  // 2. Protecție date nule
+  if (!fullName || typeof fullName !== 'string') {
+    return 'Dl.';
+  }
+
+  // 3. Gestionare liste de persoane (ex. membri comisie separați prin virgulă sau punct și virgulă)
+  const primaryPerson = fullName.split(/[,;]/)[0];
+
+  // 4. Curățare titluri profesionale uzuale (cu sau fără punct) și caractere de punctuație
+  const cleanName = primaryPerson
+    .replace(/\b(ing|dr|ec|prof|av|conf|lect|arh|asist)\.?\b/gi, '')
+    .replace(/[,.\-_/\\]/g, ' ')
+    .trim();
+
+  if (!cleanName) {
+    return 'Dl.';
+  }
+
+  const rawTokens = cleanName.split(/\s+/).filter(Boolean);
+  const tokens = rawTokens.map(normalizeRomanianName);
+
+  if (tokens.length === 0) {
+    return 'Dl.';
+  }
+
+  // 5. Analiză lexicală a tokenurilor
+  let hasExplicitFemaleGivenName = false;
+  let hasMaleException = false;
+  let hasExplicitMaleGivenName = false;
+  let hasMaleSurnameInA = false;
+  let endsInA = false;
+
+  for (const token of tokens) {
+    if (FEMALE_EXCEPTIONS.has(token) || COMMON_FEMALE_NAMES.has(token)) {
+      hasExplicitFemaleGivenName = true;
+    }
+    if (MALE_EXCEPTIONS.has(token)) {
+      hasMaleException = true;
+    }
+    if (COMMON_MALE_NAMES.has(token)) {
+      hasExplicitMaleGivenName = true;
+    }
+    if (MALE_SURNAMES_ENDING_IN_A.has(token)) {
+      hasMaleSurnameInA = true;
+    }
+    if (token.length >= 3 && token.endsWith('a')) {
+      endsInA = true;
+    }
+  }
+
+  // Regula 1: Prenumele feminin explicit are prioritate absolută
+  // (rezolvă inversarea Nume-Prenume: „Mircea Elena” -> Dna., „Popescu Elena” -> Dna., „Ion Elena” -> Dna.)
+  if (hasExplicitFemaleGivenName) {
+    return 'Dna.';
+  }
+
+  // Regula 2: Prenume masculin tradițional terminat în -a (fără prenume feminin)
+  // („Nichita Stănescu” -> Dl., „Mircea Popescu” -> Dl., „Luca Radu” -> Dl., „Dănilă Popescu” -> Dl.)
+  if (hasMaleException) {
+    return 'Dl.';
+  }
+
+  // Regula 3: Prenume masculin comun explicit
+  // („Ion Florea” -> Dl., „Florea Ion” -> Dl., „Tudor Chirilă” -> Dl., „Marius Moga” -> Dl.)
+  if (hasExplicitMaleGivenName) {
+    return 'Dl.';
+  }
+
+  // Regula 4: Nume de familie masculin cunoscut terminat în -a
+  // („Popa”, „Badea”, „Florea”, „Manea”)
+  if (hasMaleSurnameInA) {
+    return 'Dl.';
+  }
+
+  // Regula 5: Euristică morfologică pentru prenume feminine necatalogate terminate în -a
+  // („Sânziana”, „Daciana”, „Lăcrămioara”)
+  if (endsInA) {
+    return 'Dna.';
+  }
+
+  // Regula 6: Implicit masculin pentru orice alt antroponim românesc sau străin
+  return 'Dl.';
+}
+
+/**
+ * Elimină prefixele redundante („Aviz MS nr.”, „Avizul ME nr.”, „Nr. Aviz MS nr.”) din autorizații
+ * pentru a evita stutter-ul în șabloane unde „Nr.” sau „Avizul...” este deja tipărit.
+ * Funcționează iterativ pentru a trata prefixe compuse, forme articulate și variații de punctuație/spațiere.
+ */
+export function sanitizeAuthorizationNumber(auth?: string | null): string {
+  if (!auth || typeof auth !== 'string') return '';
+  let clean = auth.trim();
+
+  let prev = '';
+  while (prev !== clean) {
+    prev = clean;
+    clean = clean
+      // Elimină 'Nr.', 'Nr', 'Numar', 'Numarul', 'No.'
+      .replace(/^(?:nr\.?|num[aă]r(?:ul)?\.?|no\.?)\s*/i, '')
+      // Elimină 'Aviz', 'Avizul', 'Avizele', 'Autorizatie', 'Autorizatia'
+      .replace(/^(?:aviz(?:ul|ele)?|autoriza[tț]i[ae])\b\s*/i, '')
+      // Elimină denumirile/acronimele de ministere: 'Ministerul / Ministerului Sanatatii / Educatiei', 'MS', 'ME', 'MS/ME', 'DSP'
+      .replace(/^(?:ministerul(?:ui)?\s+(?:s[aă]n[aă]t[aă][tț]ii|educa[tț]iei)|ms\s*(?:\/|\s+)?\s*me|\b(?:ms|me|dsp)\b)\s*/i, '')
+      // Elimină semnele de punctuație reziduale de la început (':', '.', '-', '/')
+      .replace(/^[:.\-_/\s]+\s*/, '')
+      .trim();
+  }
+
+  return clean;
+}
+
+/**
+ * Determină dinamic Nivelul 1 (Execuție) vs Nivelul 2 (Conducere) conform Ordinului MS/ME 2209/4469/2022
+ * și Clasificării Ocupațiilor din România (COR)
+ */
+export function resolveHygieneLevel(options: {
+  explicitLevel?: string | null;
+  jobTitle?: string | null;
+  corCode?: string | null;
+}): 'Nivelul 1' | 'Nivelul 2' {
+  const managementKeywords = [
+    'director', 'manager', 'sef', 'șef', 'administrator', 'coordonator',
+    'supervizor', 'supraveghetor', 'responsabil', 'lead', 'head', 'chief',
+    'executiv', 'general', 'adjunct', 'maistru'
+  ];
+
+  function matchesManagement(text?: string | null): boolean {
+    if (!text) return false;
+    const lower = text.toLowerCase().trim();
+    // Excepție statutară: Asistent Manager este funcție de secretariat/execuție (COR 334303)
+    if (lower.includes('asistent manager') || lower.includes('asistent de manager')) {
+      return false;
+    }
+    return managementKeywords.some((kw) => {
+      const reg = new RegExp(`(^|\\s|[.,/\\-_])${kw}(\\s|[.,/\\-_]|$)`, 'i');
+      return reg.test(lower);
+    });
+  }
+
+  // 1. Nivel configurat manual / explicit pe sesiune sau participant
+  if (options.explicitLevel) {
+    const raw = options.explicitLevel.trim().toLowerCase();
+    if (
+      raw.includes('2') ||
+      /\bdoi\b/i.test(raw) ||
+      /\bdou[aă]\b/i.test(raw) ||
+      /\bii\b/i.test(raw) ||
+      raw.includes('conducere') ||
+      matchesManagement(raw)
+    ) {
+      return 'Nivelul 2';
+    }
+    if (
+      raw.includes('1') ||
+      /\bunu\b/i.test(raw) ||
+      /\buna\b/i.test(raw) ||
+      /\bi\b/i.test(raw) ||
+      raw.includes('executie') ||
+      raw.includes('execuție')
+    ) {
+      return 'Nivelul 1';
+    }
+  }
+
+  // 2. Verificare Cod COR: Grupa Majoră 1 COR (Conducători și directori - 1000-1439)
+  if (options.corCode) {
+    const cleanCor = String(options.corCode).trim();
+    if (cleanCor.startsWith('1')) {
+      return 'Nivelul 2';
+    }
+  }
+
+  // 3. Verificare cuvinte-cheie manageriale în denumirea postului (Job Title)
+  if (options.jobTitle && matchesManagement(options.jobTitle)) {
+    return 'Nivelul 2';
+  }
+
+  // 4. Implicit pentru roluri operaționale și de execuție
+  return 'Nivelul 1';
+}
 
 export function formatDateRo(value?: Date | string | null): string {
   if (!value) return '';
@@ -436,15 +1045,7 @@ function extractCaenCode(raw?: unknown): string {
 
 export async function resolveTemplateData(
   templateId: string,
-  context: {
-    client: any;
-    employee?: any;
-    worksite?: any;
-    job?: any;
-    hygieneSession?: any;
-    hygieneParticipant?: any;
-    customOverrides?: Record<string, unknown>;
-  }
+  context: TemplateResolutionOptions
 ): Promise<TemplateResolutionResult> {
   const template = TEMPLATE_CATALOG.find(
     (t) => t.code === templateId || t.normalizedFilename === templateId || (t as any).id === templateId
@@ -544,29 +1145,117 @@ export async function resolveTemplateData(
 
   const investMembers = client?.investigationMembers || ROMANIAN_LEGAL_DECIZII.PLACEHOLDER_MEMBRU_COMISIE;
 
-  // 4. SEPP Provider Details (Dynamic relational binding with fallback)
+  // 4. SEPP Provider Details (Dynamic relational binding with isDefault: true fallback - Feature F13)
   let prov = client?.provider;
   let spec = client?.specialist;
+  let isFallbackProvider = false;
+  let isFallbackSpecialist = false;
 
+  // 4.1. If client has explicit providerId, load that provider
   if (!prov && client?.providerId) {
-    prov = await prisma.ssmProvider.findUnique({ where: { id: client.providerId } });
-  }
-  if (!spec && client?.specialistId) {
-    spec = await prisma.ssmSpecialist.findUnique({ where: { id: client.specialistId } });
+    prov = await prisma.ssmProvider.findUnique({
+      where: { id: client.providerId },
+      include: {
+        specialists: {
+          where: { isActive: true },
+          orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
+        },
+      },
+    });
   }
 
-  const ssmProviderName = prov?.name || client?.ssmProviderName || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_PRESTATOR_SSM;
-  const ssmSpecialistName = spec?.name
+  // 4.2. Feature F13: If still no provider (providerId is null or missing), query DB default provider
+  if (!prov) {
+    prov = await prisma.ssmProvider.findFirst({
+      where: { isDefault: true, isActive: true },
+      include: {
+        specialists: {
+          where: { isActive: true },
+          orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
+        },
+      },
+    }) || await prisma.ssmProvider.findFirst({
+      where: { isDefault: true },
+      include: {
+        specialists: {
+          where: { isActive: true },
+          orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
+        },
+      },
+    }) || await prisma.ssmProvider.findFirst({
+      where: { isActive: true },
+      include: {
+        specialists: {
+          where: { isActive: true },
+          orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
+        },
+      },
+    });
+    isFallbackProvider = true;
+  }
+
+  // 4.3. If client has explicit specialistId, load that specialist
+  if (!spec && client?.specialistId) {
+    spec = await prisma.ssmSpecialist.findUnique({
+      where: { id: client.specialistId },
+      include: { provider: true },
+    });
+  }
+
+  // 4.4. Feature F13: If still no specialist (specialistId is null or missing):
+  // Check the resolved provider's specialists first (preferring isDefault: true)
+  if (!spec && prov) {
+    if (prov.specialists && Array.isArray(prov.specialists) && prov.specialists.length > 0) {
+      spec = prov.specialists.find((s: any) => s.isDefault && s.isActive) ||
+             prov.specialists.find((s: any) => s.isDefault) ||
+             prov.specialists.find((s: any) => s.isActive) ||
+             prov.specialists[0];
+    } else {
+      spec = await prisma.ssmSpecialist.findFirst({
+        where: { providerId: prov.id, isDefault: true, isActive: true },
+      }) || await prisma.ssmSpecialist.findFirst({
+        where: { providerId: prov.id, isDefault: true },
+      }) || await prisma.ssmSpecialist.findFirst({
+        where: { providerId: prov.id, isActive: true },
+      });
+    }
+    isFallbackSpecialist = true;
+  }
+
+  // 4.5. Global fallback to any active default specialist in DB
+  if (!spec) {
+    spec = await prisma.ssmSpecialist.findFirst({
+      where: { isDefault: true, isActive: true },
+    }) || await prisma.ssmSpecialist.findFirst({
+      where: { isDefault: true },
+    });
+    isFallbackSpecialist = true;
+  }
+
+  // 4.6. Precedence: Explicit relational -> Explicit legacy string -> Fallback DB default -> Static legal mock
+  const ssmProviderName = (!isFallbackProvider && prov?.name)
+    ? prov.name
+    : (client?.ssmProviderName || prov?.name || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_PRESTATOR_SSM);
+
+  const ssmSpecialistName = (!isFallbackSpecialist && spec?.name)
     ? `${spec.name} (${spec.role || 'Specialist SSM abilitat'}, ${spec.certificateNumber || 'Certificat abilitare SSM'})`
     : client?.ssmSpecialistName
     ? `${client.ssmSpecialistName} (Specialist SSM abilitat, ${client.ssmSpecialistCert || 'Certificat abilitare SSM'})`
+    : spec?.name
+    ? `${spec.name} (${spec.role || 'Specialist SSM abilitat'}, ${spec.certificateNumber || 'Certificat abilitare SSM'})`
     : ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_SPECIALIST_SSM;
-  const evaluatorName = spec?.name
+
+  const evaluatorName = (!isFallbackSpecialist && spec?.name)
     ? `${spec.name} (Evaluator risc SSM, ${spec.certificateNumber || 'Certificat atestare INCDPM'})`
     : client?.ssmSpecialistName
     ? `${client.ssmSpecialistName} (Evaluator risc SSM, ${client.ssmSpecialistCert || 'Certificat atestare INCDPM'})`
+    : spec?.name
+    ? `${spec.name} (Evaluator risc SSM, ${spec.certificateNumber || 'Certificat atestare INCDPM'})`
     : ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_EVALUATOR_RISC;
-  const certificatEvaluator = spec?.certificateNumber || client?.ssmSpecialistCert || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_CERTIFICAT_EVALUATOR;
+
+  const certificatEvaluator = (!isFallbackSpecialist && spec?.certificateNumber)
+    ? spec.certificateNumber
+    : client?.ssmSpecialistCert || spec?.certificateNumber || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_CERTIFICAT_EVALUATOR;
 
   const cuiPrestator = prov?.cui || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_CUI_PRESTATOR;
   const certFurnizor = prov?.authorizationDetails
@@ -591,6 +1280,9 @@ export async function resolveTemplateData(
   const repPrestator = prov?.legalRepresentative || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_REPREZENTANT_PRESTATOR;
   const rolRepPrestator = prov?.representativeRole || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_CALITATE_REPREZENTANT;
   const actRepPrestator = prov?.representativeDoc || ROMANIAN_LEGAL_SSM_PROVIDER.PLACEHOLDER_ACT_REPREZENTANT;
+  const adresaPrestator = (prov?.street || prov?.number || prov?.locality)
+    ? `${prov.locality || 'București'}, ${prov.street || 'Str. Agricultori'} nr. ${prov.number || '35'}${prov.county ? `, ${prov.county}` : ''}`
+    : 'București, Str. Agricultori nr. 35, Sector 2';
 
   // 5. Build 30-factor positional dictionary
   const dynamic30Factors: Record<string, string> = {};
@@ -603,6 +1295,144 @@ export async function resolveTemplateData(
     dynamic30Factors[`PLACEHOLDER_FRECVENTA_RISC_${pad}`] = String(f?.probability || defaultF?.frequency || 2);
     dynamic30Factors[`PLACEHOLDER_NIVEL_PARTIAL_RISC_${pad}`] = String(f?.riskLevel || defaultF?.partialRisk || 2);
   }
+
+  // 6. Construct dynamic table padded arrays for training sheets (F7 & F8, F-M2-01: no truncation)
+  const ssmEvents = ((client?.trainingEvents || []) as any[]).filter(
+    (e: any) => !e.type || e.type === 'ssm'
+  );
+  const TARGET_SSM_ROWS = 16;
+  const totalSsmRows = Math.max(TARGET_SSM_ROWS, ssmEvents.length);
+  const instruiriPeriodiceSSM = [];
+  for (let i = 0; i < totalSsmRows; i++) {
+    const ev = ssmEvents[i];
+    if (ev) {
+      instruiriPeriodiceSSM.push({
+        nr: i + 1,
+        data: formatDateRo(ev.eventDate),
+        durata: `${ev.durationHours || 2} ore`,
+        ocupatia: ev.jobTitle || job?.title || 'Personal TESA',
+        tematica: ev.materialOrTopic || 'Instruire periodică SSM conform tematicii anuale',
+        semnaturaInstruit: '',
+        semnaturaInstructor: ev.instructorName || designatedWorker,
+        semnaturaVerificator: ev.verifierName || legalRepresentativeName,
+      });
+    } else {
+      instruiriPeriodiceSSM.push({
+        nr: i + 1,
+        data: '',
+        durata: '',
+        ocupatia: '',
+        tematica: '',
+        semnaturaInstruit: '',
+        semnaturaInstructor: '',
+        semnaturaVerificator: '',
+      });
+    }
+  }
+
+  const instruiriSuplimentareSSM = Array.from({ length: 4 }, (_, i) => ({
+    nr: i + 1,
+    data: '',
+    durata: '',
+    cauza: '',
+    tematica: '',
+    semnaturaInstruit: '',
+    semnaturaInstructor: '',
+    semnaturaVerificator: '',
+  }));
+
+  const testariSSM = Array.from({ length: 4 }, () => ({
+    data: '',
+    tipTestare: '',
+    tematica: '',
+    rezultat: '',
+    examinator: '',
+    semnaturaLucrator: '',
+  }));
+
+  const psiEvents = ((client?.trainingEvents || []) as any[]).filter(
+    (e: any) => e.type === 'psi' || e.type === 'su'
+  );
+  const TARGET_PSI_ROWS = 16;
+  const totalPsiRows = Math.max(TARGET_PSI_ROWS, psiEvents.length);
+  const instructajePeriodicePSI = [];
+  for (let i = 0; i < totalPsiRows; i++) {
+    const ev = psiEvents[i];
+    if (ev) {
+      instructajePeriodicePSI.push({
+        nr: i + 1,
+        data: formatDateRo(ev.eventDate),
+        durata: `${ev.durationHours || 2} ore`,
+        tema: ev.materialOrTopic || 'Instructaj periodic PSI conform tematicii anuale',
+        semnaturaInstruit: '',
+        semnaturaInstructor: ev.instructorName || psiOfficer,
+        semnaturaVerificator: ev.verifierName || legalRepresentativeName,
+      });
+    } else {
+      instructajePeriodicePSI.push({
+        nr: i + 1,
+        data: '',
+        durata: '',
+        tema: '',
+        semnaturaInstruit: '',
+        semnaturaInstructor: '',
+        semnaturaVerificator: '',
+      });
+    }
+  }
+
+  const exercitiiPracticePSI = Array.from({ length: 4 }, (_, i) => ({
+    nr: i + 1,
+    data: '',
+    tipExercitiu: '',
+    tema: '',
+    calificativ: '',
+    semnaturaParticipant: '',
+  }));
+
+  // 7. Dynamic Prevention and Protection Plan (Feature F15 - HG 1425/2006 art. 15)
+  const TECHNICAL_REGEX = /montar|ancorar|echipam|cablu|canalin|tablou|priz|pram|diferential|scar|antiderap|ventila|ilumin|protecti.*mecanic|intrerup|impamant|dispozitiv|hota|cutit|aragaz|schel|balustrad/i;
+  const HYGIENE_REGEX = /medic|oftalmo|ergonom|igien|trus|prim.*ajutor|microclimat|aeris|temperatur|curaten|dezinfect|matern|antidot/i;
+  const ORG_REGEX = /instrui|interzic|verific|notific|respecta|pauz|planific|rotati|procedur|autorizat|depozit|permis/i;
+
+  const planPrevenire = factors.map((f, idx) => {
+    const techMeasures: string[] = [];
+    const orgMeasures: string[] = [];
+    const hygMeasures: string[] = [];
+
+    const rawMeasures = f.preventionMeasures && f.preventionMeasures.length > 0
+      ? f.preventionMeasures
+      : ['Instruirea lucrătorilor privind cerințele SSM', 'Verificarea respectării normelor de securitate'];
+
+    for (const m of rawMeasures) {
+      if (TECHNICAL_REGEX.test(m)) {
+        techMeasures.push(m);
+      } else if (HYGIENE_REGEX.test(m)) {
+        hygMeasures.push(m);
+      } else if (ORG_REGEX.test(m)) {
+        orgMeasures.push(m);
+      } else {
+        if (f.element === 'MIJLOACE') techMeasures.push(m);
+        else if (f.element === 'MEDIU') hygMeasures.push(m);
+        else orgMeasures.push(m);
+      }
+    }
+
+    return {
+      nr: idx + 1,
+      riscEvaluat: f.riskFactor,
+      factorRisc: f.riskFactor,
+      manifestare: f.manifestation || f.riskFactor,
+      consecinte: f.consequences || 'ITM 3-45 zile',
+      masuriTehnice: techMeasures.length > 0 ? techMeasures.map(t => `- ${t}`).join('\n') : '-',
+      masuriOrganizatorice: orgMeasures.length > 0 ? orgMeasures.map(o => `- ${o}`).join('\n') : '-',
+      masuriIgienicoSanitare: hygMeasures.length > 0 ? hygMeasures.map(h => `- ${h}`).join('\n') : '-',
+      masuriAltaNatura: '-',
+      actiuni: '- instruirea lucrătorilor privind cerințele de securitate în muncă\n- verificarea modului de cunoaștere și respectare a cerințelor de SSM',
+      termen: 'Permanent',
+      responsabil: 'CLM / Lucrător desemnat SSM',
+    };
+  });
 
   // Verified database mappings with fallback for any missing scalar fields
   const verifiedMap: Record<string, unknown> = {
@@ -648,7 +1478,26 @@ export async function resolveTemplateData(
     PLACEHOLDER_EVALUATOR_RISC: evaluatorName,
     PLACEHOLDER_CERTIFICAT_EVALUATOR: certificatEvaluator,
     PLACEHOLDER_REPREZENTANT_PRESTATOR: repPrestator,
+    PLACEHOLDER_CALITATE_REPREZENTANT_PRESTATOR: rolRepPrestator,
     PLACEHOLDER_ACT_REPREZENTANT: actRepPrestator,
+    PLACEHOLDER_ADRESA_PRESTATOR: adresaPrestator,
+
+    // Aliases for Serviciu Extern SSM (Feature F13)
+    PLACEHOLDER_SERVICIU_EXTERN_DENUMIRE: ssmProviderName,
+    PLACEHOLDER_SERVICIU_EXTERN_NUME: ssmProviderName,
+    PLACEHOLDER_SERVICIU_EXTERN_CUI: cuiPrestator,
+    PLACEHOLDER_SERVICIU_EXTERN_REG_COM: nrInregFurnizor,
+    PLACEHOLDER_SERVICIU_EXTERN_CERTIFICAT: certFurnizor,
+    PLACEHOLDER_SERVICIU_EXTERN_NUMAR_CERTIFICAT: nrCertFurnizor,
+    PLACEHOLDER_SERVICIU_EXTERN_ADRESA: adresaPrestator,
+    PLACEHOLDER_SERVICIU_EXTERN_TELEFON: telPrestator,
+    PLACEHOLDER_SERVICIU_EXTERN_EMAIL: emailPrestator,
+    PLACEHOLDER_SERVICIU_EXTERN_SITE: sitePrestator,
+    PLACEHOLDER_SERVICIU_EXTERN_REPREZENTANT: repPrestator,
+    PLACEHOLDER_SERVICIU_EXTERN_CALITATE_REPREZENTANT: rolRepPrestator,
+    PLACEHOLDER_SERVICIU_EXTERN_ACT_REPREZENTANT: actRepPrestator,
+    PLACEHOLDER_SERVICIU_EXTERN_LOCALITATE: localitateFurnizor,
+    PLACEHOLDER_SERVICIU_EXTERN_JUDET: judetFurnizor,
 
     // Risk Evaluation Metrics
     PLACEHOLDER_NIVEL_RISC_GLOBAL: scoreNumber.toFixed(2),
@@ -667,7 +1516,11 @@ export async function resolveTemplateData(
     PLACEHOLDER_NUMAR_DECIZIE_07: `07/${decisionsDateRo}`,
     PLACEHOLDER_NUMAR_DECIZIE_08: `08/${decisionsDateRo}`,
     PLACEHOLDER_NUMAR_DECIZIE_09: `09/${decisionsDateRo}`,
+    PLACEHOLDER_NUMAR_DECIZIE_10: `10/${decisionsDateRo}`,
     PLACEHOLDER_NUMAR_DECIZIE_11: `11/${decisionsDateRo}`,
+    PLACEHOLDER_APELATIV_ADMINISTRATOR: detectRomanianSalutation(client?.legalRepresentative),
+    PLACEHOLDER_APELATIV_PSI: detectRomanianSalutation(psiOfficer || client?.psiResponder),
+    PLACEHOLDER_APELATIV_MEMBRU_COMISIE: detectRomanianSalutation(investMembers),
     PLACEHOLDER_DATA_DECIZIE: decisionsDateRo,
     PLACEHOLDER_DATA_PERMIS_FOC: decisionsDateRo,
     PLACEHOLDER_DATA_INCEPERE_LUCRARE: decisionsDateRo,
@@ -772,12 +1625,87 @@ export async function resolveTemplateData(
       PLACEHOLDER_DATA_DECLARATIE: currentDateRo,
     }),
 
-    // 4. Post și Punct de lucru
-    PLACEHOLDER_FUNCTIE: job?.title || 'Personal TESA / Inginer Sisteme Software',
+    // 4. Post și Punct de lucru (Feature F14: Job Operational Context Plumbing)
+    PLACEHOLDER_FUNCTIE: participant?.jobTitle || participant?.employee?.currentJob?.title || job?.title || 'Personal TESA / Inginer Sisteme Software',
     PLACEHOLDER_COD_COR: job?.corCode || '251201',
+    PLACEHOLDER_ACTIVITATI_POST: job?.mainActivities || ROMANIAN_LEGAL_OCCUPATIONAL_HEALTH.PLACEHOLDER_ACTIVITATI_POST,
+    PLACEHOLDER_DESCRIERE_ACTIVITATE: job?.mainActivities || ROMANIAN_LEGAL_OCCUPATIONAL_HEALTH.PLACEHOLDER_DESCRIERE_ACTIVITATE,
+    PLACEHOLDER_ECHIPAMENTE_POST: job?.equipmentUsed || ROMANIAN_LEGAL_OCCUPATIONAL_HEALTH.PLACEHOLDER_ECHIPAMENTE_POST,
+    PLACEHOLDER_CONDITII_POST: job?.workConditions || ROMANIAN_LEGAL_OCCUPATIONAL_HEALTH.PLACEHOLDER_CONDITII_POST,
+    PLACEHOLDER_NUMAR_CIM: (employee as any)?.cimNumber || (context.customOverrides?.PLACEHOLDER_NUMAR_CIM as string) || (context.allowOfflineBlank || !employee ? '........ / ............' : ''),
+    PLACEHOLDER_DATA_CIM: (context.customOverrides?.PLACEHOLDER_DATA_CIM as string) || hireDateRo || (context.allowOfflineBlank || !employee ? '........................' : ''),
+    PLACEHOLDER_DATA_SEMNARII: (context.customOverrides?.PLACEHOLDER_DATA_SEMNARII as string) || hireDateRo || (context.allowOfflineBlank || !employee ? '........................' : ''),
+    PLACEHOLDER_SALARIU_BRUT: (employee as any)?.salary || (context.customOverrides?.PLACEHOLDER_SALARIU_BRUT as string) || (context.allowOfflineBlank || !employee ? '........................ lei' : ''),
     PLACEHOLDER_ADRESA_PUNCT_LUCRU: worksite?.address || client?.address || 'București, Sector 1',
     PLACEHOLDER_PUNCT_LUCRU: worksite?.name || 'Sediul Central',
     PLACEHOLDER_DEPARTAMENT: worksite?.activity || 'Departament Tehnic & IT',
+    PLACEHOLDER_SUBUNITATE: worksite?.name || 'Sediul Central',
+    PLACEHOLDER_SECTIE_COMPARTIMENT: worksite?.activity || 'Departament IT & Dezvoltare Software',
+    PLACEHOLDER_LOC_MUNCA: worksite?.address || client?.address || 'București, Sector 1',
+    PLACEHOLDER_LOC_MUNCA_LM: worksite?.address || client?.address || 'București, Sector 1',
+    PLACEHOLDER_LOC_MUNCA_LM_PSI: worksite?.address || client?.address || 'București, Sector 1',
+
+    // Date adiționale firmă (CIM 2022 & Solicitare Medicină)
+    PLACEHOLDER_TELEFON_FIRMA: client?.contactPhone || '0722334455',
+    PLACEHOLDER_EMAIL_FIRMA: client?.contactEmail || 'contact@client.ro',
+    PLACEHOLDER_COD_POSTAL_FIRMA: (prov?.postalCode as string) || '010001',
+    PLACEHOLDER_CONT_BANCA_FIRMA: (client as any)?.bankAccount || '-',
+    PLACEHOLDER_BANCA_FIRMA: (client as any)?.bankName || '-',
+    PLACEHOLDER_ACTIVITATE_CAEN: caenTitle,
+
+    // Date adiționale salariat (M2, F12: Real Employee vs Non-Fabricated Data)
+    PLACEHOLDER_DOMICILIU: addressFull || 'București, Sector 1, Str. Victoriei nr. 10',
+    PLACEHOLDER_ADRESA_DOMICILIU: addressFull || 'București, Sector 1, Str. Victoriei nr. 10',
+    PLACEHOLDER_TELEFON_SALARIAT: (employee as any)?.phone || '-',
+    PLACEHOLDER_EMAIL_SALARIAT: (employee as any)?.email || '-',
+    PLACEHOLDER_CONT_BANCA_SALARIAT: (employee as any)?.bankAccount || (employee as any)?.iban || '-',
+    PLACEHOLDER_BANCA_SALARIAT: (employee as any)?.bankName || '-',
+    PLACEHOLDER_APELATIV_SALARIAT: detectRomanianSalutation(fullName || 'Stan Alexandru', employee?.cnp),
+    PLACEHOLDER_SEX: employee?.sex || (employee?.cnp && ['1', '3', '5', '7'].includes(employee.cnp[0]) ? 'M' : 'F') || 'M',
+    PLACEHOLDER_PROFESIE_OCUPATIE: job?.title || 'Inginer sisteme software',
+    PLACEHOLDER_NUME_SALARIAT: fullName || 'Stan Alexandru',
+    PLACEHOLDER_CALIFICARE: (employee as any)?.qualification || 'Studii superioare tehnice / Inginer IT',
+    PLACEHOLDER_MARCA: (employee as any)?.badgeNumber || (employee as any)?.employeeNumber || '-',
+
+    // Appointees & Instructori instruire SSM / PSI
+    PLACEHOLDER_INSTRUCTOR_IG: ssmSpecialistName,
+    PLACEHOLDER_VERIFICATOR_IG: legalRepresentativeName,
+    PLACEHOLDER_INSTRUCTOR_LM: designatedWorker,
+    PLACEHOLDER_VERIFICATOR_LM: designatedWorker,
+    PLACEHOLDER_DATA_INSTRUIRE_IG: hireDateRo,
+    PLACEHOLDER_DATA_INSTRUIRE_LM: hireDateRo,
+    PLACEHOLDER_DATA_ADMITERE: hireDateRo,
+    PLACEHOLDER_ADMITERE_NUME: legalRepresentativeName,
+
+    PLACEHOLDER_INSTRUCTOR_IG_PSI: psiOfficer,
+    PLACEHOLDER_VERIFICATOR_IG_PSI: legalRepresentativeName,
+    PLACEHOLDER_INSTRUCTOR_LM_PSI: designatedWorker,
+    PLACEHOLDER_VERIFICATOR_LM_PSI: designatedWorker,
+    PLACEHOLDER_DATA_INSTRUCTAJ_IG_PSI: hireDateRo,
+    PLACEHOLDER_DATA_INSTRUCTAJ_LM_PSI: hireDateRo,
+    PLACEHOLDER_DATA_ADMITERE_PSI: hireDateRo,
+    PLACEHOLDER_ADMITERE_NUME_PSI: legalRepresentativeName,
+
+    // Date specifice EIP, Solicitare Medicină & Contract Muncă 2022
+    PLACEHOLDER_DATA_SOLICITARII: currentDateRo,
+    PLACEHOLDER_DATA_INTOCMIRII: currentDateRo,
+    PLACEHOLDER_DATA_SEMNARII_EIP: hireDateRo || currentDateRo,
+    PLACEHOLDER_DATA_ELIBERARII_FISEI: hireDateRo || currentDateRo,
+    PLACEHOLDER_GESTIONAR_EIP: designatedWorker,
+    PLACEHOLDER_SEF_LOC_MUNCA: designatedWorker,
+    PLACEHOLDER_DATA_INCEPUT: hireDateRo || currentDateRo,
+    PLACEHOLDER_DATA_INCEPERE: hireDateRo || currentDateRo,
+
+    // Dynamic table arrays for SSM & PSI
+    instruiriPeriodiceSSM,
+    instruiriSuplimentareSSM,
+    testariSSM,
+    instructajePeriodicePSI,
+    exercitiiPracticePSI,
+
+    // F15: Dynamic Prevention Plan collections & top-level tokens
+    planPrevenire,
+    masuriPrevenire: planPrevenire,
 
     // 5. Sesiune Igienă
     ...(hygieneSession ? {
@@ -786,8 +1714,8 @@ export async function resolveTemplateData(
         PLACEHOLDER_FURNIZOR_SSM: hygieneSession.providerName,
         PLACEHOLDER_MEMBRU_COMISIE: hygieneSession.commissionMember1,
       } : {}),
-      PLACEHOLDER_AVIZ_MS: hygieneSession.msAuthorization,
-      PLACEHOLDER_AVIZ_ME: hygieneSession.meAuthorization,
+      PLACEHOLDER_AVIZ_MS: sanitizeAuthorizationNumber(hygieneSession.msAuthorization),
+      PLACEHOLDER_AVIZ_ME: sanitizeAuthorizationNumber(hygieneSession.meAuthorization),
       PLACEHOLDER_DATA_SESIUNE: formatDateRo(hygieneSession.sessionDate),
       PLACEHOLDER_DATA_EXAMEN: formatDateRo(hygieneSession.examDate),
       PLACEHOLDER_DATA_PV: formatDateRo(hygieneSession.examDate),
@@ -937,7 +1865,11 @@ export async function resolveTemplateData(
       PLACEHOLDER_SERIE_NUMAR_CERTIFICAT: `${participant.certificateSeries || 'IGI'} ${participant.certificateNumber || '0042'}`.trim(),
       PLACEHOLDER_REZULTAT_EXAMEN: participant.examResult || 'Admis',
       PLACEHOLDER_MODUL_IGIENA: participant.employee?.hygieneModule || employee?.hygieneModule || 'Modulul 1 - Servicii de alimentație',
-      PLACEHOLDER_NIVEL_IGIENA: 'Nivelul 2',
+      PLACEHOLDER_NIVEL_IGIENA: resolveHygieneLevel({
+        explicitLevel: (participant as any)?.level || (participant as any)?.hygieneLevel || participant.employee?.hygieneLevel || (employee as any)?.hygieneLevel,
+        jobTitle: participant.jobTitle || participant.employee?.currentJob?.title || job?.title || employee?.currentJob?.title,
+        corCode: (participant as any)?.corCode || participant.employee?.currentJob?.corCode || job?.corCode || employee?.currentJob?.corCode,
+      }),
     } : (employee ? {
       PLACEHOLDER_NUME_COMPLET: fullName,
       PLACEHOLDER_NUME: employee.lastName,
@@ -955,7 +1887,11 @@ export async function resolveTemplateData(
       PLACEHOLDER_SERIE_NUMAR_CERTIFICAT: employee.hygieneCertificateNumber || 'IGI 0042',
       PLACEHOLDER_REZULTAT_EXAMEN: 'Admis',
       PLACEHOLDER_MODUL_IGIENA: employee.hygieneModule || 'Modulul 1 - Servicii de alimentație',
-      PLACEHOLDER_NIVEL_IGIENA: 'Nivelul 2',
+      PLACEHOLDER_NIVEL_IGIENA: resolveHygieneLevel({
+        explicitLevel: (employee as any)?.hygieneLevel,
+        jobTitle: job?.title || employee?.currentJob?.title,
+        corCode: job?.corCode || employee?.currentJob?.corCode,
+      }),
     } : {})),
   };
 
@@ -1008,6 +1944,7 @@ export async function resolveTemplatePlaceholders(ctx: TemplateResolutionContext
     include: {
       jobs: true,
       worksites: true,
+      trainingEvents: true,
       employees: {
         include: {
           identityDocument: true,
@@ -1016,7 +1953,14 @@ export async function resolveTemplatePlaceholders(ctx: TemplateResolutionContext
           currentWorksite: true,
         },
       },
-      provider: true,
+      provider: {
+        include: {
+          specialists: {
+            where: { isActive: true },
+            orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
+          },
+        },
+      },
       specialist: true,
     },
   });
@@ -1070,10 +2014,12 @@ export async function resolveTemplatePlaceholders(ctx: TemplateResolutionContext
     client,
     employee,
     job: selectedJob,
+    jobId: ctx.jobId,
     worksite: selectedWorksite,
     hygieneSession,
     hygieneParticipant: participant,
     customOverrides: ctx.customOverrides,
+    allowOfflineBlank: ctx.allowOfflineBlank,
   });
 
   const resolvedFields: ResolvedPlaceholderItem[] = template.fields

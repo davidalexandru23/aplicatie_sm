@@ -1,34 +1,39 @@
-# DISPATCH: Milestone 2 Reviewer 1 (UI Architecture & Build Conformance)
+# DISPATCH — m2_reviewer_1
 
-## Assignment
-You are Reviewer 1 for Milestone 2: Compliance UI Tracking & Alerts.
-Review the UI implementation produced by `m2_worker_1`.
+**Milestone**: Milestone 2 Gate (Pillar 2: Catalog Expansion to 31 Statutory Templates, F7–F11)  
+**Assigned Role**: `teamwork_reviewer`  
+**Working Directory**: `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_reviewer_1`  
+**Date**: 2026-11-05T01:25:00Z  
 
-## Mandatory Reading
-1. `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/ORIGINAL_REQUEST.md`
-2. `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/PROJECT.md`
-3. `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_worker_1/handoff.md`
+## Objective
+Review OpenXML structure, catalog definitions (`definitions.ts`), resolver bindings (`resolver.ts`), template mirroring parity, and verify all build and test suites pass cleanly.
 
-## Focus Areas
-- Review `src/components/compliance-badge.tsx` and `src/components/compliance-alerts.tsx`.
-- Review `src/app/employees/page.tsx` and `src/app/employees/employee-registry-client.tsx`.
-- Review `src/app/clients/[id]/page.tsx` and `src/app/page.tsx`.
-- Verify Next.js 16 App Router build (`npm run build`) and TypeScript (`npx tsc --noEmit`).
-- Verify adherence to R3: No roles, no permissions, no e-signatures.
-- Deliver a clear verdict: `APPROVE` or `REQUEST_CHANGES`.
+## Key Files to Review
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/ORIGINAL_REQUEST.md`
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/PROJECT.md`
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_worker_1/handoff.md`
+- `src/lib/templates/definitions.ts` (31 templates)
+- `src/lib/templates/resolver.ts`
+- `templates_registry/normalized/` & `handoff/ssm-template-placeholder-pack/templates/`
 
-## Output Requirements
-Write your review report to:
-`/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_reviewer_1/review.md`
-And summarize with your verdict in:
-`/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_reviewer_1/handoff.md`
+## 2026-11-05T01:24:38Z
+You are m2_reviewer_1, the OpenXML, Schema & Build Reviewer for Milestone 2 Gate.
+Your working directory is: /Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_reviewer_1
 
-Keep `progress.md` updated. Send message when complete.
+Read DISPATCH.md in your working directory and the following authoritative sources:
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/ORIGINAL_REQUEST.md`
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/PROJECT.md`
+- `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_worker_1/handoff.md`
 
-## 2026-11-01T21:38:10Z
-[Message] timestamp=2026-11-01T21:38:10Z sender=24ce85c8-5dd2-4649-94bf-3b3a1567784b priority=MESSAGE_PRIORITY_HIGH content=You are Reviewer 1 for Milestone 2 in .agents/teamwork/m2_reviewer_1/.
-Read /Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_reviewer_1/DISPATCH.md, /Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/ORIGINAL_REQUEST.md, /Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/PROJECT.md, and /Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_worker_1/handoff.md.
-Review UI components, Next.js build, R3 adherence, and deliver your APPROVE / REQUEST_CHANGES verdict.
-Write review.md and handoff.md in .agents/teamwork/m2_reviewer_1/.
-Keep progress.md updated. Send message when complete.
+Examine:
+1. Catalog expansion in `src/lib/templates/definitions.ts`: exactly 31 templates registered with complete metadata.
+2. Resolver engine in `src/lib/templates/resolver.ts`: token resolution, dynamic 16-row tables for training sheets, and fallback dictionaries.
+3. Database seeding synchronization in `prisma/seed.ts` and `src/lib/templates/seed.ts`.
+4. Run verification commands:
+   - `npx tsx scripts/test-all-templates-generation.ts`
+   - `npx tsx scripts/verify-all.ts`
+   - `npm run build`
+5. Bit-for-bit file mirroring between `templates_registry/normalized/` and `handoff/ssm-template-placeholder-pack/templates/`.
 
+Provide an explicit binary verdict: APPROVE or REQUEST_CHANGES.
+Write your complete report to `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/m2_reviewer_1/handoff.md` and send a message back.

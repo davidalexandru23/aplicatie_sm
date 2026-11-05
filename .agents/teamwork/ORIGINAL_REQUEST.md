@@ -4,31 +4,44 @@
 [skip-interview]
 How this run was launched; not part of the task.
 
-## Approved Prompt — 2026-11-04T18:51:38Z
-Începeți execuția imediat. Toate cerințele, contextul și pașii rămași până la finalizarea obiectivului sunt specificate în întregime în promptul inițial. Continuați evaluarea, adăugarea datelor de seed, adaptarea fluxului de igienă și a generării documentelor, verificarea celor 25 de șabloane și testarea build-ului.
+## Initial Request — 2026-11-04T20:44:28Z
+Începeți execuția imediat. Toate detaliile tehnice, cele 5 componente (Pilonii 1-5), cerințele pentru fiecare șablon și funcție sunt deja stabilite și aprobate în planul strategic. Continuați direct cu implementarea secvențială, rularea testelor și verificarea build-ului.
 
-Context relevant din conversația anterioară:
+Context relevant din conversația anterioară (Planul Strategic și Raportul de Audit):
 ---
-Obiectiv principal:
-"Partile legate de Igiena nu prea au logica. Cand o sa vreau sa generez ceva legat de igiena , trebuie sa pot sa selectez direct din tabul de genearea, Tabel evidenta cursanti igiena trebuie sa genereze un tabel cu toti angajatii care au facut un modul de igiena, ce modul, cand , (vezi ce cere DSV pe internet). Ar trebui sa fie o sectiune unde pot edita datele despre propia firma de SSM, unde sa imi adauga responasibili, diferite date de contact, pe care apoi le pot asigna atunci cand introduc o firma client. Revizuieste sabloanele, logica fluxurilor astfel incat sa aiba bussines logic."
+Planul strategic din artefactul `/Users/davidalexandru/.gemini/antigravity/brain/7f1f394f-32ac-4074-962e-c4dddf036503/PLAN_STRATEGIC_SSM_IGIENA_HR.md` structurat pe cei 5 piloni:
 
-Stadiul curent al proiectului:
-1. Milestone 1 (Profil Prestator SSM / SEPP & Specialiști):
-   - Completat și verificat: modele SsmProvider și SsmSpecialist în prisma/schema.prisma, pagină /settings, asociere în clienți, injecție automată a datelor prestatorului în resolver (src/lib/templates/resolver.ts).
-2. Milestone 2 (Fluxul complet de Igienă & Business Logic):
-   - În schema Prisma există deja HygieneSession și HygieneParticipant.
-   - Au fost create/actualizate:
-     - src/app/api/hygiene/sessions/route.ts (GET și POST)
-     - src/app/api/hygiene/sessions/[id]/route.ts (GET, PATCH pentru avansarea statusului și sincronizarea cu Employee, DELETE)
-     - src/app/api/hygiene/sessions/[id]/participants/route.ts (POST pentru adăugarea angajaților dintr-o firmă)
-     - src/app/hygiene/page.tsx (UI interactiv cu sesiuni, adăugare cursanți, avansare status, linkuri generare documente)
-   - Ce a rămas de realizat până la GOAL:
-     - Extinderea prisma/seed.ts cu sesiuni și cursanți de igienă demonstrativi (legați de angajații existenți, ex. BISTRO GOURMET / Horeca și NEXUS SOLUTIONS).
-     - Rularea seed-ului în baza de date PostgreSQL.
-     - Verificarea și finisarea fluxului din /documents/generate pentru documentele de igienă:
-       * Tabel evidență cursanți igienă (hygiene-tabel-cursanti / Tabel Cursanti exemplu.xlsx) conform cerințelor DSVSA/DSP (nume, CNP, modul absolvit, perioadă curs, dată examen, serie/nr certificat, unitate).
-       * Anexe Curs igienă (hygiene-anexe-catalog / Anexe Curs igiena.xlsx).
-       * Adeverință participare (hygiene-adeverinta / Adeverinta participare.docx).
-     - Asigurarea că toate cele 25 de șabloane se generează fără erori și fără placeholdere necompletate.
-     - Verificarea integrității TypeScript și Next.js build (npm run build).
----
+### Pilonul 1: Rectificarea Textuală a Șabloanelor Existente (Prioritate Maximă)
+1. `EVALUAREA RISCURILOR.docx`: Înlocuirea `{PLACEHOLDER_ADRESA_FIRMA}` din antet cu `{PLACEHOLDER_NR_REG_COM}`; eliminarea localității statice „București”; reintegrarea tabelului factorilor de risc (Cap. 6 și 7).
+2. `13 - ACTIVITATI DE BIROU.docx`: Înlocuirea sintagmei „agenților de pază” cu „personalului de birou”; adăugarea `{PLACEHOLDER_FIRMA}` în antet.
+3. `11 - ALUNECARI.docx`: Adăugarea `{PLACEHOLDER_FIRMA}` în antet.
+4. `Detaliu Tematica loc de munca.docx`: Ștergerea imaginii externe TinyPic cu reclama comercială din subsol; adăugarea `{PLACEHOLDER_FUNCTIE}`.
+5. `DECIZII.docx`: Introducerea tokenului `{PLACEHOLDER_NUMAR_DECIZIE_10}` și a tokenurilor de apelativ `{PLACEHOLDER_APELATIV_ADMINISTRATOR}` și `{PLACEHOLDER_APELATIV_PSI}` (`Dl.` / `Dna.` dinamic după sex/prenume).
+6. `Anexa fisa postului SSM.docx`: Adăugarea `{PLACEHOLDER_FIRMA}`, `{PLACEHOLDER_CUI}`, `{PLACEHOLDER_FUNCTIE}`, `{PLACEHOLDER_COD_COR}` și număr CIM.
+7. `Informare Protectia Datelor.docx`: Trecerea la Art. 6(1)(b)/(c) GDPR; eliminarea punctelor de suspensie reziduale.
+8. `Tabel Cursanti exemplu.xlsx`: Eliminarea foii de calcul contabile reziduale `Sheet1` (Registru de Casă).
+9. `Adeverinta participare.docx`: Corectarea stutter-ului `Nr. Aviz MS nr.` și adaptarea nivelului în funcție de funcție (Nivelul 1 pentru execuție, Nivelul 2 pentru conducere).
+
+### Pilonul 2: Adăugarea a 6 Șabloane Noi Esențiale în Catalog (Extindere de la 25 la 31)
+1. `ssm-fisa-instruire-individuala` (Fișa Individuală de Instruire SSM - Anexa 11 HG 1425/2006).
+2. `psi-fisa-instructaj-individuala` (Fișa Individuală de Instructaj în Domeniul Situațiilor de Urgență - Anexa OMAI 712/2005).
+3. `med-fisa-solicitare-examen` (Fișa de Solicitare a Examenului Medical - Anexa 2 HG 355/2007).
+4. `med-fisa-identificare-riscuri` (Fișa de Identificare a Factorilor de Risc Profesional - Anexa 3 HG 355/2007).
+5. `eip-fisa-acordare-individuala` (Fișa Individuală de Dotare și Acordare EIP - HG 1048/2006).
+6. `hr-cim-model-cadru-2022` (Contract Individual de Muncă Model-Cadru conform Ordinului MMSS 2171/2022).
+
+### Pilonul 3: Reconfigurarea Resolverului & Conectarea Datelor Reale
+1. Oprirea generării cu date fictive (salariu fictiv 6500 lei etc.).
+2. Prioritizarea specialistului implicit (`isDefault: true`) din baza de date (`SsmProvider` și `SsmSpecialist`) dacă clientul nu are alocat explicit unul.
+3. Conectarea contextului din post (`Job`): `mainActivities`, `equipmentUsed`, `workConditions`, `corCode` injectate în tematici și fișa postului.
+4. Corelarea dinamică a măsurilor din Planul de Prevenire cu profilul de risc CAEN al postului.
+
+### Pilonul 4: Generare în Lot pe Fluxuri Operaționale (Bulk Workflows)
+- Pachet Onboarding Salariat (1-Click ZIP)
+- Pachet Înființare Dosar SSM Client (Start-up Dossier)
+- Export Arhivă Control ITM / ISU (ZIP)
+
+### Pilonul 5: Rafinarea Interfeței (UI/UX) și Serviciul de Alerte
+- Selector de Funcție / Post (`jobId`) în `/documents/generate`
+- Configurator vizual de evaluare a riscurilor în `/risk-assessments`
+- Sincronizare seed și verificare automată a suitei de teste (`npm run build`, `npm test`).

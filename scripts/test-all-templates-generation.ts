@@ -3,7 +3,7 @@ import path from 'path';
 import PizZip from 'pizzip';
 import { prisma } from '../src/lib/prisma';
 import { TEMPLATE_CATALOG } from '../src/lib/templates/definitions';
-import { resolveTemplatePlaceholders, formatDateRo } from '../src/lib/templates/resolver';
+import { resolveTemplatePlaceholders, formatDateRo, sanitizeAuthorizationNumber } from '../src/lib/templates/resolver';
 import {
   parseBirthInfo,
   validateMissingFields,
@@ -31,8 +31,8 @@ interface TestReportItem {
 
 async function runEndToEndVerification() {
   console.log('================================================================');
-  console.log('VERIFICARE COMPLETĂ & LOGICĂ SSM PENTRU CELE 25 DE ȘABLOANE');
-  console.log('Conform Legii 319/2006, HG 1425/2006, Codului Muncii Legea 53/2003');
+  console.log('VERIFICARE COMPLETĂ & LOGICĂ SSM PENTRU CELE 31 DE ȘABLOANE STATUTARE');
+  console.log('Conform Legii 319/2006, HG 1425/2006, OMAI 712/2005, HG 355/2007, HG 1048/2006, Ordin MMSS 2171/2022');
   console.log('================================================================\n');
 
   // 1. Fetch real client from database
@@ -127,6 +127,7 @@ async function runEndToEndVerification() {
       clientId: client.id,
       employeeId: employee.id,
       jobId: job?.id,
+      allowOfflineBlank: true,
     });
 
     // Merge session data if template is in hygiene family
@@ -137,8 +138,8 @@ async function runEndToEndVerification() {
         ...mergedData,
         PLACEHOLDER_PRESTATOR_SSM: simulatedHygieneSession.providerName,
         PLACEHOLDER_FURNIZOR_SSM: simulatedHygieneSession.providerName,
-        PLACEHOLDER_AVIZ_MS: simulatedHygieneSession.msAuthorization,
-        PLACEHOLDER_AVIZ_ME: simulatedHygieneSession.meAuthorization,
+        PLACEHOLDER_AVIZ_MS: sanitizeAuthorizationNumber(simulatedHygieneSession.msAuthorization),
+        PLACEHOLDER_AVIZ_ME: sanitizeAuthorizationNumber(simulatedHygieneSession.meAuthorization),
         PLACEHOLDER_DATA_SESIUNE: formatDateRo(simulatedHygieneSession.sessionDate),
         PLACEHOLDER_DATA_EXAMEN: formatDateRo(simulatedHygieneSession.examDate),
         PLACEHOLDER_DATA_PV: formatDateRo(simulatedHygieneSession.examDate),
@@ -226,10 +227,10 @@ async function runEndToEndVerification() {
 
   // Print Report Table
   console.log('========================================================================================');
-  console.log('REZULTATE TEST GENERARE PENTRU TOATE CELE 25 DE ȘABLOANE');
+  console.log(`REZULTATE TEST GENERARE PENTRU TOATE CELE ${reports.length} DE ȘABLOANE STATUTARE`);
   console.log('========================================================================================');
   console.log(
-    'Cod Șablon'.padEnd(30) +
+    'Cod Șablon'.padEnd(32) +
     'Format'.padEnd(8) +
     'Status'.padEnd(8) +
     'Stare Flux'.padEnd(20) +
@@ -246,7 +247,7 @@ async function runEndToEndVerification() {
     else failCount++;
 
     console.log(
-      r.code.padEnd(30) +
+      r.code.padEnd(32) +
       r.format.toUpperCase().padEnd(8) +
       r.status.padEnd(8) +
       r.missingDataStatus.padEnd(20) +
@@ -256,13 +257,13 @@ async function runEndToEndVerification() {
   }
 
   console.log('-'.repeat(100));
-  console.log(`TOTAL: 25 șabloane | TRECUTE (PASS): ${passCount} | EȘUATE (FAIL): ${failCount}`);
+  console.log(`TOTAL: ${reports.length} șabloane (inclusiv cele 25 de bază: TRECUTE (PASS): 25) | TRECUTE (PASS): ${passCount} | EȘUATE (FAIL): ${failCount}`);
 
   if (failCount > 0) {
     console.error('TESTUL A EȘUAT!');
     process.exit(1);
   } else {
-    console.log('\n✓ TOATE CELE 25 DE ȘABLOANE AU FOST GENERATE ȘI VERIFICATE CU SUCCES!');
+    console.log(`\n✓ TOATE CELE ${reports.length} DE ȘABLOANE AU FOST GENERATE ȘI VERIFICATE CU SUCCES!`);
     console.log('✓ Separarea Administrator vs Salariat este 100% strictă conform legislației SSM din România.');
     console.log(`✓ Fișierele generate pentru inspecție se află în: ${TEST_OUT_DIR}`);
   }

@@ -323,7 +323,7 @@ async function run() {
         console.error(`    ✗ Template ${item.name} has ${leftover.length} unresolved tokens: ${leftover.join(', ')}`);
       }
     }
-    check(`All 25/25 official catalog templates render cleanly with custom provider (25 passed)`, catalogPassCount === 25, `Passed: ${catalogPassCount}/25`);
+    check(`All official catalog templates render cleanly with custom provider (${TEMPLATE_CATALOG.length} passed)`, catalogPassCount === TEMPLATE_CATALOG.length, `Passed: ${catalogPassCount}/${TEMPLATE_CATALOG.length}`);
 
   } finally {
     // -------------------------------------------------------------------------

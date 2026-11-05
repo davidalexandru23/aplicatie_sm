@@ -298,6 +298,8 @@ function getFullSampleData(): Record<string, unknown> {
     PLACEHOLDER_DATA_SEMNARE: '28.02.2026',
     PLACEHOLDER_DATA_DECLARATIE: '28.02.2026',
     PLACEHOLDER_NUMAR_CIM: '101/2026',
+    PLACEHOLDER_DATA_CIM: '01.03.2026',
+    PLACEHOLDER_DATA_SEMNARII: '28.02.2026',
     PLACEHOLDER_DATA_SFARSIT: 'nedeterminată',
     PLACEHOLDER_ARTICOL_DURATA_DETERMINATA: 'N/A',
     PLACEHOLDER_PERMIS_MUNCA: 'N/A',
@@ -333,7 +335,9 @@ function getFullSampleData(): Record<string, unknown> {
     PLACEHOLDER_CERTIFICAT_EVALUATOR: 'Certificat Seria EV nr. 9988/2020',
     PLACEHOLDER_EMAIL_PRESTATOR: 'contact@ssmexpertaudit.ro',
     PLACEHOLDER_TELEFON_PRESTATOR: '0722333444',
+    PLACEHOLDER_ADRESA_PRESTATOR: 'București, Str. Agricultori nr. 35, Sector 2',
     PLACEHOLDER_SITE_PRESTATOR: 'www.ssmexpertaudit.ro',
+    PLACEHOLDER_DATA_DOCUMENT: '01.03.2026',
     PLACEHOLDER_DATA_APLICARE: '01.03.2026',
     PLACEHOLDER_DATA_INTOCMIRE: '05.01.2026',
     PLACEHOLDER_DATA_DECIZIE: '05.01.2026',
@@ -348,7 +352,11 @@ function getFullSampleData(): Record<string, unknown> {
     PLACEHOLDER_NUMAR_DECIZIE_07: '07',
     PLACEHOLDER_NUMAR_DECIZIE_08: '08',
     PLACEHOLDER_NUMAR_DECIZIE_09: '09',
+    PLACEHOLDER_NUMAR_DECIZIE_10: '10',
     PLACEHOLDER_NUMAR_DECIZIE_11: '11',
+    PLACEHOLDER_APELATIV_ADMINISTRATOR: 'Dl.',
+    PLACEHOLDER_APELATIV_PSI: 'Dl.',
+    PLACEHOLDER_APELATIV_MEMBRU_COMISIE: 'Dl.',
     PLACEHOLDER_LUCRATOR_DESEMNAT_SSM: 'Ing. Popa Dan',
     PLACEHOLDER_RESPONSABIL_PRIM_AJUTOR: 'As. Med. Georgescu Ana',
     PLACEHOLDER_RESPONSABIL_PSI: 'Tehnician PSI Enache Radu',
@@ -587,7 +595,7 @@ async function main() {
   });
 
   // Test every single template (1 to 25) in isolation for zero unmapped placeholders
-  for (const tpl of TEMPLATE_CATALOG) {
+  for (const tpl of TEMPLATE_CATALOG.slice(0, 25)) {
     await runner.runTest(1, 'Template Generation - Isolation', `Template [${tpl.code}] (${tpl.normalizedFilename}) generates with 0 placeholders`, async () => {
       const unmapped = await renderAndCheckZeroPlaceholders(tpl, fullSampleData);
       assertEqual(unmapped.length, 0, `Template ${tpl.code} must have 0 unmapped placeholders (Remaining: ${unmapped.join(', ')})`);

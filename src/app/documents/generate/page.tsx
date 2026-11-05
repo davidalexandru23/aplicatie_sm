@@ -38,7 +38,15 @@ interface EmployeeOption {
   firstName: string;
   lastName: string;
   cnp: string;
+  currentJobId?: string;
   currentJob?: { title: string };
+}
+
+interface JobOption {
+  id: string;
+  title: string;
+  corCode?: string;
+  mainActivities?: string;
 }
 
 interface HygieneParticipantOption {
@@ -80,15 +88,18 @@ function DocumentGeneratorContent() {
   const initialTemplateCode = searchParams.get('templateCode') || '';
   const initialHygieneSessionId = searchParams.get('hygieneSessionId') || '';
   const initialHygieneParticipantId = searchParams.get('hygieneParticipantId') || '';
+  const initialJobId = searchParams.get('jobId') || '';
 
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [templates, setTemplates] = useState<TemplateOption[]>([]);
   const [employees, setEmployees] = useState<EmployeeOption[]>([]);
+  const [jobs, setJobs] = useState<JobOption[]>([]);
   const [hygieneSessions, setHygieneSessions] = useState<HygieneSessionOption[]>([]);
 
   const [selectedClientId, setSelectedClientId] = useState<string>(initialClientId);
   const [selectedTemplateCode, setSelectedTemplateCode] = useState<string>(initialTemplateCode);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>(initialEmployeeId);
+  const [selectedJobId, setSelectedJobId] = useState<string>(initialJobId);
   const [selectedHygieneSessionId, setSelectedHygieneSessionId] = useState<string>(initialHygieneSessionId);
   const [selectedHygieneParticipantId, setSelectedHygieneParticipantId] = useState<string>(initialHygieneParticipantId);
   const [hygieneScope, setHygieneScope] = useState<'client' | 'session'>(initialHygieneSessionId ? 'session' : 'client');
@@ -136,10 +147,12 @@ function DocumentGeneratorContent() {
       });
   }, []);
 
-  // Load employees when client changes
+  // Load employees & jobs when client changes
   useEffect(() => {
     if (!selectedClientId) {
       setEmployees([]);
+      setJobs([]);
+      setSelectedJobId('');
       return;
     }
     fetch(`/api/clients/${selectedClientId}/employees`)
@@ -147,7 +160,28 @@ function DocumentGeneratorContent() {
       .then((data) => {
         if (Array.isArray(data)) setEmployees(data);
       });
+
+    fetch(`/api/clients/${selectedClientId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && Array.isArray(data.jobs)) {
+          setJobs(data.jobs);
+          if (!selectedJobId && data.jobs.length > 0) {
+            setSelectedJobId(data.jobs[0].id);
+          }
+        }
+      });
   }, [selectedClientId]);
+
+  // When selected employee changes, update job automatically if assigned
+  useEffect(() => {
+    if (selectedEmployeeId && employees.length > 0) {
+      const emp = employees.find((e) => e.id === selectedEmployeeId);
+      if (emp?.currentJobId) {
+        setSelectedJobId(emp.currentJobId);
+      }
+    }
+  }, [selectedEmployeeId, employees]);
 
   const currentTemplate = templates.find((t) => t.code === selectedTemplateCode);
   const isHygieneTemplate =
@@ -184,6 +218,7 @@ function DocumentGeneratorContent() {
       clientId: selectedClientId,
     });
     if (selectedEmployeeId) params.append('employeeId', selectedEmployeeId);
+    if (selectedJobId) params.append('jobId', selectedJobId);
     if (!isHygieneTemplate || hygieneScope === 'session') {
       if (selectedHygieneSessionId) params.append('hygieneSessionId', selectedHygieneSessionId);
       if (selectedHygieneParticipantId) params.append('hygieneParticipantId', selectedHygieneParticipantId);
@@ -215,6 +250,7 @@ function DocumentGeneratorContent() {
     selectedClientId,
     selectedTemplateCode,
     selectedEmployeeId,
+    selectedJobId,
     selectedHygieneSessionId,
     selectedHygieneParticipantId,
     hygieneScope,
@@ -268,6 +304,7 @@ function DocumentGeneratorContent() {
           templateCode: selectedTemplateCode,
           clientId: selectedClientId,
           employeeId: selectedEmployeeId || undefined,
+          jobId: selectedJobId || undefined,
           hygieneSessionId: (isHygieneTemplate && hygieneScope === 'client') ? undefined : (selectedHygieneSessionId || undefined),
           hygieneParticipantId: (isHygieneTemplate && hygieneScope === 'client') ? undefined : (selectedHygieneParticipantId || undefined),
           customFields: formValues,
@@ -302,12 +339,12 @@ function DocumentGeneratorContent() {
             <span>Generator Oficial SSM & Igienă</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Autocompletare inteligentă a celor 25 de șabloane din datele firmei, salariaților și sesiunilor înregistrate.
+            Autocompletare inteligentă a celor 31 de șabloane statutare din datele firmei, salariaților și sesiunilor înregistrate.
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs bg-blue-50 text-blue-800 px-3 py-1.5 rounded-lg border border-blue-200">
           <Sparkles className="w-4 h-4 text-blue-600" />
-          <span>25 Șabloane Normate 100%</span>
+          <span>31 Șabloane Normate 100%</span>
         </div>
       </div>
 
@@ -347,7 +384,7 @@ function DocumentGeneratorContent() {
           {/* Template Selection */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Șablon Oficial (din cele 25) *
+              Șablon Oficial ({templates.length || 31} disponibile) *
             </label>
             <select
               value={selectedTemplateCode}
@@ -363,6 +400,27 @@ function DocumentGeneratorContent() {
             </select>
           </div>
         </div>
+
+        {/* Job / Funcție Selector (Feature F14: Job Operational Profile plumbing) */}
+        {selectedClientId && jobs.length > 0 && (
+          <div className="pt-2 border-t border-slate-100">
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Funcție / Post de Lucru (pentru adaptarea instruirii, activităților & riscurilor)
+            </label>
+            <select
+              value={selectedJobId}
+              onChange={(e) => setSelectedJobId(e.target.value)}
+              className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">-- Alege postul / funcția (opțional) --</option>
+              {jobs.map((j) => (
+                <option key={j.id} value={j.id}>
+                  {j.title} {j.corCode ? `(COR ${j.corCode})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Employee Selection if template is employee-level (non-hygiene) */}
         {isEmployeeRequired && (
