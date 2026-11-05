@@ -37,7 +37,6 @@ async function runEndToEndVerification() {
 
   // 1. Fetch real client from database
   const client = await prisma.client.findFirst({
-    where: { cui: 'RO38765432' },
     include: {
       employees: {
         include: {
@@ -53,7 +52,7 @@ async function runEndToEndVerification() {
   });
 
   if (!client) {
-    throw new Error('Clientul de test NEXUS SOLUTIONS S.R.L. nu a fost găsit în baza de date!');
+    throw new Error('Niciun client găsit în baza de date pentru rularea testelor!');
   }
 
   console.log(`Client: ${client.name} (CUI: ${client.cui})`);
@@ -191,18 +190,19 @@ async function runEndToEndVerification() {
         }
       }
 
-      // Check: If template uses PLACEHOLDER_REPREZENTANT_LEGAL, it MUST be Munteanu Cristian
+      // Check: If template uses PLACEHOLDER_REPREZENTANT_LEGAL, it MUST be client.legalRepresentative
       if (t.fields.some((f) => f.key === 'PLACEHOLDER_REPREZENTANT_LEGAL')) {
-        if (!xmlText.includes('Munteanu Cristian')) {
+        const expectedRep = client.legalRepresentative || 'Administrator';
+        if (!xmlText.includes(expectedRep)) {
           repLegalOk = false;
-          details = 'EROARE: Munteanu Cristian lipsește din document!';
+          details = `EROARE: ${expectedRep} lipsește din document!`;
         }
       }
 
       // Check: Employee must NOT be substituted into legal representative position
       if (
-        xmlText.includes('reprezentat legal prin Stan Alexandru') ||
-        xmlText.includes('ADMINISTRATOR Stan Alexandru')
+        xmlText.includes(`reprezentat legal prin ${employee.lastName} ${employee.firstName}`) ||
+        xmlText.includes(`ADMINISTRATOR ${employee.lastName} ${employee.firstName}`)
       ) {
         repLegalOk = false;
         details = 'EROARE GRAVĂ: Salariatul a fost pus în locul administratorului!';
