@@ -1057,7 +1057,7 @@ export async function resolveTemplateData(
 
   const client = context.client;
   const employee = context.employee || null;
-  const job = context.job || employee?.currentJob || (client?.jobs && client.jobs[0]) || null;
+  const job = employee?.currentJob || context.job || (client?.jobs && client.jobs[0]) || null;
   const worksite = context.worksite || employee?.currentWorksite || (client?.worksites && client.worksites[0]) || null;
   const hygieneSession = context.hygieneSession || null;
   const participant = context.hygieneParticipant || null;
@@ -1983,7 +1983,7 @@ export async function resolveTemplatePlaceholders(ctx: TemplateResolutionContext
     ? client.employees[0]
     : null;
 
-  const selectedJob = client.jobs.find((j) => j.id === ctx.jobId) || employee?.currentJob || (client.jobs && client.jobs[0]) || null;
+  const selectedJob = employee?.currentJob || client.jobs.find((j) => j.id === ctx.jobId) || (client.jobs && client.jobs[0]) || null;
   const selectedWorksite = employee?.currentWorksite || (client.worksites && client.worksites[0]) || null;
 
   const hygieneSession = ctx.hygieneSessionId

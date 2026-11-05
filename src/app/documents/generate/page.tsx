@@ -14,7 +14,8 @@ import {
   Sparkles,
   SlidersHorizontal,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Briefcase
 } from 'lucide-react';
 
 interface ClientOption {
@@ -38,8 +39,13 @@ interface EmployeeOption {
   firstName: string;
   lastName: string;
   cnp: string;
-  currentJobId?: string;
-  currentJob?: { title: string };
+  currentJobId?: string | null;
+  currentJob?: {
+    id?: string;
+    title: string;
+    corCode?: string | null;
+    mainActivities?: string | null;
+  } | null;
 }
 
 interface JobOption {
@@ -147,6 +153,16 @@ function DocumentGeneratorContent() {
       });
   }, []);
 
+  const currentTemplate = templates.find((t) => t.code === selectedTemplateCode);
+  const isHygieneTemplate =
+    currentTemplate?.family === 'hygiene' ||
+    currentTemplate?.contextLevel === 'hygiene_session' ||
+    selectedTemplateCode.startsWith('hygiene-');
+  const isEmployeeRequired =
+    !isHygieneTemplate &&
+    (currentTemplate?.contextLevel === 'employee' || currentTemplate?.contextLevel === 'job');
+  const isAdeverinta = selectedTemplateCode === 'hygiene-adeverinta';
+
   // Load employees & jobs when client changes
   useEffect(() => {
     if (!selectedClientId) {
@@ -166,32 +182,23 @@ function DocumentGeneratorContent() {
       .then((data) => {
         if (data && Array.isArray(data.jobs)) {
           setJobs(data.jobs);
-          if (!selectedJobId && data.jobs.length > 0) {
+          if (!isEmployeeRequired && !selectedJobId && data.jobs.length > 0) {
             setSelectedJobId(data.jobs[0].id);
           }
         }
       });
-  }, [selectedClientId]);
+  }, [selectedClientId, isEmployeeRequired]);
 
-  // When selected employee changes, update job automatically if assigned
+  // When selected employee changes, update job automatically from employee's assigned job
   useEffect(() => {
     if (selectedEmployeeId && employees.length > 0) {
       const emp = employees.find((e) => e.id === selectedEmployeeId);
-      if (emp?.currentJobId) {
-        setSelectedJobId(emp.currentJobId);
-      }
+      const jobId = emp?.currentJobId || (emp?.currentJob as any)?.id || '';
+      setSelectedJobId(jobId);
+    } else if (isEmployeeRequired && !selectedEmployeeId) {
+      setSelectedJobId('');
     }
-  }, [selectedEmployeeId, employees]);
-
-  const currentTemplate = templates.find((t) => t.code === selectedTemplateCode);
-  const isHygieneTemplate =
-    currentTemplate?.family === 'hygiene' ||
-    currentTemplate?.contextLevel === 'hygiene_session' ||
-    selectedTemplateCode.startsWith('hygiene-');
-  const isEmployeeRequired =
-    !isHygieneTemplate &&
-    (currentTemplate?.contextLevel === 'employee' || currentTemplate?.contextLevel === 'job');
-  const isAdeverinta = selectedTemplateCode === 'hygiene-adeverinta';
+  }, [selectedEmployeeId, employees, isEmployeeRequired]);
 
   const selectedClient = clients.find((c) => c.id === selectedClientId);
   const filteredSessions = hygieneSessions.filter((session) => {
@@ -401,11 +408,69 @@ function DocumentGeneratorContent() {
           </div>
         </div>
 
-        {/* Job / Funcție Selector (Feature F14: Job Operational Profile plumbing) */}
-        {selectedClientId && jobs.length > 0 && (
+        {/* Employee Selection for employee-level templates (Postul se preia automat, fără select) */}
+        {isEmployeeRequired && (
+          <div className="pt-2 border-t border-slate-100 space-y-2">
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Salariat Destinatar *
+            </label>
+            <select
+              value={selectedEmployeeId}
+              onChange={(e) => {
+                const empId = e.target.value;
+                setSelectedEmployeeId(empId);
+                const emp = employees.find((x) => x.id === empId);
+                setSelectedJobId(emp?.currentJobId || (emp?.currentJob as any)?.id || '');
+              }}
+              className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">-- Alege salariatul din firmă --</option>
+              {employees.map((emp) => (
+                <option key={emp.id} value={emp.id}>
+                  {emp.lastName} {emp.firstName} — {emp.currentJob?.title || 'Fără post'}
+                </option>
+              ))}
+            </select>
+
+            {/* Preluare automată a postului salariatului */}
+            {selectedEmployeeId && (() => {
+              const emp = employees.find((x) => x.id === selectedEmployeeId);
+              if (emp?.currentJob?.title) {
+                return (
+                  <div className="flex items-center gap-2 p-2.5 bg-blue-50/80 border border-blue-200/90 rounded-lg text-xs text-blue-900">
+                    <Briefcase className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                    <div>
+                      <span className="font-semibold text-blue-950">Post preluat automat din fișa salariatului: </span>
+                      <span className="font-medium">{emp.currentJob.title}</span>
+                      {emp.currentJob.corCode && (
+                        <span className="ml-1.5 px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded font-mono text-[11px]">
+                          COR {emp.currentJob.corCode}
+                        </span>
+                      )}
+                      <span className="text-blue-700 ml-2 text-[11px] block sm:inline">
+                        (Atribuțiile, condițiile și cerințele specifice postului sunt sincronizate automat)
+                      </span>
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <div className="flex items-center gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  <span>
+                    Salariatul selectat nu are un post asociat în profil. Se vor utiliza datele generale ale firmei.
+                  </span>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* Job / Funcție Selector (DOAR pentru documente de nivel companie/evaluare riscuri unde nu este implicat un angajat individual) */}
+        {!isEmployeeRequired && selectedClientId && jobs.length > 0 && (
           <div className="pt-2 border-t border-slate-100">
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Funcție / Post de Lucru (pentru adaptarea instruirii, activităților & riscurilor)
+              Funcție / Post de Lucru (opțional - pentru evaluarea riscurilor sau instructaj specific postului)
             </label>
             <select
               value={selectedJobId}
@@ -416,27 +481,6 @@ function DocumentGeneratorContent() {
               {jobs.map((j) => (
                 <option key={j.id} value={j.id}>
                   {j.title} {j.corCode ? `(COR ${j.corCode})` : ''}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {/* Employee Selection if template is employee-level (non-hygiene) */}
-        {isEmployeeRequired && (
-          <div className="pt-2 border-t border-slate-100">
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              {currentTemplate?.contextLevel === 'job' ? 'Salariat al cărui post se documentează *' : 'Salariat Destinatar *'}
-            </label>
-            <select
-              value={selectedEmployeeId}
-              onChange={(e) => setSelectedEmployeeId(e.target.value)}
-              className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">-- Alege salariatul din firmă --</option>
-              {employees.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.lastName} {emp.firstName} — {emp.currentJob?.title || 'Fără post'}
                 </option>
               ))}
             </select>

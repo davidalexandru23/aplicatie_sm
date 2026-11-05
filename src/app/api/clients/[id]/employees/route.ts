@@ -16,11 +16,24 @@ export async function GET(
       lastName: true,
       cnp: true,
       status: true,
+      currentJobId: true,
       currentJob: {
-        select: { title: true },
+        select: {
+          id: true,
+          title: true,
+          corCode: true,
+          mainActivities: true,
+          equipmentUsed: true,
+          workConditions: true,
+        },
       },
+      currentWorksiteId: true,
       currentWorksite: {
-        select: { name: true },
+        select: {
+          id: true,
+          name: true,
+          address: true,
+        },
       },
     },
   });
