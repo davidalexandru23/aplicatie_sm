@@ -167,12 +167,22 @@ model Job {
   workConditions  String?  // Condiții de lucru relevante
   workersCount    Int?     // Număr aproximativ lucrători
   isActive        Boolean  @default(true)
+
+  // Profiling de risc pentru adaptarea automată a medicinei muncii și EIP
+  isFoodHandling     Boolean  @default(false) // Alimentație / manipulare alimente (HG 355/2007 Fișa 210)
+  isScreenWork       Boolean  @default(false) // Lucru la ecran > 4h/zi (HG 355/2007 Fișa 243)
+  isDrivingRequired  Boolean  @default(false) // Conducere auto în interes de serviciu (Fișa 209)
+  workPosture        String?  // "standing", "sitting", "mixed"
+  maxWeightKg        Float?   // Manipulare manuală mase (kg)
+  noiseExposed       Boolean  @default(false) // Expunere la zgomot > 80 dB(A)
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   employees          Employee[]
   employmentHistory  EmploymentHistory[]
   riskAssessments    RiskAssessment[]
+  eipRequirements    JobEipRequirement[]
 
   @@unique([clientId, title])
 }
@@ -244,6 +254,34 @@ model Employee {
   hygieneIntervalMonths        Int       @default(36) // Valabilitate 3 ani (36 luni) conform art. 20 Ordin 2209/2022
   hygieneNotes                 String?   // Modul curs / serie certificat / dispensă studii medicale
 
+  // ------------------------------------------
+  // CONTRACT INDIVIDUAL DE MUNCĂ (Ordin 2171/2022)
+  // ------------------------------------------
+  cimNumber                    String?   // Număr CIM
+  cimDate                      DateTime? // Data încheierii CIM
+  grossSalary                  Float?    // Salariul de bază brut lunar (lei)
+  workNorm                     Int       @default(8) // Ore/zi (normă întreagă 8h)
+  probationDays                Int       @default(90) // Perioadă de probă (zile)
+  annualLeaveDays              Int       @default(20) // Zile concediu anual
+  bankIban                     String?   // Cont bancar IBAN
+  bankName                     String?   // Banca
+
+  // ------------------------------------------
+  // DATE SUPLEMENTARE SSM & FIȘA POSTULUI (HG 1425/2006)
+  // ------------------------------------------
+  bloodType                    String?   // Grupă sanguină (0I, AII, BIII, ABIV)
+  rhFactor                     String?   // Rh (+ / -)
+  qualification                String?   // Studii / Calificare
+  commuteRoute                 String?   // Traseu deplasare
+  commuteDurationMinutes       Int?      // Durata deplasare (minute)
+
+  // ------------------------------------------
+  // MĂRIMI ECHIPAMENT DE PROTECȚIE (HG 1048/2006)
+  // ------------------------------------------
+  shoeSize                     String?   // Mărime încălțăminte
+  clothingSize                 String?   // Mărime îmbrăcăminte
+  gloveSize                    String?   // Mărime mănuși
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -253,6 +291,7 @@ model Employee {
   trainingParticipants TrainingParticipant[]
   hygieneParticipants  HygieneParticipant[]
   generatedDocuments   GeneratedDocument[]
+  eipAssignments       EmployeeEipAssignment[]
 
   @@unique([clientId, cnp])
   @@index([clientId, status])
@@ -576,4 +615,44 @@ model AuditEvent {
 
   @@index([entityType, entityId])
   @@index([createdAt])
+}
+
+// ==========================================
+// 7. EIP (ECHIPAMENT INDIVIDUAL DE PROTECȚIE - HG 1048/2006)
+// ==========================================
+
+model EipItem {
+  id                String   @id @default(uuid())
+  code              String   @unique
+  name              String   // ex: Încălțăminte antiderapantă bucătar, Bonetă protecție, Halat alb, etc.
+  standardCode      String?  // ex: EN ISO 20345, EN 340
+  protectionType    String?  // Antialunecare, Mecanic, Termic, Chimic, Igienic
+  replacementMonths Int      @default(12) // Periodicitate acordare (luni)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  requirements      JobEipRequirement[]
+  assignments       EmployeeEipAssignment[]
+}
+
+model JobEipRequirement {
+  id        String   @id @default(uuid())
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  eipItemId String
+  eipItem   EipItem  @relation(fields: [eipItemId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, eipItemId])
+}
+
+model EmployeeEipAssignment {
+  id            String    @id @default(uuid())
+  employeeId    String
+  employee      Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  eipItemId     String
+  eipItem       EipItem   @relation(fields: [eipItemId], references: [id], onDelete: Cascade)
+  assignedDate  DateTime  @default(now())
+  signatureDate DateTime?
+
+  @@unique([employeeId, eipItemId])
 }

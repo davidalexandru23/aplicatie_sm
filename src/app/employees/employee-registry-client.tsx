@@ -14,7 +14,8 @@ import {
   AlertCircle, 
   ShieldCheck, 
   FileText,
-  RotateCcw
+  RotateCcw,
+  Download
 } from 'lucide-react';
 import { 
   ComplianceStatus, 
@@ -526,25 +527,20 @@ function EmployeeRegistryInner({
                       </td>
 
                       {/* 8. Documente */}
-                      <td className="px-4 py-3.5 text-right whitespace-nowrap space-x-1">
-                        <Link
-                          href={`/documents/generate?clientId=${emp.client.id}&employeeId=${emp.id}&templateCode=hr-cerere-angajare`}
-                          className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded"
-                          title="Generează cerere de angajare"
+                      <td className="px-4 py-3.5 text-right whitespace-nowrap space-x-1.5">
+                        <a
+                          href={`/api/clients/${emp.client.id}/packages/onboarding?employeeId=${emp.id}`}
+                          download
+                          className="inline-flex items-center gap-1 text-[11px] text-emerald-700 bg-emerald-50 hover:bg-emerald-100 font-semibold px-2 py-1 rounded border border-emerald-200 shadow-2xs transition"
+                          title="Descarcă dosarul complet de angajare (11 DOCX ZIP)"
                         >
-                          Cerere
-                        </Link>
-                        <Link
-                          href={`/documents/generate?clientId=${emp.client.id}&employeeId=${emp.id}&templateCode=hr-declaratie-regulament`}
-                          className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded"
-                          title="Generează declarație regulament intern"
-                        >
-                          Declarație
-                        </Link>
+                          <Download className="w-3 h-3 text-emerald-600" />
+                          Onboarding ZIP
+                        </a>
                         <Link
                           href={`/documents/generate?clientId=${emp.client.id}&employeeId=${emp.id}&templateCode=hr-cim-2026`}
                           className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded"
-                          title="Generează CIM 2026"
+                          title="Generează CIM individual"
                         >
                           CIM
                         </Link>

@@ -1074,6 +1074,16 @@ export async function resolveTemplateData(
   const addressFull = residence ? formatRomanianAddress(residence) : '';
   const hireDateRo = employee?.hireDate ? formatDateRo(employee.hireDate) : currentDateRo;
 
+  const isFoodSector = Boolean(
+    job?.isFoodHandling ||
+    client?.caenCode === '5610' ||
+    client?.caenActivity?.toLowerCase().includes('aliment') ||
+    client?.caenActivity?.toLowerCase().includes('restaurant') ||
+    job?.title?.toLowerCase().includes('bucatar') ||
+    job?.title?.toLowerCase().includes('ospatar') ||
+    job?.title?.toLowerCase().includes('barman')
+  );
+
   // IMPORTANT: PLACEHOLDER_REPREZENTANT_LEGAL is ALWAYS the employer/administrator, NEVER the employee.
   const legalRepresentativeName = client?.legalRepresentative || 'Munteanu Cristian';
 
@@ -1633,9 +1643,73 @@ export async function resolveTemplateData(
     PLACEHOLDER_ECHIPAMENTE_POST: job?.equipmentUsed || ROMANIAN_LEGAL_OCCUPATIONAL_HEALTH.PLACEHOLDER_ECHIPAMENTE_POST,
     PLACEHOLDER_CONDITII_POST: job?.workConditions || ROMANIAN_LEGAL_OCCUPATIONAL_HEALTH.PLACEHOLDER_CONDITII_POST,
     PLACEHOLDER_NUMAR_CIM: (employee as any)?.cimNumber || (context.customOverrides?.PLACEHOLDER_NUMAR_CIM as string) || (context.allowOfflineBlank || !employee ? '........ / ............' : ''),
-    PLACEHOLDER_DATA_CIM: (context.customOverrides?.PLACEHOLDER_DATA_CIM as string) || hireDateRo || (context.allowOfflineBlank || !employee ? '........................' : ''),
+    PLACEHOLDER_DATA_CIM: (employee as any)?.cimDate ? formatDateRo((employee as any).cimDate) : ((context.customOverrides?.PLACEHOLDER_DATA_CIM as string) || hireDateRo || (context.allowOfflineBlank || !employee ? '........................' : '')),
     PLACEHOLDER_DATA_SEMNARII: (context.customOverrides?.PLACEHOLDER_DATA_SEMNARII as string) || hireDateRo || (context.allowOfflineBlank || !employee ? '........................' : ''),
-    PLACEHOLDER_SALARIU_BRUT: (employee as any)?.salary || (context.customOverrides?.PLACEHOLDER_SALARIU_BRUT as string) || (context.allowOfflineBlank || !employee ? '........................ lei' : ''),
+    PLACEHOLDER_SALARIU_BRUT: (employee as any)?.grossSalary != null ? `${(employee as any).grossSalary} lei` : ((employee as any)?.salary || (context.customOverrides?.PLACEHOLDER_SALARIU_BRUT as string) || (context.allowOfflineBlank || !employee ? '........................ lei' : '')),
+    PLACEHOLDER_NORMA_LUCRU: `Normă întreagă (${(employee as any)?.workNorm || 8} ore/zi, ${((employee as any)?.workNorm || 8) * 5} ore/săptămână)`,
+    PLACEHOLDER_PROGRAM_LUCRU: `Normă întreagă de ${(employee as any)?.workNorm || 8} ore/zi, ${((employee as any)?.workNorm || 8) * 5} ore/săptămână, Luni - Vineri`,
+    PLACEHOLDER_PERIOADA_PROBA: `${(employee as any)?.probationDays || 90} zile calendaristice`,
+    PLACEHOLDER_DURATA_CONCEDIULUI: `${(employee as any)?.annualLeaveDays || 20} zile lucrătoare`,
+    PLACEHOLDER_CONT_BANCA_SALARIAT: (employee as any)?.bankIban || (employee as any)?.bankAccount || (employee as any)?.iban || '-',
+    PLACEHOLDER_BANCA_SALARIAT: (employee as any)?.bankName || '-',
+    PLACEHOLDER_GRUPA_SANGUINA: (employee as any)?.bloodType ? `${(employee as any).bloodType}${(employee as any)?.rhFactor ? ` (Rh ${(employee as any).rhFactor})` : ''}` : '0I (Rh +)',
+    PLACEHOLDER_TRASEU_DEPLASARE: (employee as any)?.commuteRoute || 'Deplasare urbană domiciliu - sediu',
+    PLACEHOLDER_DURATA_DEPLASARE: `${(employee as any)?.commuteDurationMinutes || 30} minute`,
+    PLACEHOLDER_MARIME_INCALTAMINTE: (employee as any)?.shoeSize || '42',
+    PLACEHOLDER_MARIME_IMBRACAMINTE: (employee as any)?.clothingSize || 'L',
+    PLACEHOLDER_MARIME_MANUSI: (employee as any)?.gloveSize || '9',
+
+    // Profiling Dinamic Medicina Muncii (HG 355/2007)
+    PLACEHOLDER_SECTOR_ALIMENTAR: isFoodSector ? 'Da (manipulare, preparare și servire alimente conform Fișei 210 din HG 355/2007)' : 'Nu',
+    PLACEHOLDER_SUPRASOLICITARE_VIZUALA: isFoodSector ? 'Nu' : 'Da - lucru cu ecran de vizualizare (videoterminal/laptop) peste 4 ore/zi conform Fișei 243 din HG 355/2007',
+    PLACEHOLDER_RISC_TAIERE: isFoodSector ? 'Da (ustensile și cuțite profesionale de bucătărie)' : 'Nu',
+    PLACEHOLDER_RISC_ARSURI_OPARIRE: isFoodSector ? 'Da (suprafețe fierbinți, plite, cuptoare, ulei încins)' : 'Nu',
+    PLACEHOLDER_POZITIE_LUCRU: isFoodSector ? 'Ortostatică (în picioare cu deplasări frecvente în perimetrul bucătăriei/sălii)' : (job?.workPosture === 'sitting' ? 'Așezat pe scaun ergonomic reglabil (> 70% din programul de lucru)' : (job?.workPosture || 'Așezat pe scaun ergonomic reglabil')),
+    PLACEHOLDER_MANIPULARE_MASE: isFoodSector ? 'Da (vase de gătit, materii prime, recipiente până la 15 kg)' : (job?.maxWeightKg && job.maxWeightKg > 10 ? `Da (manipulare echipamente până la ${job.maxWeightKg} kg)` : 'Nu'),
+    PLACEHOLDER_GREUTATE_MAXIMA_MANIPULATA: isFoodSector ? 'Până la 15 kg' : (job?.maxWeightKg ? `Până la ${job.maxWeightKg} kg` : 'Sub 3 kg'),
+    PLACEHOLDER_NIVEL_EFORT_FIZIC: isFoodSector ? 'Mediu (solicitare fizică dinamică în bucătărie / servire)' : 'Mic (solicitare posturală statică la birou)',
+
+    // Profiling Dinamic EIP (HG 1048/2006)
+    ...(isFoodSector ? {
+      PLACEHOLDER_EIP_DENUMIRE_01: 'Încălțăminte antiderapantă bucătar (OB-E-A-FO SRC)',
+      PLACEHOLDER_EIP_STANDARD_01: 'EN ISO 20347',
+      PLACEHOLDER_EIP_RISC_01: 'Alunecare pe pardoseli umede/grase',
+      PLACEHOLDER_EIP_DENUMIRE_02: 'Bonetă / plasă protecție păr',
+      PLACEHOLDER_EIP_STANDARD_02: 'HACCP / EN 340',
+      PLACEHOLDER_EIP_RISC_02: 'Contaminare alimentară / igienă',
+      PLACEHOLDER_EIP_DENUMIRE_03: 'Halat / tunică albă bucătar',
+      PLACEHOLDER_EIP_STANDARD_03: 'EN 340',
+      PLACEHOLDER_EIP_RISC_03: 'Murdărie, stropire, temperatură',
+      PLACEHOLDER_EIP_DENUMIRE_04: 'Șorț impermeabil protecție',
+      PLACEHOLDER_EIP_STANDARD_04: 'EN 340',
+      PLACEHOLDER_EIP_RISC_04: 'Stropire cu lichide fierbinți',
+      PLACEHOLDER_EIP_DENUMIRE_05: 'Mănuși termoprotectoare cuptor',
+      PLACEHOLDER_EIP_STANDARD_05: 'EN 407',
+      PLACEHOLDER_EIP_RISC_05: 'Arsuri la manipulare tăvi fierbinți',
+    } : job?.title?.toLowerCase().includes('tehnician') ? {
+      PLACEHOLDER_EIP_DENUMIRE_01: 'Bocanci protecție S3 SRC cu bombeu compozit',
+      PLACEHOLDER_EIP_STANDARD_01: 'EN ISO 20345',
+      PLACEHOLDER_EIP_RISC_01: 'Strivire degete, perforare talpă, alunecare',
+      PLACEHOLDER_EIP_DENUMIRE_02: 'Mănuși protecție mecanică nivel 4',
+      PLACEHOLDER_EIP_STANDARD_02: 'EN 388',
+      PLACEHOLDER_EIP_RISC_02: 'Agresiuni mecanice, tăiere, abraziune',
+      PLACEHOLDER_EIP_DENUMIRE_03: 'Vestă reflectorizantă clasa 2',
+      PLACEHOLDER_EIP_STANDARD_03: 'EN ISO 20471',
+      PLACEHOLDER_EIP_RISC_03: 'Vizibilitate redusă în trafic/șantier',
+      PLACEHOLDER_EIP_DENUMIRE_04: 'Mănuși electroizolante 1000V',
+      PLACEHOLDER_EIP_STANDARD_04: 'EN 60903',
+      PLACEHOLDER_EIP_RISC_04: 'Electrocutare joasă tensiune',
+      PLACEHOLDER_EIP_DENUMIRE_05: 'Trusă scule izolate 1000V',
+      PLACEHOLDER_EIP_STANDARD_05: 'EN 60900',
+      PLACEHOLDER_EIP_RISC_05: 'Risc electric la intervenții',
+    } : {
+      PLACEHOLDER_EIP_DENUMIRE_01: 'Ochelari protecție ecran cu filtru lumină albastră',
+      PLACEHOLDER_EIP_STANDARD_01: 'EN 166',
+      PLACEHOLDER_EIP_RISC_01: 'Oboseală vizuală la videoterminale',
+      PLACEHOLDER_EIP_DENUMIRE_02: 'Suport ergonomic dorsal / lombar',
+      PLACEHOLDER_EIP_STANDARD_02: 'Norme ergonomice HG 1028/2006',
+      PLACEHOLDER_EIP_RISC_02: 'Suprasolicitare musculo-scheletică posturală',
+    }),
     PLACEHOLDER_ADRESA_PUNCT_LUCRU: worksite?.address || client?.address || 'București, Sector 1',
     PLACEHOLDER_PUNCT_LUCRU: worksite?.name || 'Sediul Central',
     PLACEHOLDER_DEPARTAMENT: worksite?.activity || 'Departament Tehnic & IT',
@@ -1658,8 +1732,6 @@ export async function resolveTemplateData(
     PLACEHOLDER_ADRESA_DOMICILIU: addressFull || 'București, Sector 1, Str. Victoriei nr. 10',
     PLACEHOLDER_TELEFON_SALARIAT: (employee as any)?.phone || '-',
     PLACEHOLDER_EMAIL_SALARIAT: (employee as any)?.email || '-',
-    PLACEHOLDER_CONT_BANCA_SALARIAT: (employee as any)?.bankAccount || (employee as any)?.iban || '-',
-    PLACEHOLDER_BANCA_SALARIAT: (employee as any)?.bankName || '-',
     PLACEHOLDER_APELATIV_SALARIAT: detectRomanianSalutation(fullName || 'Stan Alexandru', employee?.cnp),
     PLACEHOLDER_SEX: employee?.sex || (employee?.cnp && ['1', '3', '5', '7'].includes(employee.cnp[0]) ? 'M' : 'F') || 'M',
     PLACEHOLDER_PROFESIE_OCUPATIE: job?.title || 'Inginer sisteme software',

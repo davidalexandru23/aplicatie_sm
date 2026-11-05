@@ -109,6 +109,7 @@ function DocumentGeneratorContent() {
   const [selectedTemplateCode, setSelectedTemplateCode] = useState<string>(initialTemplateCode);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>(initialEmployeeId);
   const [selectedJobId, setSelectedJobId] = useState<string>(initialJobId);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedHygieneSessionId, setSelectedHygieneSessionId] = useState<string>(initialHygieneSessionId);
   const [selectedHygieneParticipantId, setSelectedHygieneParticipantId] = useState<string>(initialHygieneParticipantId);
   const [hygieneScope, setHygieneScope] = useState<'client' | 'session'>(initialHygieneSessionId ? 'session' : 'client');
@@ -240,6 +241,17 @@ function DocumentGeneratorContent() {
   });
   const displayedSessions = filteredSessions.length > 0 ? filteredSessions : hygieneSessions;
   const selectedHygieneSession = hygieneSessions.find((session) => session.id === selectedHygieneSessionId);
+
+  const filteredTemplates = templates.filter((t) => {
+    if (selectedCategory === 'all') return true;
+    if (selectedCategory === 'hygiene') return t.family === 'hygiene' || t.code.startsWith('hygiene-');
+    if (selectedCategory === 'ipssm') return t.family === 'ipssm';
+    if (selectedCategory === 'med_eip') return t.code.startsWith('med-') || t.code.startsWith('eip-');
+    if (selectedCategory === 'psi') return t.code.includes('psi') || t.code.includes('urgenta');
+    if (selectedCategory === 'hr') return t.family === 'hr';
+    if (selectedCategory === 'ssm') return t.family === 'risk' || t.family === 'training' || t.family === 'decision';
+    return true;
+  });
 
   // Load dynamic template placeholders & pre-filled values
   useEffect(() => {
@@ -404,6 +416,41 @@ function DocumentGeneratorContent() {
         </div>
       )}
 
+      {/* Quick 1-Click Packages Banner when Client is selected */}
+      {selectedClientId && (
+        <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50/60 border border-blue-200/80 rounded-xl text-xs shadow-2xs">
+          <div className="flex items-center gap-2 text-slate-800">
+            <Sparkles className="w-4 h-4 text-amber-500 flex-shrink-0" />
+            <div>
+              <span className="font-bold text-slate-900">Vrei pachetul complet dintr-un singur click?</span>
+              <span className="text-slate-600 block sm:inline sm:ml-1.5">Generează direct arhiva ZIP structurată conform cerințelor ITM / ISU:</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <a
+              href={`/api/clients/${selectedClientId}/packages/dossier`}
+              download
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-blue-200 hover:border-blue-300 text-blue-900 font-semibold rounded-lg shadow-2xs hover:bg-blue-50 transition"
+              title="Descarcă dosarul de securitate al companiei (16 DOCX)"
+            >
+              <Download className="w-3.5 h-3.5 text-blue-600" />
+              Dosar SSM Firmă (16 DOCX)
+            </a>
+            {selectedEmployeeId && (
+              <a
+                href={`/api/clients/${selectedClientId}/packages/onboarding?employeeId=${selectedEmployeeId}`}
+                download
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-2xs transition"
+                title="Descarcă dosarul complet de angajare (11 DOCX)"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Pachet Onboarding (11 DOCX)
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Main Form Selection */}
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -431,11 +478,55 @@ function DocumentGeneratorContent() {
             </select>
           </div>
 
-          {/* Template Selection */}
+          {/* Template Selection with Category Tabs */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Șablon Oficial ({templates.length || 31} disponibile) *
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-semibold text-slate-700">
+                Șablon Oficial ({filteredTemplates.length}/{templates.length || 31}) *
+              </label>
+            </div>
+
+            {/* Domain category pills */}
+            <div className="flex flex-wrap gap-1 mb-2">
+              {[
+                { id: 'all', label: `Toate (${templates.length || 31})` },
+                { id: 'ssm', label: 'SSM' },
+                { id: 'psi', label: 'PSI / SU' },
+                { id: 'med_eip', label: 'Medicină & EIP' },
+                { id: 'hr', label: 'HR / CIM' },
+                { id: 'hygiene', label: 'Igienă' },
+                { id: 'ipssm', label: 'IPSSM' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategory(tab.id);
+                    const matching = templates.filter((t) => {
+                      if (tab.id === 'all') return true;
+                      if (tab.id === 'hygiene') return t.family === 'hygiene' || t.code.startsWith('hygiene-');
+                      if (tab.id === 'ipssm') return t.family === 'ipssm';
+                      if (tab.id === 'med_eip') return t.code.startsWith('med-') || t.code.startsWith('eip-');
+                      if (tab.id === 'psi') return t.code.includes('psi') || t.code.includes('urgenta');
+                      if (tab.id === 'hr') return t.family === 'hr';
+                      if (tab.id === 'ssm') return t.family === 'risk' || t.family === 'training' || t.family === 'decision';
+                      return true;
+                    });
+                    if (matching.length > 0 && !matching.some((m) => m.code === selectedTemplateCode)) {
+                      setSelectedTemplateCode(matching[0].code);
+                    }
+                  }}
+                  className={`px-2 py-0.5 rounded text-[11px] font-medium transition ${
+                    selectedCategory === tab.id
+                      ? 'bg-blue-600 text-white shadow-2xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
             <select
               value={selectedTemplateCode}
               onChange={(e) => {
@@ -467,7 +558,7 @@ function DocumentGeneratorContent() {
               className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">-- Alege șablonul --</option>
-              {templates.map((t) => (
+              {filteredTemplates.map((t) => (
                 <option key={t.code} value={t.code}>
                   [{t.family.toUpperCase()}] {t.name} ({t.format.toUpperCase()})
                 </option>
