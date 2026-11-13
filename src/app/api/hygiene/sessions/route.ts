@@ -3,10 +3,37 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request?: NextRequest) {
+  let clientId: string | null = null;
+  if (request && request.url) {
+    try {
+      const { searchParams } = new URL(request.url);
+      clientId = searchParams.get('clientId');
+    } catch {
+      clientId = null;
+    }
+  }
+
+  const whereClause = clientId
+    ? {
+        OR: [
+          { clientId },
+          { participants: { some: { employee: { clientId } } } },
+        ],
+      }
+    : {};
+
   const sessions = await prisma.hygieneSession.findMany({
+    where: whereClause,
     orderBy: { sessionDate: 'desc' },
     include: {
+      client: {
+        select: {
+          id: true,
+          name: true,
+          cui: true,
+        },
+      },
       participants: {
         select: {
           id: true,
@@ -20,6 +47,7 @@ export async function GET() {
           examResult: true,
           certificateSeries: true,
           certificateNumber: true,
+          certificateDate: true,
           employeeId: true,
           employee: {
             select: {
@@ -57,6 +85,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const {
+      clientId,
       providerName,
       msAuthorization,
       meAuthorization,
@@ -79,6 +108,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const parsedSessionDate = new Date(sessionDate);
+    const parsedExamDate = new Date(examDate);
+    if (isNaN(parsedSessionDate.getTime()) || isNaN(parsedExamDate.getTime())) {
+      return NextResponse.json(
+        { error: 'Format invalid pentru data sesiunii sau data examenului.' },
+        { status: 400 }
+      );
+    }
+
     if (!participants || !Array.isArray(participants) || participants.length === 0) {
       return NextResponse.json(
         { error: 'Cel puțin un cursant este necesar.' },
@@ -95,15 +133,34 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
+      if (p.birthDate && isNaN(new Date(p.birthDate).getTime())) {
+        return NextResponse.json(
+          { error: `Data nașterii invalidă pentru participantul ${i + 1}.` },
+          { status: 400 }
+        );
+      }
+    }
+
+    let resolvedClientId = clientId || null;
+    if (!resolvedClientId && participants.length > 0) {
+      const firstClientName = participants[0]?.clientName?.trim();
+      if (firstClientName) {
+        const found = await prisma.client.findFirst({
+          where: { name: { equals: firstClientName, mode: 'insensitive' } },
+          select: { id: true },
+        });
+        if (found) resolvedClientId = found.id;
+      }
     }
 
     const session = await prisma.hygieneSession.create({
       data: {
+        clientId: resolvedClientId,
         providerName: providerName || 'Firma Prestatoare SSM',
         msAuthorization: msAuthorization || null,
         meAuthorization: meAuthorization || null,
-        sessionDate: new Date(sessionDate),
-        examDate: new Date(examDate),
+        sessionDate: parsedSessionDate,
+        examDate: parsedExamDate,
         location,
         commissionPresident: commissionPresident || null,
         commissionMember1: commissionMember1 || null,

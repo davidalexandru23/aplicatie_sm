@@ -110,6 +110,53 @@ export interface ImportPreviewReport {
   items: ImportPreviewItem[];
 }
 
+export interface ImportValidationReport {
+  schemaVersion: '1.0';
+  validatedAt: string; // ISO 8601
+  totalRows: number;
+  validRowsCount: number;
+  invalidRowsCount: number;
+  operatorName: string;
+  filename: string;
+  errorsByRow: {
+    rowNumber: number;
+    cnpMasked: string;
+    name: string;
+    errors: string[];
+  }[];
+}
+
+export interface ImportDiffData {
+  schemaVersion: '1.0';
+  generatedAt: string; // ISO 8601
+  clientId: string;
+  summary: {
+    totalRows: number;
+    newCount: number;
+    modifiedCount?: number;
+    updatedCount?: number;
+    unchangedCount: number;
+    errorCount: number;
+    ambiguousCount: number;
+  };
+  newWorksites: string[];
+  newJobs: string[];
+  items: {
+    rowNumber: number;
+    cnpMasked: string; // GDPR compliant: masked CNP only
+    name: string;
+    jobTitle: string;
+    worksiteName: string;
+    status: 'NEW' | 'MODIFIED' | 'UNCHANGED' | 'ERROR' | 'AMBIGUOUS';
+    errors: string[];
+    changes: {
+      field: string;
+      oldVal: string;
+      newVal: string;
+    }[];
+  }[];
+}
+
 /**
  * Normalizare text antet: litere mici, eliminare diacritice, paranteze, asteriscuri și spații multiple.
  */
@@ -547,6 +594,178 @@ export function parseClientWorkbook(buffer: Buffer): ParsedWorkbook {
 }
 
 /**
+ * Strict server-side re-validation of parsed workbook data prior to commit.
+ * Enforces Romanian CNP validity checksum, mandatory statutory fields,
+ * and intra-batch CNP duplication prevention.
+ */
+export function revalidateParsedWorkbook(
+  parsed: ParsedWorkbook,
+  operatorName: string = 'Operator Intern',
+  filename: string = 'import.xlsx'
+): {
+  revalidatedData: ParsedWorkbook;
+  validationReport: ImportValidationReport;
+  hasValidRows: boolean;
+  totalRows: number;
+  validCount: number;
+  errorCount: number;
+} {
+  const seenCnpMap = new Map<string, number>();
+  const revalidatedEmployees: ParsedEmployee[] = [];
+  const errorsByRow: ImportValidationReport['errorsByRow'] = [];
+
+  const parseDateSafe = (val: unknown): Date | undefined => {
+    if (!val) return undefined;
+    if (val instanceof Date) return isNaN(val.getTime()) ? undefined : val;
+    return parseExcelDate(val);
+  };
+
+  const employees = parsed.employees || [];
+
+  for (let i = 0; i < employees.length; i++) {
+    const raw = employees[i];
+    const rowNum = raw.rowNumber || i + 1;
+    const errors: string[] = [];
+
+    const lastName = raw.lastName?.trim() || '';
+    const firstName = raw.firstName?.trim() || '';
+    if (!lastName) errors.push('Numele este obligatoriu.');
+    if (!firstName) errors.push('Prenumele este obligatoriu.');
+
+    const cnpRaw = raw.cnp ? String(raw.cnp).trim() : '';
+    const citizenship = raw.citizenship?.trim() || 'Română';
+    const docType = raw.docType?.trim() || 'CI';
+    const normCitizenship = normalizeHeader(citizenship);
+    const isRomanian = !citizenship || normCitizenship === 'romana' || normCitizenship === 'ro';
+    const isPassport = normalizeHeader(docType).includes('pasaport');
+
+    if (!cnpRaw) {
+      errors.push('CNP-ul sau numărul de identificare este obligatoriu.');
+    } else {
+      if (seenCnpMap.has(cnpRaw)) {
+        errors.push(`CNP duplicat în fișier (apare deja la rândul ${seenCnpMap.get(cnpRaw)}).`);
+      } else {
+        seenCnpMap.set(cnpRaw, rowNum);
+      }
+
+      if (isRomanian && !isPassport) {
+        if (!validateCNP(cnpRaw)) {
+          errors.push('CNP-ul este invalid (cifra de control sau lungime incorectă).');
+        }
+      } else {
+        if (cnpRaw.length < 3) {
+          errors.push('Numărul actului de identificare/pașaport este prea scurt.');
+        }
+      }
+    }
+
+    const birthDate = parseDateSafe(raw.birthDate);
+    if (!birthDate) errors.push('Data nașterii este obligatorie sau invalidă.');
+
+    const docNumber = raw.docNumber ? String(raw.docNumber).trim() : '';
+    if (!docNumber) errors.push('Numărul actului de identitate este obligatoriu.');
+
+    const county = raw.county?.trim() || '';
+    const locality = raw.locality?.trim() || '';
+    const street = raw.street?.trim() || '';
+    const streetNumber = raw.streetNumber ? String(raw.streetNumber).trim() : '';
+    if (!county) errors.push('Județul de domiciliu este obligatoriu.');
+    if (!locality) errors.push('Localitatea de domiciliu este obligatorie.');
+    if (!street) errors.push('Strada este obligatorie.');
+    if (!streetNumber) errors.push('Numărul străzii este obligatoriu.');
+
+    const jobTitle = raw.jobTitle?.trim() || '';
+    const worksiteName = raw.worksiteName?.trim() || '';
+    if (!jobTitle) errors.push('Funcția/postul este obligatorie.');
+    if (!worksiteName) errors.push('Punctul de lucru este obligatoriu.');
+
+    const hireDate = parseDateSafe(raw.hireDate);
+    if (!hireDate) errors.push('Data angajării este obligatorie.');
+
+    const status: 'ACTIV' | 'PLECAT' = raw.status === 'PLECAT' ? 'PLECAT' : 'ACTIV';
+    const leaveDate = parseDateSafe(raw.leaveDate);
+    if (status === 'PLECAT' && !leaveDate) {
+      errors.push('Pentru statusul PLECAT este necesară data plecării.');
+    }
+
+    const docIssueDate = parseDateSafe(raw.docIssueDate);
+    const docExpiryDate = parseDateSafe(raw.docExpiryDate);
+    const startDateOnJob = parseDateSafe(raw.startDateOnJob) || hireDate;
+    const medicalLastExamDate = parseDateSafe(raw.medicalLastExamDate);
+    const ssmLastTrainingDate = parseDateSafe(raw.ssmLastTrainingDate);
+    const psiLastTrainingDate = parseDateSafe(raw.psiLastTrainingDate);
+    const hygieneLastExamDate = parseDateSafe(raw.hygieneLastExamDate);
+
+    const isValid = errors.length === 0;
+
+    const validatedEmp: ParsedEmployee = {
+      ...raw,
+      rowNumber: rowNum,
+      lastName,
+      firstName,
+      cnp: cnpRaw,
+      birthDate: birthDate!,
+      docNumber,
+      county,
+      locality,
+      street,
+      streetNumber,
+      jobTitle,
+      worksiteName,
+      hireDate: hireDate!,
+      status,
+      leaveDate,
+      docIssueDate,
+      docExpiryDate,
+      startDateOnJob,
+      medicalLastExamDate,
+      ssmLastTrainingDate,
+      psiLastTrainingDate,
+      hygieneLastExamDate,
+      isValid,
+      errors,
+    };
+
+    revalidatedEmployees.push(validatedEmp);
+
+    if (!isValid) {
+      errorsByRow.push({
+        rowNumber: rowNum,
+        cnpMasked: maskCNP(cnpRaw),
+        name: `${lastName} ${firstName}`.trim() || 'Nespecificat',
+        errors,
+      });
+    }
+  }
+
+  const validCount = revalidatedEmployees.filter((e) => e.isValid).length;
+  const errorCount = revalidatedEmployees.length - validCount;
+
+  const validationReport: ImportValidationReport = {
+    schemaVersion: '1.0',
+    validatedAt: new Date().toISOString(),
+    totalRows: revalidatedEmployees.length,
+    validRowsCount: validCount,
+    invalidRowsCount: errorCount,
+    operatorName,
+    filename,
+    errorsByRow,
+  };
+
+  return {
+    revalidatedData: {
+      ...parsed,
+      employees: revalidatedEmployees,
+    },
+    validationReport,
+    hasValidRows: validCount > 0,
+    totalRows: revalidatedEmployees.length,
+    validCount,
+    errorCount,
+  };
+}
+
+/**
  * Comparare fișier importat cu baza de date pentru generare Preview & Diff
  */
 export async function compareWithDatabase(
@@ -746,8 +965,12 @@ export async function compareWithDatabase(
 export async function commitImport(
   clientId: string,
   parsedData: ParsedWorkbook,
-  operatorName: string,
-  filename: string
+  operatorName: string = 'Operator Intern',
+  filename: string = 'import.xlsx',
+  extra?: {
+    validationReport?: ImportValidationReport | string | null;
+    diffData?: ImportDiffData | string | null;
+  }
 ): Promise<string> {
   return await prisma.$transaction(async (tx) => {
     // 1. Actualizare metadate firmă dacă s-au specificat în Excel
@@ -888,10 +1111,10 @@ export async function commitImport(
             hygieneModule: emp.hygieneModule,
             hygienePreferredSession: emp.hygienePreferredSession,
             adminNotes: emp.adminNotes,
-            medicalLastExamDate: emp.medicalLastExamDate || emp.hireDate,
-            ssmLastTrainingDate: emp.ssmLastTrainingDate || emp.hireDate,
-            psiLastTrainingDate: emp.psiLastTrainingDate || emp.hireDate,
-            hygieneLastExamDate: emp.hygieneLastExamDate,
+            medicalLastExamDate: emp.medicalLastExamDate ?? null,
+            ssmLastTrainingDate: emp.ssmLastTrainingDate ?? null,
+            psiLastTrainingDate: emp.psiLastTrainingDate ?? null,
+            hygieneLastExamDate: emp.hygieneLastExamDate ?? null,
           },
         });
 
@@ -1063,6 +1286,12 @@ export async function commitImport(
         updatedCount,
         errorCount: parsedData.employees.filter((e) => !e.isValid).length,
         status: 'confirmed',
+        validationReport: extra?.validationReport
+          ? (typeof extra.validationReport === 'string' ? extra.validationReport : JSON.stringify(extra.validationReport))
+          : null,
+        diffData: extra?.diffData
+          ? (typeof extra.diffData === 'string' ? extra.diffData : JSON.stringify(extra.diffData))
+          : null,
         operatorName,
       },
     });

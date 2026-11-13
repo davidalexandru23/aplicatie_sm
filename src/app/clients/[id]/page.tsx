@@ -17,6 +17,15 @@ import {
 } from '@/components/compliance-badge';
 import { ClientEditModal } from '@/components/client-edit-modal';
 import { OrganizationalDecisionsCard } from '@/components/organizational-decisions-card';
+import {
+  AddEmployeeModal,
+  RecordMedicalExamModal,
+  EditEmployeeModal,
+  TerminateEmployeeModal,
+} from '@/components/employees';
+import { AddJobModal } from '@/components/jobs/add-job-modal';
+import { EditJobModal } from '@/components/jobs/edit-job-modal';
+import { ManageEipModal } from '@/components/employees/manage-eip-modal';
 import { 
   Building2, 
   Users, 
@@ -31,7 +40,8 @@ import {
   Award,
   AlertTriangle,
   Clock,
-  Sparkles
+  Sparkles,
+  Shield
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -43,34 +53,52 @@ export default async function ClientDetailPage({
 }) {
   const { id } = await params;
 
-  const client = await prisma.client.findUnique({
-    where: { id },
-    include: {
-      worksites: { orderBy: { name: 'asc' } },
-      jobs: { orderBy: { title: 'asc' } },
-      provider: true,
-      specialist: true,
-      employees: {
-        orderBy: [{ status: 'asc' }, { lastName: 'asc' }],
-        include: {
-          currentJob: true,
-          currentWorksite: true,
-          identityDocument: true,
-          residenceAddress: true,
+  const [client, eipCatalog] = await Promise.all([
+    prisma.client.findUnique({
+      where: { id },
+      include: {
+        worksites: { orderBy: { name: 'asc' } },
+        jobs: {
+          orderBy: { title: 'asc' },
+          include: {
+            eipRequirements: { include: { eipItem: true } },
+          },
+        },
+        provider: true,
+        specialist: true,
+        employees: {
+          orderBy: [{ status: 'asc' }, { lastName: 'asc' }],
+          include: {
+            currentJob: {
+              include: {
+                eipRequirements: { include: { eipItem: true } },
+              },
+            },
+            currentWorksite: true,
+            identityDocument: true,
+            residenceAddress: true,
+            eipAssignments: {
+              include: { eipItem: true },
+              orderBy: { assignedDate: 'desc' },
+            },
+          },
+        },
+        generatedDocuments: {
+          orderBy: { createdAt: 'desc' },
+          include: { template: true },
+        },
+        riskAssessments: {
+          include: {
+            riskItems: true,
+            preventionMeasures: true,
+          },
         },
       },
-      generatedDocuments: {
-        orderBy: { createdAt: 'desc' },
-        include: { template: true },
-      },
-      riskAssessments: {
-        include: {
-          riskItems: true,
-          preventionMeasures: true,
-        },
-      },
-    },
-  });
+    }),
+    prisma.eipItem.findMany({
+      orderBy: { name: 'asc' },
+    }),
+  ]);
 
   if (!client) {
     notFound();
@@ -413,8 +441,11 @@ export default async function ClientDetailPage({
               Registru Salariați & Monitorizare Scadențe ({client.employees.length})
             </h2>
           </div>
-          <div className="text-xs text-slate-500">
-            CNP mascat conform GDPR • Verificare automată HG 355/2007, Legea 319/2006
+          <div className="flex items-center gap-3">
+            <div className="text-xs text-slate-500 hidden md:block">
+              CNP mascat conform GDPR • Verificare automată HG 355/2007, Legea 319/2006
+            </div>
+            <AddEmployeeModal clientId={client.id} jobs={client.jobs} worksites={client.worksites} />
           </div>
         </div>
 
@@ -454,7 +485,7 @@ export default async function ClientDetailPage({
                     </span>
                   </th>
                   <th className="px-3 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Documente</th>
+                  <th className="px-4 py-3 text-right">Acțiuni & Documente</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -468,7 +499,7 @@ export default async function ClientDetailPage({
                           {emp.lastName} {emp.firstName}
                         </div>
                         <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
-                          <span className="font-mono">{maskCNP(emp.cnp)}</span>
+                          <span className="font-mono">{emp.cnp || '—'}</span>
                           <span>•</span>
                           <span className="truncate max-w-[140px]">{emp.currentJob?.title || 'Fără post'}</span>
                         </div>
@@ -530,38 +561,61 @@ export default async function ClientDetailPage({
                         </span>
                       </td>
 
-                      {/* Acțiuni Rapide Documente */}
-                      <td className="px-4 py-3.5 text-right space-x-1 whitespace-nowrap">
-                        <Link
-                          href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-cerere-angajare`}
-                          className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded"
-                          title="Generează cerere de angajare"
-                        >
-                          Cerere
-                        </Link>
-                        <Link
-                          href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-declaratie-regulament`}
-                          className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded"
-                          title="Generează declarație regulament intern"
-                        >
-                          Declarație RI
-                        </Link>
-                        <Link
-                          href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-cim-2026`}
-                          className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded"
-                          title="Generează CIM 2026"
-                        >
-                          CIM
-                        </Link>
-                        <a
-                          href={`/api/clients/${client.id}/packages/onboarding?employeeId=${emp.id}`}
-                          className="text-[11px] text-emerald-700 hover:text-emerald-900 font-semibold px-2 py-1 bg-emerald-50 hover:bg-emerald-100 rounded inline-flex items-center gap-1 border border-emerald-200"
-                          title="Descarcă dosar complet de onboarding salariat (11 documente DOCX în ZIP)"
-                          download
-                        >
-                          <Download className="w-3 h-3" />
-                          <span>Onboarding ZIP</span>
-                        </a>
+                      {/* Acțiuni & Documente */}
+                      <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {emp.status === 'ACTIV' ? (
+                            <>
+                              <ManageEipModal clientId={client.id} employee={emp as any} eipCatalog={eipCatalog} />
+                              <RecordMedicalExamModal employee={emp} />
+                              <EditEmployeeModal employeeId={emp.id} employeeName={`${emp.lastName} ${emp.firstName}`} jobs={client.jobs} worksites={client.worksites} />
+                              <TerminateEmployeeModal employee={emp} />
+                              <Link
+                                href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-cerere-angajare`}
+                                className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
+                                title="Generează cerere de angajare"
+                              >
+                                Cerere
+                              </Link>
+                              <Link
+                                href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-declaratie-regulament`}
+                                className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
+                                title="Generează declarație regulament intern"
+                              >
+                                Declarație RI
+                              </Link>
+                              <Link
+                                href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-cim-2026`}
+                                className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
+                                title="Generează CIM 2026"
+                              >
+                                CIM
+                              </Link>
+                              <a
+                                href={`/api/clients/${client.id}/packages/onboarding?employeeId=${emp.id}`}
+                                className="text-[11px] text-emerald-700 hover:text-emerald-900 font-semibold px-2 py-1 bg-emerald-50 hover:bg-emerald-100 rounded inline-flex items-center gap-1 border border-emerald-200"
+                                title="Descarcă dosar complet de onboarding salariat (11 documente DOCX în ZIP)"
+                                download
+                              >
+                                <Download className="w-3 h-3" />
+                                <span>Onboarding ZIP</span>
+                              </a>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-1 rounded border border-rose-200">
+                                PLECAT: {formatRoDate(emp.leaveDate)}
+                              </span>
+                              <EditEmployeeModal employeeId={emp.id} employeeName={`${emp.lastName} ${emp.firstName}`} jobs={client.jobs} worksites={client.worksites} />
+                              <span
+                                className="text-[11px] text-slate-400 bg-slate-100 px-2 py-1 rounded border border-slate-200 cursor-not-allowed"
+                                title="Generarea documentelor este interzisă pentru salariați plecați"
+                              >
+                                Generare Blocată
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -599,22 +653,101 @@ export default async function ClientDetailPage({
 
         {/* Jobs / Context */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-          <h2 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
-            <Briefcase className="w-4 h-4 text-indigo-600" />
-            <span>Posturi & Context SSM ({client.jobs.length})</span>
-          </h2>
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <Briefcase className="w-4 h-4 text-indigo-600" />
+              <span>Posturi & Context SSM ({client.jobs.length})</span>
+            </h2>
+            <AddJobModal clientId={client.id} eipCatalog={eipCatalog} />
+          </div>
           {client.jobs.length === 0 ? (
             <div className="text-slate-400 text-xs py-4 text-center">Nu există posturi definite.</div>
           ) : (
             <div className="divide-y divide-slate-100 text-xs">
               {client.jobs.map((j) => (
-                <div key={j.id} className="py-2.5">
-                  <div className="flex justify-between items-baseline">
-                    <span className="font-semibold text-slate-800">{j.title}</span>
-                    {j.corCode && <span className="font-mono text-slate-400 text-[11px]">COR: {j.corCode}</span>}
+                <div key={j.id} className="py-3 space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-slate-800 text-sm">{j.title}</span>
+                      {j.corCode && <span className="font-mono text-slate-400 text-[11px]">COR: {j.corCode}</span>}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {j.workersCount != null && (
+                        <span className="text-[11px] text-slate-400">
+                          {j.workersCount} {j.workersCount === 1 ? 'lucrător' : 'lucrători'}
+                        </span>
+                      )}
+                      <EditJobModal clientId={client.id} job={j as any} eipCatalog={eipCatalog} />
+                    </div>
                   </div>
+
                   {j.mainActivities && (
-                    <div className="text-slate-500 mt-0.5 line-clamp-1">{j.mainActivities}</div>
+                    <div className="text-slate-500 text-[11px] line-clamp-2">{j.mainActivities}</div>
+                  )}
+
+                  {/* Flaguri de Risc Medical & Securitate (HG 355/2007) */}
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    {j.isFoodHandling && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        Alimentație (Fișa 210)
+                      </span>
+                    )}
+                    {j.isScreenWork && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                        Ecran &gt;4h (Fișa 243)
+                      </span>
+                    )}
+                    {j.isDrivingRequired && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                        Șofat (Fișa 209)
+                      </span>
+                    )}
+                    {j.noiseExposed && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-red-50 text-red-700 border border-red-200">
+                        Zgomot &gt;80dB (Fișa 138)
+                      </span>
+                    )}
+                    {j.chemicalExposed && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-orange-50 text-orange-800 border border-orange-200">
+                        Chimic (Fișa 141)
+                      </span>
+                    )}
+                    {j.vibrationExposed && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                        Vibrații (Fișa 140)
+                      </span>
+                    )}
+                    {j.heightWork && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                        Înălțime &gt;2m (Fișa 203)
+                      </span>
+                    )}
+
+                    {j.workPosture && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
+                        Postură: {j.workPosture === 'sitting' ? 'Așezat' : j.workPosture === 'standing' ? 'În picioare' : 'Mixtă'}
+                      </span>
+                    )}
+                    {j.maxWeightKg != null && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
+                        Max {j.maxWeightKg} kg
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Dotare EIP Recomandată / Obligatorie */}
+                  {j.eipRequirements && j.eipRequirements.length > 0 && (
+                    <div className="pt-1 flex flex-wrap items-center gap-1">
+                      <span className="text-[10px] text-slate-400 font-medium">EIP:</span>
+                      {j.eipRequirements.map((r: any) => (
+                        <span
+                          key={r.id || r.eipItemId}
+                          className="px-1.5 py-0.5 rounded text-[10px] bg-slate-50 text-slate-600 border border-slate-200"
+                        >
+                          {r.eipItem?.name || 'EIP'}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </div>
               ))}

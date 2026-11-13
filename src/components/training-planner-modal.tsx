@@ -101,17 +101,26 @@ export function TrainingPlannerModal({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Form State
+  const todayStr = new Date().toISOString().split('T')[0];
+  const oneYearFromNow = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
   const [selectedClientId, setSelectedClientId] = useState<string>(
     initialClientId || (clients.length > 0 ? clients[0].id : '')
   );
   const [trainingType, setTrainingType] = useState<TrainingType>('PERIODIC_SSM');
-  const [eventDate, setEventDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
-  );
+  const [eventDate, setEventDate] = useState<string>(todayStr);
+  const [status, setStatus] = useState<'completed' | 'planned'>('completed');
   const [durationHours, setDurationHours] = useState<number>(2);
   const [instructorName, setInstructorName] = useState<string>('');
   const [materialOrTopic, setMaterialOrTopic] = useState<string>('');
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>([]);
+
+  const handleDateChange = (newDate: string) => {
+    setEventDate(newDate);
+    if (newDate > todayStr) {
+      setStatus('planned');
+    }
+  };
 
   // Find active client
   const activeClient = clients.find((c) => c.id === selectedClientId) || clients[0];
@@ -192,6 +201,7 @@ export function TrainingPlannerModal({
           instructorName: instructorName.trim(),
           participantEmployeeIds: selectedEmployeeIds,
           materialOrTopic: materialOrTopic.trim() || undefined,
+          status,
         }),
       });
 
@@ -201,7 +211,9 @@ export function TrainingPlannerModal({
       }
 
       setSuccessMessage(
-        `Instruirea a fost înregistrată cu succes! Scadențele a ${data.updatedEmployeesCount} salariați au fost actualizate la VALID.`
+        status === 'planned'
+          ? 'Sesiunea de instruire a fost planificată cu succes!'
+          : `Instruirea a fost înregistrată cu succes! Scadențele a ${data.updatedEmployeesCount} salariați au fost actualizate la VALID.`
       );
       setTimeout(() => {
         setIsOpen(false);
@@ -342,47 +354,84 @@ export function TrainingPlannerModal({
                 </div>
               </div>
 
-              {/* 3. Event Details Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                    Data Efectuării *
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    max={new Date().toISOString().split('T')[0]}
-                    value={eventDate}
-                    onChange={(e) => setEventDate(e.target.value)}
-                    className="w-full text-xs px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+              {/* 3. Event Details Grid & Status */}
+              <div className="space-y-3">
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+                  <div className="text-[11px] font-semibold text-slate-700">Regim Sesiune Instruire *</div>
+                  <div className="flex flex-wrap items-center gap-4">
+                    <label className={`flex items-center gap-2 cursor-pointer text-xs font-medium ${eventDate > todayStr ? 'opacity-50 cursor-not-allowed text-slate-400' : 'text-slate-800'}`}>
+                      <input
+                        type="radio"
+                        name="trainingStatus"
+                        value="completed"
+                        checked={status === 'completed'}
+                        disabled={eventDate > todayStr}
+                        onChange={() => setStatus('completed')}
+                        className="text-blue-600 focus:ring-blue-500"
+                      />
+                      <span>Consemnare Instruire Efectuată (actualizează scadențele)</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-800">
+                      <input
+                        type="radio"
+                        name="trainingStatus"
+                        value="planned"
+                        checked={status === 'planned'}
+                        onChange={() => setStatus('planned')}
+                        className="text-blue-600 focus:ring-blue-500"
+                      />
+                      <span>Planificare Sesiune Viitoare (programare)</span>
+                    </label>
+                  </div>
+                  {status === 'planned' && (
+                    <div className="text-[11px] text-blue-700 bg-blue-50 border border-blue-200 rounded p-2 flex items-start gap-1.5 mt-1.5">
+                      <Clock className="w-4 h-4 shrink-0 mt-0.5 text-blue-600" />
+                      <span>Sesiunea va fi salvată ca planificată. Scadențele salariaților vor fi actualizate numai după consemnarea efectuării instruirii.</span>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                    Durată (ore) *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    min="0.5"
-                    required
-                    value={durationHours}
-                    onChange={(e) => setDurationHours(parseFloat(e.target.value) || 1)}
-                    className="w-full text-xs px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                    Instructor / Formator *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Nume formator..."
-                    value={instructorName}
-                    onChange={(e) => setInstructorName(e.target.value)}
-                    className="w-full text-xs px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      {status === 'planned' ? 'Data Programată *' : 'Data Efectuării *'}
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      max={oneYearFromNow}
+                      value={eventDate}
+                      onChange={(e) => handleDateChange(e.target.value)}
+                      className="w-full text-xs px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Durată (ore) *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0.5"
+                      required
+                      value={durationHours}
+                      onChange={(e) => setDurationHours(parseFloat(e.target.value) || 1)}
+                      className="w-full text-xs px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Instructor / Formator *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Nume formator..."
+                      value={instructorName}
+                      onChange={(e) => setInstructorName(e.target.value)}
+                      className="w-full text-xs px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
                 </div>
               </div>
 

@@ -5,16 +5,16 @@ import { logAuditEvent } from '@/lib/security';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const {
-      clientId,
-      trainingType,
-      eventDate,
-      durationHours,
-      instructorName,
-      participantEmployeeIds,
-      notes,
-      materialOrTopic,
-    } = body;
+    
+    // Normalized payload fields with full backwards compatibility
+    const clientId = body.clientId;
+    const trainingType = body.trainingType || body.type;
+    const eventDate = body.eventDate || body.date;
+    const durationHours = body.durationHours;
+    const instructorName = body.instructorName || body.trainerName;
+    const participantEmployeeIds = body.participantEmployeeIds || body.participantIds;
+    const notes = body.notes;
+    const materialOrTopic = body.materialOrTopic || body.topicsCovered || body.notes;
 
     // 1. Validare parametri obligatorii
     if (!clientId || !trainingType || !eventDate || !instructorName) {
@@ -42,11 +42,28 @@ export async function POST(request: NextRequest) {
 
     const now = new Date();
     const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-    if (parsedDate.getTime() > endOfToday.getTime()) {
-      return NextResponse.json(
-        { error: 'Data instruirii nu poate fi în viitor.' },
-        { status: 400 }
-      );
+    const maxFuture = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+
+    // Resolved status: default based on whether date is in the future
+    const status: 'planned' | 'completed' =
+      body.status || (parsedDate.getTime() > endOfToday.getTime() ? 'planned' : 'completed');
+
+    // Future date validation
+    if (status === 'planned') {
+      if (parsedDate.getTime() > maxFuture.getTime()) {
+        return NextResponse.json(
+          { error: 'Data instruirii nu poate fi în viitor.' },
+          { status: 400 }
+        );
+      }
+    } else {
+      // completed / recorded
+      if (parsedDate.getTime() > endOfToday.getTime()) {
+        return NextResponse.json(
+          { error: 'Data instruirii nu poate fi în viitor.' },
+          { status: 400 }
+        );
+      }
     }
 
     const duration = Number(durationHours);
@@ -85,12 +102,20 @@ export async function POST(request: NextRequest) {
         id: { in: uniqueParticipantIds },
         clientId: clientId,
       },
-      select: { id: true },
+      select: { id: true, status: true },
     });
 
     if (validEmployees.length !== uniqueParticipantIds.length) {
       return NextResponse.json(
         { error: 'Unul sau mai mulți salariați selectați nu aparțin companiei specificate.' },
+        { status: 400 }
+      );
+    }
+
+    const departedEmployees = validEmployees.filter((e) => e.status === 'PLECAT');
+    if (departedEmployees.length > 0) {
+      return NextResponse.json(
+        { error: 'Nu se pot înregistra instruiri pentru salariați cu contractul încetat (status: PLECAT).' },
         { status: 400 }
       );
     }
@@ -108,6 +133,8 @@ export async function POST(request: NextRequest) {
         : 'Instruire periodică Situații de Urgență / PSI conform OMAI 712/2005');
 
     // 4. Execuție Atomică în Tranzacție Prisma
+    const dbStatus = status === 'planned' ? 'planned' : 'recorded';
+
     const result = await prisma.$transaction(async (tx) => {
       // a) Creare TrainingEvent cu relațiile TrainingParticipant
       const event = await tx.trainingEvent.create({
@@ -118,7 +145,7 @@ export async function POST(request: NextRequest) {
           durationHours: duration,
           materialOrTopic: resolvedTopic,
           instructorName: String(instructorName).trim(),
-          status: 'recorded',
+          status: dbStatus,
           participants: {
             create: uniqueParticipantIds.map((empId) => ({
               employeeId: empId,
@@ -127,34 +154,41 @@ export async function POST(request: NextRequest) {
             })),
           },
         },
+        include: {
+          participants: true,
+        },
       });
 
-      // b) Actualizare scadențe salariați în funcție de tipul instruirii
+      // b) Actualizare scadențe salariați: NUMAI dacă instruirea NU este 'planned'
       let updatedCount = 0;
-      if (['INTRODUCTIV', 'LOC_MUNCA', 'PERIODIC_SSM'].includes(trainingType)) {
-        const updateRes = await tx.employee.updateMany({
-          where: {
-            id: { in: uniqueParticipantIds },
-            clientId: clientId,
-          },
-          data: {
-            ssmLastTrainingDate: parsedDate,
-            ...(notes ? { ssmNotes: String(notes).trim() } : {}),
-          },
-        });
-        updatedCount = updateRes.count;
-      } else if (trainingType === 'PERIODIC_PSI') {
-        const updateRes = await tx.employee.updateMany({
-          where: {
-            id: { in: uniqueParticipantIds },
-            clientId: clientId,
-          },
-          data: {
-            psiLastTrainingDate: parsedDate,
-            ...(notes ? { psiNotes: String(notes).trim() } : {}),
-          },
-        });
-        updatedCount = updateRes.count;
+      if (status !== 'planned') {
+        if (['INTRODUCTIV', 'LOC_MUNCA', 'PERIODIC_SSM'].includes(trainingType)) {
+          const updateRes = await tx.employee.updateMany({
+            where: {
+              id: { in: uniqueParticipantIds },
+              clientId: clientId,
+              status: { not: 'PLECAT' },
+            },
+            data: {
+              ssmLastTrainingDate: parsedDate,
+              ...(notes ? { ssmNotes: String(notes).trim() } : {}),
+            },
+          });
+          updatedCount = updateRes.count;
+        } else if (trainingType === 'PERIODIC_PSI') {
+          const updateRes = await tx.employee.updateMany({
+            where: {
+              id: { in: uniqueParticipantIds },
+              clientId: clientId,
+              status: { not: 'PLECAT' },
+            },
+            data: {
+              psiLastTrainingDate: parsedDate,
+              ...(notes ? { psiNotes: String(notes).trim() } : {}),
+            },
+          });
+          updatedCount = updateRes.count;
+        }
       }
 
       return { event, updatedCount };
@@ -172,6 +206,7 @@ export async function POST(request: NextRequest) {
           eventDate: parsedDate.toISOString(),
           participantsCount: uniqueParticipantIds.length,
           updatedEmployeesCount: result.updatedCount,
+          status: result.event.status,
         },
       });
     } catch (auditErr) {
@@ -182,10 +217,14 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         eventId: result.event.id,
+        event: result.event,
         updatedEmployeesCount: result.updatedCount,
         trainingType,
         eventDate: parsedDate.toISOString(),
-        message: `Instruirea a fost înregistrată cu succes, iar scadențele a ${result.updatedCount} salariați au fost actualizate.`,
+        status: result.event.status,
+        message: result.event.status === 'planned'
+          ? 'Sesiunea de instruire a fost planificată cu succes.'
+          : `Instruirea a fost înregistrată cu succes, iar scadențele a ${result.updatedCount} salariați au fost actualizate.`,
       },
       { status: 201 }
     );

@@ -295,16 +295,11 @@ async function main() {
       'Angajatul invalid nu trebuie să fie salvat în DB'
     );
 
-    // Verificăm auto-inițializarea termenelor legale SSM/Medicină
+    // Verificăm eliminarea atribuirii arbitrare a datei de angajare (F30)
     const empPopescu = dbEmployees.find((e) => e.cnp === '1850101410123')!;
-    assert(empPopescu.medicalLastExamDate instanceof Date, 'medicalLastExamDate auto-inițializat');
-    assert(empPopescu.ssmLastTrainingDate instanceof Date, 'ssmLastTrainingDate auto-inițializat');
-    assert(empPopescu.psiLastTrainingDate instanceof Date, 'psiLastTrainingDate auto-inițializat');
-    assertEquals(
-      empPopescu.medicalLastExamDate?.toISOString(),
-      validEmp1.hireDate.toISOString(),
-      'Data medicină inițializată implicit la data angajării'
-    );
+    assertEquals(empPopescu.medicalLastExamDate, null, 'Data examenului medical este null în lipsa datelor din Excel');
+    assertEquals(empPopescu.ssmLastTrainingDate, null, 'Data instruirii SSM este null în lipsa datelor din Excel');
+    assertEquals(empPopescu.psiLastTrainingDate, null, 'Data instructajului PSI este null în lipsa datelor din Excel');
 
     // 2. Test Atomic Rollback: dacă tranzacția eșuează forțat, nimic nu rămâne salvat suplimentar
     let rollbackThrew = false;

@@ -47,7 +47,14 @@ interface EmployeeOption {
   firstName: string;
   lastName: string;
   cnp: string;
+  status?: string;
+  medicalFitnessVerdict?: string | null;
   currentJobId?: string | null;
+  currentWorksiteId?: string | null;
+  currentWorksite?: {
+    id?: string;
+    name: string;
+  } | null;
   currentJob?: {
     id?: string;
     title: string;
@@ -55,6 +62,8 @@ interface EmployeeOption {
     mainActivities?: string | null;
   } | null;
   compliance?: {
+    isTerminated?: boolean;
+    status?: string;
     occupationalMedicine?: { status: string; dueDate: string | null; daysRemaining: number | null; label: string };
     ssmTraining?: { status: string; dueDate: string | null; daysRemaining: number | null; label: string };
     psiTraining?: { status: string; dueDate: string | null; daysRemaining: number | null; label: string };
@@ -70,17 +79,51 @@ interface JobOption {
   mainActivities?: string;
 }
 
+interface WorksiteOption {
+  id: string;
+  name: string;
+  address?: string;
+  activity?: string;
+}
+
 export function getEmployeeExpiryInfo(templateCode: string, employee: EmployeeOption): {
   isExpired: boolean;
   badgeText: string;
   badgeClass: string;
   reason: string;
 } {
+  // Check terminated status
+  if ((employee as any)?.status === 'PLECAT' || employee.compliance?.isTerminated) {
+    return {
+      isExpired: true,
+      badgeText: 'Contract Încetat',
+      badgeClass: 'bg-slate-200 text-slate-700 border-slate-300 font-bold',
+      reason: 'Salariatul are contractul de muncă încetat (status PLECAT). Generarea documentelor este interzisă conform legii.',
+    };
+  }
+
+  // Check medical fitness verdict (HG 355/2007)
+  const verdict = (employee as any)?.medicalFitnessVerdict;
+  if (verdict === 'INAPT' || verdict === 'INAPT_TEMPORAR') {
+    return {
+      isExpired: true,
+      badgeText: 'Inapt Medical',
+      badgeClass: 'bg-rose-100 text-rose-800 border-rose-300 font-bold',
+      reason: 'Aviz medical: INAPT conform HG 355/2007. Salariatul nu este apt de muncă și generarea este blocată.',
+    };
+  }
+
   if (!employee.compliance) {
     return { isExpired: false, badgeText: 'Conform', badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200', reason: '' };
   }
 
   const code = (templateCode || '').toLowerCase();
+
+  const isTrainingTemplate =
+    code.includes('fisa-instruire') ||
+    code.includes('fisa-instructaj') ||
+    code.includes('pv-instruire') ||
+    code.startsWith('training-');
 
   // 1. Instruire SSM (Legea 319/2006, HG 1425/2006)
   if (code.includes('ssm') || code.includes('instruire') || code === 'training-detaliu-introductiv' || code === 'training-tematica-loc-munca') {
@@ -88,6 +131,14 @@ export function getEmployeeExpiryInfo(templateCode: string, employee: EmployeeOp
     if (ssm && ssm.status === 'OVERDUE') {
       const days = Math.abs(ssm.daysRemaining ?? 0);
       const dueStr = ssm.dueDate ? new Date(ssm.dueDate).toLocaleDateString('ro-RO') : '';
+      if (isTrainingTemplate) {
+        return {
+          isExpired: false,
+          badgeText: 'Reinstruire Necesară',
+          badgeClass: 'bg-amber-100 text-amber-800 border-amber-300 font-semibold',
+          reason: `Instructaj precedent SSM depășit la data de ${dueStr} (HG 1425/2006). Fișa se emite pentru efectuarea și consemnarea reinstruirii.`,
+        };
+      }
       return {
         isExpired: true,
         badgeText: `Expirat (${days} zile)`,
@@ -120,6 +171,14 @@ export function getEmployeeExpiryInfo(templateCode: string, employee: EmployeeOp
     if (psi && psi.status === 'OVERDUE') {
       const days = Math.abs(psi.daysRemaining ?? 0);
       const dueStr = psi.dueDate ? new Date(psi.dueDate).toLocaleDateString('ro-RO') : '';
+      if (isTrainingTemplate) {
+        return {
+          isExpired: false,
+          badgeText: 'Reinstruire Necesară',
+          badgeClass: 'bg-amber-100 text-amber-800 border-amber-300 font-semibold',
+          reason: `Instructaj precedent PSI depășit la data de ${dueStr} (OMAI 712/2005). Fișa se emite pentru efectuarea și consemnarea reinstruirii.`,
+        };
+      }
       return {
         isExpired: true,
         badgeText: `Expirat (${days} zile)`,
@@ -182,6 +241,7 @@ interface HygieneParticipantOption {
 
 interface HygieneSessionOption {
   id: string;
+  clientId?: string | null;
   providerName: string;
   sessionDate: string;
   examDate: string;
@@ -209,17 +269,20 @@ function DocumentGeneratorContent() {
   const initialHygieneSessionId = searchParams.get('hygieneSessionId') || '';
   const initialHygieneParticipantId = searchParams.get('hygieneParticipantId') || '';
   const initialJobId = searchParams.get('jobId') || '';
+  const initialWorksiteId = searchParams.get('worksiteId') || '';
 
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [templates, setTemplates] = useState<TemplateOption[]>([]);
   const [employees, setEmployees] = useState<EmployeeOption[]>([]);
   const [jobs, setJobs] = useState<JobOption[]>([]);
+  const [worksites, setWorksites] = useState<WorksiteOption[]>([]);
   const [hygieneSessions, setHygieneSessions] = useState<HygieneSessionOption[]>([]);
 
   const [selectedClientId, setSelectedClientId] = useState<string>(initialClientId);
   const [selectedTemplateCode, setSelectedTemplateCode] = useState<string>(initialTemplateCode);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>(initialEmployeeId);
   const [selectedJobId, setSelectedJobId] = useState<string>(initialJobId);
+  const [selectedWorksiteId, setSelectedWorksiteId] = useState<string>(initialWorksiteId);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedHygieneSessionId, setSelectedHygieneSessionId] = useState<string>(initialHygieneSessionId);
   const [selectedHygieneParticipantId, setSelectedHygieneParticipantId] = useState<string>(initialHygieneParticipantId);
@@ -235,6 +298,7 @@ function DocumentGeneratorContent() {
   const [formValues, setFormValues] = useState<Record<string, string>>({});
   const [loadingFields, setLoadingFields] = useState(false);
   const [showAutoFields, setShowAutoFields] = useState(false);
+  const [manualFieldSearch, setManualFieldSearch] = useState<string>('');
 
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -245,12 +309,14 @@ function DocumentGeneratorContent() {
     if (initialClientId) setSelectedClientId(initialClientId);
     if (initialTemplateCode) setSelectedTemplateCode(initialTemplateCode);
     if (initialEmployeeId) setSelectedEmployeeId(initialEmployeeId);
+    if (initialJobId) setSelectedJobId(initialJobId);
+    if (initialWorksiteId) setSelectedWorksiteId(initialWorksiteId);
     if (initialHygieneSessionId) {
       setSelectedHygieneSessionId(initialHygieneSessionId);
       setHygieneScope('session');
     }
     if (initialHygieneParticipantId) setSelectedHygieneParticipantId(initialHygieneParticipantId);
-  }, [initialClientId, initialTemplateCode, initialEmployeeId, initialHygieneSessionId, initialHygieneParticipantId]);
+  }, [initialClientId, initialTemplateCode, initialEmployeeId, initialJobId, initialWorksiteId, initialHygieneSessionId, initialHygieneParticipantId]);
 
   // Load clients and templates
   useEffect(() => {
@@ -291,18 +357,20 @@ function DocumentGeneratorContent() {
       currentTemplate?.fields?.some((f) => f?.source?.startsWith('job.'))
     );
 
-  // Load employees & jobs when client changes
+  // Load employees, jobs & worksites when client changes
   useEffect(() => {
     if (!selectedClientId) {
       setEmployees([]);
       setJobs([]);
+      setWorksites([]);
       setSelectedJobId('');
+      setSelectedWorksiteId('');
       return;
     }
     fetch(`/api/clients/${selectedClientId}/employees`)
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data)) setEmployees(data);
+        if (Array.isArray(data)) setEmployees(data.filter((e: any) => e.status !== 'PLECAT'));
       });
 
     fetch(`/api/clients/${selectedClientId}`)
@@ -310,28 +378,32 @@ function DocumentGeneratorContent() {
       .then((data) => {
         if (data && Array.isArray(data.jobs)) {
           setJobs(data.jobs);
-          if (isJobContext && data.jobs.length > 0) {
-            setSelectedJobId((prev) =>
-              data.jobs.some((j: any) => j.id === prev) ? prev : data.jobs[0].id
-            );
-          } else {
-            setSelectedJobId('');
-          }
+          setSelectedJobId((prev) => (data.jobs.some((j: any) => j.id === prev) ? prev : ''));
         } else {
           setJobs([]);
           setSelectedJobId('');
         }
+        if (data && Array.isArray(data.worksites)) {
+          setWorksites(data.worksites);
+          setSelectedWorksiteId((prev) => (data.worksites.some((w: any) => w.id === prev) ? prev : ''));
+        } else {
+          setWorksites([]);
+          setSelectedWorksiteId('');
+        }
       });
-  }, [selectedClientId, isEmployeeRequired, isHygieneTemplate, currentTemplate, isJobContext]);
+  }, [selectedClientId]);
 
-  // When selected employee changes, update job automatically from employee's assigned job
+  // When selected employee changes, update job and worksite automatically from employee's assigned job/worksite
   useEffect(() => {
     if (selectedEmployeeId && employees.length > 0) {
       const emp = employees.find((e) => e.id === selectedEmployeeId);
       const jobId = emp?.currentJobId || (emp?.currentJob as any)?.id || '';
-      setSelectedJobId(jobId);
+      if (jobId) setSelectedJobId(jobId);
+      const worksiteId = (emp as any)?.currentWorksiteId || (emp?.currentWorksite as any)?.id || '';
+      setSelectedWorksiteId(worksiteId || '');
     } else if (isEmployeeRequired && !selectedEmployeeId) {
       setSelectedJobId('');
+      setSelectedWorksiteId('');
     }
   }, [selectedEmployeeId, employees, isEmployeeRequired]);
 
@@ -341,6 +413,9 @@ function DocumentGeneratorContent() {
     if (isHygieneTemplate || !isJobContext) {
       setSelectedJobId('');
     }
+    if (isHygieneTemplate) {
+      setSelectedWorksiteId('');
+    }
     if (!isEmployeeRequired && !isAdeverinta) {
       setSelectedEmployeeId('');
     }
@@ -349,6 +424,7 @@ function DocumentGeneratorContent() {
   const selectedClient = clients.find((c) => c.id === selectedClientId);
   const filteredSessions = hygieneSessions.filter((session) => {
     if (!selectedClient) return true;
+    if (session.clientId) return session.clientId === selectedClientId;
     return session.participants.some(
       (p: any) =>
         p.employee?.clientId === selectedClientId ||
@@ -388,6 +464,7 @@ function DocumentGeneratorContent() {
     });
     if (selectedEmployeeId) params.append('employeeId', selectedEmployeeId);
     if (effectiveJobId) params.append('jobId', effectiveJobId);
+    if (selectedWorksiteId) params.append('worksiteId', selectedWorksiteId);
     if (!isHygieneTemplate || hygieneScope === 'session') {
       if (selectedHygieneSessionId) params.append('hygieneSessionId', selectedHygieneSessionId);
       if (selectedHygieneParticipantId) params.append('hygieneParticipantId', selectedHygieneParticipantId);
@@ -420,6 +497,7 @@ function DocumentGeneratorContent() {
     selectedTemplateCode,
     selectedEmployeeId,
     selectedJobId,
+    selectedWorksiteId,
     selectedHygieneSessionId,
     selectedHygieneParticipantId,
     hygieneScope,
@@ -546,6 +624,7 @@ function DocumentGeneratorContent() {
           clientId: selectedClientId,
           employeeId: selectedEmployeeId || undefined,
           jobId: effectiveJobId,
+          worksiteId: selectedWorksiteId || undefined,
           hygieneSessionId: (isHygieneTemplate && hygieneScope === 'client') ? undefined : (selectedHygieneSessionId || undefined),
           hygieneParticipantId: (isHygieneTemplate && hygieneScope === 'client') ? undefined : (selectedHygieneParticipantId || undefined),
           customFields: formValues,
@@ -991,7 +1070,7 @@ function DocumentGeneratorContent() {
                                     </p>
                                   ) : (
                                     <p className="text-[11px] text-slate-400 mt-0.5">
-                                      CNP: {emp.cnp ? `${emp.cnp.slice(0, 4)}•••••${emp.cnp.slice(-4)}` : 'Nespecificat'}
+                                      CNP: {emp.cnp || 'Nespecificat'}
                                     </p>
                                   )}
                                 </div>
@@ -1029,6 +1108,27 @@ function DocumentGeneratorContent() {
               {jobs.map((j) => (
                 <option key={j.id} value={j.id}>
                   {j.title} {j.corCode ? `(COR ${j.corCode})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Punct de Lucru (Worksite) Selector */}
+        {selectedClientId && worksites.length > 0 && !isHygieneTemplate && (
+          <div className="pt-2 border-t border-slate-100">
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Punct de Lucru (opțional - dacă este diferit de sediul social)
+            </label>
+            <select
+              value={selectedWorksiteId}
+              onChange={(e) => setSelectedWorksiteId(e.target.value)}
+              className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">-- Sediu social (implicit) --</option>
+              {worksites.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.name} {w.address ? `- ${w.address}` : ''}
                 </option>
               ))}
             </select>
@@ -1215,24 +1315,59 @@ function DocumentGeneratorContent() {
             {/* Configurable / Manual Fields Grid */}
             {manualFields.length > 0 && (
               <div className="space-y-2">
-                <div className="text-xs font-semibold text-slate-700 flex items-center gap-1">
-                  <span>Câmpuri specifice de completat / ajustat pentru acest document:</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {manualFields.slice(0, 20).map((field) => (
-                    <div key={field.key} className="space-y-1">
-                      <label className="block text-[11px] font-medium text-slate-700 truncate" title={field.key}>
-                        {field.label}
-                      </label>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                    <span>Câmpuri specifice de completat / ajustat pentru acest document ({manualFields.length}):</span>
+                  </div>
+                  {manualFields.length > 8 && (
+                    <div className="relative">
                       <input
                         type="text"
-                        value={formValues[field.key] || ''}
-                        onChange={(e) => handleFieldChange(field.key, e.target.value)}
-                        placeholder={`Introduceți ${field.label.toLowerCase()}...`}
-                        className="w-full text-xs border border-slate-300 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                        value={manualFieldSearch}
+                        onChange={(e) => setManualFieldSearch(e.target.value)}
+                        placeholder="Filtrează câmpuri manuale..."
+                        className="text-xs border border-slate-300 rounded px-2.5 py-1 w-52 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
                       />
+                      {manualFieldSearch && (
+                        <button
+                          type="button"
+                          onClick={() => setManualFieldSearch('')}
+                          className="absolute right-2 top-1 text-slate-400 hover:text-slate-600 text-xs"
+                        >
+                          ×
+                        </button>
+                      )}
                     </div>
-                  ))}
+                  )}
+                </div>
+
+                <div className="max-h-[460px] overflow-y-auto pr-1">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {manualFields
+                      .filter((f) => {
+                        if (!manualFieldSearch.trim()) return true;
+                        const q = manualFieldSearch.toLowerCase();
+                        return f.label.toLowerCase().includes(q) || f.key.toLowerCase().includes(q);
+                      })
+                      .map((field) => (
+                        <div key={field.key} className="space-y-1">
+                          <label
+                            className="block text-[11px] font-medium text-slate-700 truncate"
+                            title={`${field.label} (${field.key})`}
+                          >
+                            {field.label}
+                            {field.required && <span className="text-rose-500 font-bold ml-1">*</span>}
+                          </label>
+                          <input
+                            type="text"
+                            value={formValues[field.key] || ''}
+                            onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                            placeholder={`Introduceți ${field.label.toLowerCase()}...`}
+                            className="w-full text-xs border border-slate-300 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                          />
+                        </div>
+                      ))}
+                  </div>
                 </div>
               </div>
             )}

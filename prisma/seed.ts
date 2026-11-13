@@ -247,6 +247,14 @@ async function main() {
       equipmentUsed: 'Laptop, monitoare LCD, tastatură, mouse ergonomic',
       workConditions: 'Activitate de birou, climatizare, iluminat natural și artificial adecvat',
       workersCount: 5,
+      isScreenWork: true,
+      workPosture: 'sitting',
+      maxWeightKg: 3.0,
+      noiseExposed: false,
+      isDrivingRequired: false,
+      chemicalExposed: false,
+      vibrationExposed: false,
+      heightWork: false,
       isActive: true,
     },
     create: {
@@ -257,6 +265,14 @@ async function main() {
       equipmentUsed: 'Laptop, monitoare LCD, tastatură, mouse ergonomic',
       workConditions: 'Activitate de birou, climatizare, iluminat natural și artificial adecvat',
       workersCount: 5,
+      isScreenWork: true,
+      workPosture: 'sitting',
+      maxWeightKg: 3.0,
+      noiseExposed: false,
+      isDrivingRequired: false,
+      chemicalExposed: false,
+      vibrationExposed: false,
+      heightWork: false,
       isActive: true,
     },
   });
@@ -301,6 +317,13 @@ async function main() {
       equipmentUsed: 'Truse scule manuale și electrice izolate, multimetru',
       workConditions: 'Deplasări locale, lucru cu echipamente electrice de joasă tensiune, EIP necesar',
       workersCount: 3,
+      isDrivingRequired: true,
+      noiseExposed: true,
+      workPosture: 'mixed',
+      maxWeightKg: 20.0,
+      chemicalExposed: false,
+      vibrationExposed: true,
+      heightWork: true,
       isActive: true,
     },
     create: {
@@ -311,6 +334,13 @@ async function main() {
       equipmentUsed: 'Truse scule manuale și electrice izolate, multimetru',
       workConditions: 'Deplasări locale, lucru cu echipamente electrice de joasă tensiune, EIP necesar',
       workersCount: 3,
+      isDrivingRequired: true,
+      noiseExposed: true,
+      workPosture: 'mixed',
+      maxWeightKg: 20.0,
+      chemicalExposed: false,
+      vibrationExposed: true,
+      heightWork: true,
       isActive: true,
     },
   });
@@ -401,6 +431,14 @@ async function main() {
       hygieneCertificateIssueDate: new Date('2023-09-05T00:00:00.000Z'),
       hygieneIntervalMonths: 36,
       hygieneNotes: 'Certificat de igienă expirat conform Ordin 2209/2022 art. 20 (peste 36 luni)',
+
+      // Contract Individual de Muncă
+      cimNumber: 'CIM-101/2026',
+      cimDate: new Date('2026-02-09T00:00:00.000Z'),
+      grossSalary: 5500,
+      workNorm: 8,
+      probationDays: 90,
+      annualLeaveDays: 21,
     },
     create: {
       clientId: clientNexus.id,
@@ -436,6 +474,12 @@ async function main() {
       hygieneCertificateIssueDate: new Date('2023-09-05T00:00:00.000Z'),
       hygieneIntervalMonths: 36,
       hygieneNotes: 'Certificat de igienă expirat conform Ordin 2209/2022 art. 20 (peste 36 luni)',
+      cimNumber: 'CIM-101/2026',
+      cimDate: new Date('2026-02-09T00:00:00.000Z'),
+      grossSalary: 5500,
+      workNorm: 8,
+      probationDays: 90,
+      annualLeaveDays: 21,
     },
   });
 
@@ -488,6 +532,14 @@ async function main() {
       hygieneCertificateIssueDate: null,
       hygieneIntervalMonths: 36,
       hygieneNotes: null,
+
+      // Contract Individual de Muncă
+      cimNumber: 'CIM-102/2026',
+      cimDate: new Date('2026-01-31T00:00:00.000Z'),
+      grossSalary: 6200,
+      workNorm: 8,
+      probationDays: 90,
+      annualLeaveDays: 21,
     },
     create: {
       clientId: clientNexus.id,
@@ -518,6 +570,12 @@ async function main() {
       psiIntervalMonths: 6,
       psiNotes: 'Instructaj semestrial SU - necesită re-instruire urgentă',
       hygieneIntervalMonths: 36,
+      cimNumber: 'CIM-102/2026',
+      cimDate: new Date('2026-01-31T00:00:00.000Z'),
+      grossSalary: 6200,
+      workNorm: 8,
+      probationDays: 90,
+      annualLeaveDays: 21,
     },
   });
 
@@ -571,6 +629,14 @@ async function main() {
       hygieneCertificateIssueDate: null,
       hygieneIntervalMonths: 36,
       hygieneNotes: null,
+
+      // Contract Individual de Muncă
+      cimNumber: 'CIM-103/2026',
+      cimDate: new Date('2026-02-01T00:00:00.000Z'),
+      grossSalary: 9500,
+      workNorm: 8,
+      probationDays: 90,
+      annualLeaveDays: 25,
     },
     create: {
       clientId: clientNexus.id,
@@ -601,6 +667,12 @@ async function main() {
       psiIntervalMonths: 6,
       psiNotes: 'Instructaj semestrial SU și exercițiu evacuare clădire birouri',
       hygieneIntervalMonths: 36,
+      cimNumber: 'CIM-103/2026',
+      cimDate: new Date('2026-02-01T00:00:00.000Z'),
+      grossSalary: 9500,
+      workNorm: 8,
+      probationDays: 90,
+      annualLeaveDays: 25,
     },
   });
 
@@ -651,6 +723,14 @@ async function main() {
       hygieneCertificateIssueDate: null,
       hygieneIntervalMonths: 36,
       hygieneNotes: null,
+
+      // Contract Individual de Muncă
+      cimNumber: 'CIM-104/2026',
+      cimDate: new Date('2026-10-15T00:00:00.000Z'),
+      grossSalary: 4500,
+      workNorm: 8,
+      probationDays: 90,
+      annualLeaveDays: 21,
     },
     create: {
       clientId: clientNexus.id,
@@ -680,6 +760,12 @@ async function main() {
       psiIntervalMonths: 6,
       psiNotes: 'Instructaj introductiv SU neefectuat',
       hygieneIntervalMonths: 36,
+      cimNumber: 'CIM-104/2026',
+      cimDate: new Date('2026-10-15T00:00:00.000Z'),
+      grossSalary: 4500,
+      workNorm: 8,
+      probationDays: 90,
+      annualLeaveDays: 21,
     },
   });
 
@@ -827,6 +913,13 @@ async function main() {
       equipmentUsed: 'Cuptoare convecție, plite inducție, cuțite profesionale, malaxor',
       workConditions: 'Temperaturi ridicate, umiditate, ritm alert, manipulare alimente crude',
       workersCount: 4,
+      isFoodHandling: true,
+      workPosture: 'standing',
+      maxWeightKg: 15.0,
+      noiseExposed: false,
+      chemicalExposed: false,
+      vibrationExposed: false,
+      heightWork: false,
       isActive: true,
     },
     create: {
@@ -837,6 +930,13 @@ async function main() {
       equipmentUsed: 'Cuptoare convecție, plite inducție, cuțite profesionale, malaxor',
       workConditions: 'Temperaturi ridicate, umiditate, ritm alert, manipulare alimente crude',
       workersCount: 4,
+      isFoodHandling: true,
+      workPosture: 'standing',
+      maxWeightKg: 15.0,
+      noiseExposed: false,
+      chemicalExposed: false,
+      vibrationExposed: false,
+      heightWork: false,
       isActive: true,
     },
   });
@@ -854,6 +954,13 @@ async function main() {
       equipmentUsed: 'Tăvi de servire, terminal POS, cărucior transport veselă',
       workConditions: 'Ortostatism prelungit, interacțiune cu publicul',
       workersCount: 6,
+      isFoodHandling: true,
+      workPosture: 'standing',
+      maxWeightKg: 8.0,
+      noiseExposed: false,
+      chemicalExposed: false,
+      vibrationExposed: false,
+      heightWork: false,
       isActive: true,
     },
     create: {
@@ -864,6 +971,13 @@ async function main() {
       equipmentUsed: 'Tăvi de servire, terminal POS, cărucior transport veselă',
       workConditions: 'Ortostatism prelungit, interacțiune cu publicul',
       workersCount: 6,
+      isFoodHandling: true,
+      workPosture: 'standing',
+      maxWeightKg: 8.0,
+      noiseExposed: false,
+      chemicalExposed: false,
+      vibrationExposed: false,
+      heightWork: false,
       isActive: true,
     },
   });
@@ -1478,6 +1592,493 @@ async function main() {
     });
   }
 
+  // =========================================================================
+  // 4. EIP MANAGEMENT (HG 1048/2006) & EVALUARE RISCURI (LEGEA 319/2006)
+  // =========================================================================
+  console.log('4. Seeding Catalog Statutar EIP, Cerințe Post, Alocări Salariați & Evaluări Riscuri...');
+
+  // 4.1. Catalog EIP
+  const eipCatalog = [
+    {
+      code: 'EIP-INC-01',
+      name: 'Încălțăminte antiderapantă bucătar (OB-E-A-FO SRC)',
+      standardCode: 'EN ISO 20347',
+      protectionType: 'Antialunecare',
+      replacementMonths: 12,
+    },
+    {
+      code: 'EIP-BON-01',
+      name: 'Bonetă bucătar / beretă protecție păr',
+      standardCode: 'HACCP / EN 340',
+      protectionType: 'Igienic',
+      replacementMonths: 6,
+    },
+    {
+      code: 'EIP-HAL-01',
+      name: 'Halat / tunică albă bucătar bumbac',
+      standardCode: 'EN 340',
+      protectionType: 'Termic',
+      replacementMonths: 12,
+    },
+    {
+      code: 'EIP-SOR-01',
+      name: 'Șorț impermeabil protecție stropire',
+      standardCode: 'EN 340',
+      protectionType: 'Mecanic',
+      replacementMonths: 12,
+    },
+    {
+      code: 'EIP-MAN-01',
+      name: 'Mănuși termoprotectoare cuptor',
+      standardCode: 'EN 407',
+      protectionType: 'Termic',
+      replacementMonths: 12,
+    },
+    {
+      code: 'EIP-BOC-01',
+      name: 'Bocanci protecție S3 SRC bombeu compozit',
+      standardCode: 'EN ISO 20345',
+      protectionType: 'Mecanic',
+      replacementMonths: 12,
+    },
+    {
+      code: 'EIP-MAN-02',
+      name: 'Mănuși electroizolante joasă tensiune',
+      standardCode: 'EN 60903',
+      protectionType: 'Electric',
+      replacementMonths: 12,
+    },
+    {
+      code: 'EIP-OCH-01',
+      name: 'Ochelari protecție ecran filtru lumină albastră',
+      standardCode: 'EN 166',
+      protectionType: 'Optic',
+      replacementMonths: 24,
+    },
+  ];
+
+  const seededEipMap = new Map<string, any>();
+  for (const item of eipCatalog) {
+    const rec = await prisma.eipItem.upsert({
+      where: { code: item.code },
+      update: {
+        name: item.name,
+        standardCode: item.standardCode,
+        protectionType: item.protectionType,
+        replacementMonths: item.replacementMonths,
+      },
+      create: item,
+    });
+    seededEipMap.set(item.code, rec);
+  }
+
+  // 4.2. Cerințe EIP pe posturi (JobEipRequirement)
+  // Bucătar: EIP-INC-01, EIP-BON-01, EIP-HAL-01, EIP-SOR-01, EIP-MAN-01
+  const chefItems = ['EIP-INC-01', 'EIP-BON-01', 'EIP-HAL-01', 'EIP-SOR-01', 'EIP-MAN-01'];
+  for (const code of chefItems) {
+    const it = seededEipMap.get(code);
+    if (it && jobChef?.id) {
+      await prisma.jobEipRequirement.upsert({
+        where: { jobId_eipItemId: { jobId: jobChef.id, eipItemId: it.id } },
+        update: {},
+        create: { jobId: jobChef.id, eipItemId: it.id },
+      });
+    }
+  }
+
+  // Ospătar: EIP-INC-01, EIP-SOR-01
+  const waiterItems = ['EIP-INC-01', 'EIP-SOR-01'];
+  for (const code of waiterItems) {
+    const it = seededEipMap.get(code);
+    if (it && jobWaiter?.id) {
+      await prisma.jobEipRequirement.upsert({
+        where: { jobId_eipItemId: { jobId: jobWaiter.id, eipItemId: it.id } },
+        update: {},
+        create: { jobId: jobWaiter.id, eipItemId: it.id },
+      });
+    }
+  }
+
+  // Tehnician Mentenanță: EIP-BOC-01, EIP-MAN-02
+  const techItems = ['EIP-BOC-01', 'EIP-MAN-02'];
+  for (const code of techItems) {
+    const it = seededEipMap.get(code);
+    if (it && jobTech?.id) {
+      await prisma.jobEipRequirement.upsert({
+        where: { jobId_eipItemId: { jobId: jobTech.id, eipItemId: it.id } },
+        update: {},
+        create: { jobId: jobTech.id, eipItemId: it.id },
+      });
+    }
+  }
+
+  // Inginer Software: EIP-OCH-01
+  if (jobDev?.id) {
+    const it = seededEipMap.get('EIP-OCH-01');
+    if (it) {
+      await prisma.jobEipRequirement.upsert({
+        where: { jobId_eipItemId: { jobId: jobDev.id, eipItemId: it.id } },
+        update: {},
+        create: { jobId: jobDev.id, eipItemId: it.id },
+      });
+    }
+  }
+
+  // 4.3. Mărimi și alocări salariați (EmployeeEipAssignment)
+  await prisma.employee.updateMany({
+    where: { cnp: '1820815410097' }, // Marius Radu
+    data: { shoeSize: '42', clothingSize: 'L', gloveSize: '9' },
+  });
+  await prisma.employee.updateMany({
+    where: { cnp: '2950920410044' }, // Andreea Marin
+    data: { shoeSize: '37', clothingSize: 'M', gloveSize: '7' },
+  });
+  await prisma.employee.updateMany({
+    where: { cnp: '1790608080231' }, // Gheorghe Barbu
+    data: { shoeSize: '43', clothingSize: 'L', gloveSize: '10' },
+  });
+  await prisma.employee.updateMany({
+    where: { cnp: '1880315410127' }, // Alexandru Stan
+    data: { shoeSize: '42', clothingSize: 'L', gloveSize: '9' },
+  });
+
+  const empMarius = await prisma.employee.findFirst({ where: { cnp: '1820815410097' } });
+  if (empMarius) {
+    for (const code of chefItems) {
+      const it = seededEipMap.get(code);
+      if (it) {
+        await prisma.employeeEipAssignment.upsert({
+          where: { employeeId_eipItemId: { employeeId: empMarius.id, eipItemId: it.id } },
+          update: { assignedDate: new Date('2025-04-01T00:00:00.000Z'), signatureDate: new Date('2025-04-01T00:00:00.000Z') },
+          create: {
+            employeeId: empMarius.id,
+            eipItemId: it.id,
+            assignedDate: new Date('2025-04-01T00:00:00.000Z'),
+            signatureDate: new Date('2025-04-01T00:00:00.000Z'),
+          },
+        });
+      }
+    }
+  }
+
+  const empAndreea = await prisma.employee.findFirst({ where: { cnp: '2950920410044' } });
+  if (empAndreea) {
+    for (const code of waiterItems) {
+      const it = seededEipMap.get(code);
+      if (it) {
+        await prisma.employeeEipAssignment.upsert({
+          where: { employeeId_eipItemId: { employeeId: empAndreea.id, eipItemId: it.id } },
+          update: { assignedDate: new Date('2025-05-01T00:00:00.000Z'), signatureDate: new Date('2025-05-01T00:00:00.000Z') },
+          create: {
+            employeeId: empAndreea.id,
+            eipItemId: it.id,
+            assignedDate: new Date('2025-05-01T00:00:00.000Z'),
+            signatureDate: new Date('2025-05-01T00:00:00.000Z'),
+          },
+        });
+      }
+    }
+  }
+
+  const empGheorghe = await prisma.employee.findFirst({ where: { cnp: '1790608080231' } });
+  if (empGheorghe) {
+    for (const code of techItems) {
+      const it = seededEipMap.get(code);
+      if (it) {
+        await prisma.employeeEipAssignment.upsert({
+          where: { employeeId_eipItemId: { employeeId: empGheorghe.id, eipItemId: it.id } },
+          update: { assignedDate: new Date('2026-02-09T00:00:00.000Z'), signatureDate: new Date('2026-02-09T00:00:00.000Z') },
+          create: {
+            employeeId: empGheorghe.id,
+            eipItemId: it.id,
+            assignedDate: new Date('2026-02-09T00:00:00.000Z'),
+            signatureDate: new Date('2026-02-09T00:00:00.000Z'),
+          },
+        });
+      }
+    }
+  }
+
+  const empAlex = await prisma.employee.findFirst({ where: { cnp: '1880315410127' } });
+  if (empAlex) {
+    const it = seededEipMap.get('EIP-OCH-01');
+    if (it) {
+      await prisma.employeeEipAssignment.upsert({
+        where: { employeeId_eipItemId: { employeeId: empAlex.id, eipItemId: it.id } },
+        update: { assignedDate: new Date('2026-02-01T00:00:00.000Z'), signatureDate: new Date('2026-02-01T00:00:00.000Z') },
+        create: {
+          employeeId: empAlex.id,
+          eipItemId: it.id,
+          assignedDate: new Date('2026-02-01T00:00:00.000Z'),
+          signatureDate: new Date('2026-02-01T00:00:00.000Z'),
+        },
+      });
+    }
+  }
+
+  // 4.4. Evaluări de Risc Persistate
+  // A. Bistro Gourmet - Bucătar Specialist
+  if (clientBistro && jobChef) {
+    const prev = await prisma.riskAssessment.findFirst({
+      where: { clientId: clientBistro.id, jobId: jobChef.id },
+    });
+    if (prev) {
+      await prisma.riskAssessment.delete({ where: { id: prev.id } });
+    }
+
+    const assessmentBistro = await prisma.riskAssessment.create({
+      data: {
+        clientId: clientBistro.id,
+        jobId: jobChef.id,
+        worksiteId: worksiteRestaurant?.id || null,
+        title: 'Evaluarea Riscurilor Profesionale - Bucătar Specialist',
+        method: 'INCDPM',
+        version: 1,
+        evaluatorName: 'Ing. Mihai Popescu',
+        status: 'active',
+        conclusions:
+          'Nivelul global de risc calculat pentru postul de Bucătar Specialist este de 2.85, încadrându-se în categoria locurilor de muncă cu risc acceptabil (Nrg <= 3.50). Măsurile de prevenire și protecție stabilite elimină sau reduc riscurile majore de opărire, tăiere și alunecare.',
+        hazardZones: {
+          create: [
+            {
+              zoneName: 'Zona plitelor și cuptoarelor profesionale',
+              location: 'Bucătărie Caldă',
+              hazardDescription: 'Risc de arsuri termice și stropire cu ulei încins',
+              safetyMeasures: 'Purtare șorț și mănuși termoprotectoare, interzicerea apei pe ulei încins',
+            },
+          ],
+        },
+      },
+    });
+
+    const itemBistro1 = await prisma.riskItem.create({
+      data: {
+        assessmentId: assessmentBistro.id,
+        hazard: 'Contact cu suprafețe fierbinți (plite, cuptoare, ulei încins)',
+        riskSituation: 'EXECUTANT',
+        consequence: 'Arsuri termice de gradul I-II (ITM 3-45 zile)',
+        severityScore: 3,
+        probabilityScore: 3,
+        riskLevel: 3,
+        sortOrder: 0,
+      },
+    });
+    await prisma.preventionMeasure.create({
+      data: {
+        assessmentId: assessmentBistro.id,
+        riskItemId: itemBistro1.id,
+        description: 'Utilizarea mănușilor termoprotectoare EN 407 și verificarea periodică a termostatelor',
+        measureType: 'tehnica',
+        responsiblePerson: 'Marius Radu',
+        deadline: 'Permanent',
+        status: 'realizat',
+      },
+    });
+
+    const itemBistro2 = await prisma.riskItem.create({
+      data: {
+        assessmentId: assessmentBistro.id,
+        hazard: 'Tăiere/înțepare la manipularea cuțitelor profesionale și echipamentelor de feliere',
+        riskSituation: 'SARCINA',
+        consequence: 'Plăgi tăiate mâini (ITM 3-45 zile)',
+        severityScore: 3,
+        probabilityScore: 4,
+        riskLevel: 3,
+        sortOrder: 1,
+      },
+    });
+    await prisma.preventionMeasure.create({
+      data: {
+        assessmentId: assessmentBistro.id,
+        riskItemId: itemBistro2.id,
+        description: 'Instruirea privind utilizarea mănușilor tehnice și ascuțirea exclusiv cu dispozitive conforme',
+        measureType: 'organizatorica',
+        responsiblePerson: 'Șef Bucătar',
+        deadline: 'Trimestrial',
+        status: 'in_curs',
+      },
+    });
+
+    const itemBistro3 = await prisma.riskItem.create({
+      data: {
+        assessmentId: assessmentBistro.id,
+        hazard: 'Alunecare pe pardoseală umedă sau cu urme de grăsime/ulei',
+        riskSituation: 'MEDIU',
+        consequence: 'Traumatisme locomotorii, entorse, fracturi (ITM 3-45 zile)',
+        severityScore: 4,
+        probabilityScore: 2,
+        riskLevel: 3,
+        sortOrder: 2,
+      },
+    });
+    await prisma.preventionMeasure.create({
+      data: {
+        assessmentId: assessmentBistro.id,
+        riskItemId: itemBistro3.id,
+        description: 'Dotarea obligatorie cu încălțăminte antiderapantă SRC și curățarea imediată a scurgerilor',
+        measureType: 'igienico-sanitara',
+        responsiblePerson: 'Lucrător desemnat SSM',
+        deadline: 'Zilnic',
+        status: 'realizat',
+      },
+    });
+
+    const itemBistro4 = await prisma.riskItem.create({
+      data: {
+        assessmentId: assessmentBistro.id,
+        hazard: 'Efort fizic dinamic și postură ortostatică prelungită',
+        riskSituation: 'SARCINA',
+        consequence: 'Afecțiuni musculo-scheletice (ITM 3-45 zile)',
+        severityScore: 2,
+        probabilityScore: 3,
+        riskLevel: 2,
+        sortOrder: 3,
+      },
+    });
+    await prisma.preventionMeasure.create({
+      data: {
+        assessmentId: assessmentBistro.id,
+        riskItemId: itemBistro4.id,
+        description: 'Alternarea sarcinilor de lucru și pauze de 10 minute la 2 ore',
+        measureType: 'organizatorica',
+        responsiblePerson: 'Administrator',
+        deadline: 'Permanent',
+        status: 'realizat',
+      },
+    });
+
+    const itemBistro5 = await prisma.riskItem.create({
+      data: {
+        assessmentId: assessmentBistro.id,
+        hazard: 'Contact accidental cu agenți de curățare/degresare chimici',
+        riskSituation: 'MIJLOACE',
+        consequence: 'Iritații dermatologice/oculare (ITM 3-45 zile)',
+        severityScore: 3,
+        probabilityScore: 2,
+        riskLevel: 2,
+        sortOrder: 4,
+      },
+    });
+    await prisma.preventionMeasure.create({
+      data: {
+        assessmentId: assessmentBistro.id,
+        riskItemId: itemBistro5.id,
+        description: 'Purtarea mănușilor din nitril și ochelarilor de protecție la diluarea substanțelor chimice',
+        measureType: 'tehnica',
+        responsiblePerson: 'Marius Radu',
+        deadline: 'Permanent',
+        status: 'realizat',
+      },
+    });
+  }
+
+  // B. Nexus Solutions - Inginer Sisteme Software
+  if (clientNexus && jobDev) {
+    const prev = await prisma.riskAssessment.findFirst({
+      where: { clientId: clientNexus.id, jobId: jobDev.id },
+    });
+    if (prev) {
+      await prisma.riskAssessment.delete({ where: { id: prev.id } });
+    }
+
+    const assessmentNexus = await prisma.riskAssessment.create({
+      data: {
+        clientId: clientNexus.id,
+        jobId: jobDev.id,
+        worksiteId: worksiteCentral?.id || null,
+        title: 'Evaluarea Riscurilor Profesionale - Inginer Sisteme Software',
+        method: 'INCDPM',
+        version: 1,
+        evaluatorName: 'Ing. Mihai Popescu',
+        status: 'active',
+        conclusions:
+          'Nivelul global de risc calculat pentru postul de Inginer Sisteme Software este de 2.45, încadrându-se în categoria locurilor de muncă cu risc mic (Nrg <= 3.50). Postul prezintă solicitare neuropsihică și vizuală moderată, fără factori gravi iminenți.',
+        hazardZones: {
+          create: [
+            {
+              zoneName: 'Camera Serverelor și Tabloul Electric Central',
+              location: 'Etaj 2 Birouri',
+              hazardDescription: 'Echipamente sub tensiune 230V/400V și climatizare de putere',
+              safetyMeasures: 'Acces restricționat exclusiv personal tehnic autorizat, stingătoare cu dioxid de carbon (CO2)',
+            },
+          ],
+        },
+      },
+    });
+
+    const itemNexus1 = await prisma.riskItem.create({
+      data: {
+        assessmentId: assessmentNexus.id,
+        hazard: 'Solicitare vizuală la lucrul continuu cu videoterminale (> 6h/zi)',
+        riskSituation: 'SARCINA',
+        consequence: 'Astenopie acomodativă, cefalee, oboseală oculară (ITM 3-45 zile)',
+        severityScore: 2,
+        probabilityScore: 4,
+        riskLevel: 2,
+        sortOrder: 0,
+      },
+    });
+    await prisma.preventionMeasure.create({
+      data: {
+        assessmentId: assessmentNexus.id,
+        riskItemId: itemNexus1.id,
+        description: 'Pauze vizuale regulate (10 min la fiecare 50 min) și utilizarea filtrelor de lumină albastră',
+        measureType: 'organizatorica',
+        responsiblePerson: 'Conducător loc de muncă',
+        deadline: 'Permanent',
+        status: 'realizat',
+      },
+    });
+
+    const itemNexus2 = await prisma.riskItem.create({
+      data: {
+        assessmentId: assessmentNexus.id,
+        hazard: 'Poziție statică prelungită pe scaun de birou',
+        riskSituation: 'SARCINA',
+        consequence: 'Dureri lombare, afecțiuni cervico-dorso-lombare (ITM 3-45 zile)',
+        severityScore: 3,
+        probabilityScore: 3,
+        riskLevel: 3,
+        sortOrder: 1,
+      },
+    });
+    await prisma.preventionMeasure.create({
+      data: {
+        assessmentId: assessmentNexus.id,
+        riskItemId: itemNexus2.id,
+        description: 'Dotare cu scaune ergonomice reglabile pe 3 axe și suport lombar activ',
+        measureType: 'tehnica',
+        responsiblePerson: 'Administrator',
+        deadline: 'Anual',
+        status: 'realizat',
+      },
+    });
+
+    const itemNexus3 = await prisma.riskItem.create({
+      data: {
+        assessmentId: assessmentNexus.id,
+        hazard: 'Risc de electrocutare prin electrocasnice sau cabluri IT deteriorate',
+        riskSituation: 'MIJLOACE',
+        consequence: 'Electrocutare prin atingere indirectă (ITM 3-45 zile)',
+        severityScore: 4,
+        probabilityScore: 1,
+        riskLevel: 2,
+        sortOrder: 2,
+      },
+    });
+    await prisma.preventionMeasure.create({
+      data: {
+        assessmentId: assessmentNexus.id,
+        riskItemId: itemNexus3.id,
+        description: 'Verificarea periodică PRAM a instalației electrice și prizelor din birouri',
+        measureType: 'tehnica',
+        responsiblePerson: 'Responsabil Tehnic',
+        deadline: 'Semestrial',
+        status: 'planificat',
+      },
+    });
+  }
+
   console.log('\n✅ Seed finalizat cu succes!');
   console.log('Rezumat date create/actualizate:');
   console.log(`- Prestatori SSM: ${await prisma.ssmProvider.count()}`);
@@ -1488,6 +2089,10 @@ async function main() {
   console.log(`- Angajați: ${await prisma.employee.count()}`);
   console.log(`- Sesiuni Igienă: ${await prisma.hygieneSession.count()}`);
   console.log(`- Cursanți Igienă: ${await prisma.hygieneParticipant.count()}`);
+  console.log(`- Articole EIP: ${await prisma.eipItem.count()}`);
+  console.log(`- Cerințe EIP Post: ${await prisma.jobEipRequirement.count()}`);
+  console.log(`- Alocări EIP Salariați: ${await prisma.employeeEipAssignment.count()}`);
+  console.log(`- Evaluări de Risc: ${await prisma.riskAssessment.count()}`);
 }
 
 main()

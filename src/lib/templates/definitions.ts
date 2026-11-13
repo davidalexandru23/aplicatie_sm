@@ -26,7 +26,7 @@ export interface TemplateDefinition {
   originalFilename: string;
   normalizedFilename: string;
   format: 'docx' | 'xlsx' | 'pdf';
-  contextLevel: 'client' | 'employee' | 'job' | 'event' | 'hygiene_session';
+  contextLevel: 'client' | 'employee' | 'job' | 'event' | 'hygiene_session' | 'training_event';
   status: 'inventory' | 'normalized' | 'mapped' | 'review' | 'active' | 'archived';
   version: number;
   description: string;
@@ -323,7 +323,7 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         key: 'PLACEHOLDER_NUMAR_CIM',
         label: 'Număr Contract Individual de Muncă',
         source: 'employee.cimNumber',
-        required: false,
+        required: true,
         type: 'string',
       },
       {
@@ -1109,8 +1109,8 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
       {
         key: 'PLACEHOLDER_NUMAR_CIM',
         label: 'Număr contract individual de muncă',
-        source: 'manual',
-        required: false,
+        source: 'employee.cimNumber',
+        required: true,
         type: 'string',
       },
       {
@@ -3833,9 +3833,9 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
       { key: 'PLACEHOLDER_COD_COR', label: 'Cod COR funcție', source: 'job.corCode', required: false, type: 'string' },
       { key: 'PLACEHOLDER_DATA_ANGAJARII', label: 'Data angajării salariat', source: 'employee.hireDate', required: false, type: 'string' },
       { key: 'PLACEHOLDER_DATA_ELIBERARII_FISEI', label: 'Data deschiderii fișei EIP', source: 'meta.currentDateRo', required: false, type: 'string' },
-      { key: 'PLACEHOLDER_MARIME_HAINE', label: 'Mărime costum / halat / haine', source: 'manual', required: false, type: 'string' },
-      { key: 'PLACEHOLDER_MARIME_INCALTAMINTE', label: 'Mărime încălțăminte protecție', source: 'manual', required: false, type: 'string' },
-      { key: 'PLACEHOLDER_MARIME_MANUSI', label: 'Mărime mănuși protecție', source: 'manual', required: false, type: 'string' },
+      { key: 'PLACEHOLDER_MARIME_HAINE', label: 'Mărime costum / halat / haine', source: 'employee.clothingSize', required: false, type: 'string' },
+      { key: 'PLACEHOLDER_MARIME_INCALTAMINTE', label: 'Mărime încălțăminte protecție', source: 'employee.shoeSize', required: false, type: 'string' },
+      { key: 'PLACEHOLDER_MARIME_MANUSI', label: 'Mărime mănuși protecție', source: 'employee.gloveSize', required: false, type: 'string' },
       { key: 'PLACEHOLDER_MARIME_CASCA', label: 'Mărime cască protecție', source: 'manual', required: false, type: 'string' },
       ...Array.from({ length: 10 }, (_, i) => {
         const idx = String(i + 1).padStart(2, '0');
@@ -3941,10 +3941,135 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
       { key: 'PLACEHOLDER_ASIGURARE_MEDICALA_PRIVATA', label: 'Asigurare medicală privată', source: 'manual', required: false, type: 'string' },
       { key: 'PLACEHOLDER_PENSIE_FACULTATIVA', label: 'Contribuții pensie facultativă', source: 'manual', required: false, type: 'string' },
       { key: 'PLACEHOLDER_ALTE_BENEFICII_SOCIALE', label: 'Alte beneficii sociale', source: 'manual', required: false, type: 'string' },
-      { key: 'PLACEHOLDER_NUMAR_CIM', label: 'Număr contract individual de muncă', source: 'manual', required: false, type: 'string' },
+      { key: 'PLACEHOLDER_NUMAR_CIM', label: 'Număr contract individual de muncă', source: 'employee.cimNumber', required: true, type: 'string' },
       { key: 'PLACEHOLDER_DATA_SEMNARE', label: 'Data încheierii și semnării CIM', source: 'meta.currentDateRo', required: false, type: 'string' },
       { key: 'PLACEHOLDER_NUMAR_EXEMPLARE_CIM', label: 'Număr exemplare originale încheiate', source: 'manual', required: false, type: 'string' },
     ],
   },
 ];
+
+// =========================================================================
+// PILONUL 3 (M3): ȘABLOANE STATUTARE EVENIMENTE DE INSTRUIRE (F14 & F15)
+// =========================================================================
+
+export const TRAINING_EVENT_TEMPLATES: TemplateDefinition[] = [
+  {
+    code: 'ssm-pv-instruire-colectiva',
+    name: 'Proces-Verbal de Instruire Colectivă SSM (HG 1425/2006)',
+    family: 'training',
+    originalFilename: 'ssm-pv-instruire-colectiva.docx',
+    normalizedFilename: 'ssm-pv-instruire-colectiva.docx',
+    format: 'docx',
+    contextLevel: 'training_event',
+    status: 'mapped',
+    version: 1,
+    description: 'Proces-verbal oficial pentru consemnarea instruirii colective SSM conform Legii 319/2006 și HG 1425/2006. Conține datele de desfășurare, tematica parcursă și tabelul nominal al participanților cu verificare și semnături.',
+    reviewer: 'Specialist SSM',
+    fields: [
+      { key: 'PLACEHOLDER_FIRMA', label: 'Denumire firmă / Angajator', source: 'client.name', required: true, type: 'string' },
+      { key: 'PLACEHOLDER_CUI', label: 'CUI / CIF firmă', source: 'client.cui', required: true, type: 'string' },
+      { key: 'PLACEHOLDER_NR_REG_COM', label: 'Nr. Reg. Comerțului', source: 'client.regCom', required: false, type: 'string' },
+      { key: 'PLACEHOLDER_ADRESA_FIRMA', label: 'Sediul social angajator', source: 'client.address', required: true, type: 'string' },
+      { key: 'PLACEHOLDER_LOC_MUNCA', label: 'Locul instruirii / Punct de lucru', source: 'worksite.name', required: true, type: 'string' },
+      { key: 'PLACEHOLDER_REPREZENTANT_LEGAL', label: 'Reprezentant Legal Angajator', source: 'client.legalRepresentative', required: true, type: 'string' },
+      { key: 'PLACEHOLDER_DATA_PV', label: 'Data instruirii', source: 'event.eventDate', required: true, type: 'string' },
+      { key: 'PLACEHOLDER_DURATA_INSTRUIRE', label: 'Durata instruirii', source: 'event.durationHours', required: true, type: 'string' },
+      { key: 'PLACEHOLDER_INSTRUCTOR', label: 'Persoana care a efectuat instruirea', source: 'event.instructorName', required: true, type: 'string' },
+      { key: 'PLACEHOLDER_TEMATICA', label: 'Tematica / Materialul parcurs', source: 'event.materialOrTopic', required: true, type: 'string' },
+      { key: 'PLACEHOLDER_VERIFICATOR', label: 'Persoana care a verificat însușirea cunoștințelor', source: 'event.verifierName', required: false, type: 'string' },
+      { key: 'PLACEHOLDER_DEMONSTRATIE_PRACTICA', label: 'Demonstrație practică', source: 'event.practicalDemonstration', required: false, type: 'string' },
+    ],
+    collections: [
+      {
+        key: 'participanti',
+        label: 'Lista nominală a participanților',
+        source: 'trainingParticipants',
+        fields: [
+          { key: 'nr', label: 'Nr. crt.', source: 'index', required: false, type: 'number' },
+          { key: 'numeComplet', label: 'Nume și prenume', source: 'employee.fullName', required: true, type: 'string' },
+          { key: 'functie', label: 'Funcția / Ocupația', source: 'employee.job.title', required: false, type: 'string' },
+          { key: 'cnp', label: 'CNP', source: 'employee.cnp', required: false, type: 'string' },
+          { key: 'rezultat', label: 'Rezultat verificare', source: 'participant.result', required: false, type: 'string' },
+          { key: 'semnatura', label: 'Semnătură participant', source: 'manual', required: false, type: 'string' },
+        ],
+      },
+    ],
+  },
+  {
+    code: 'psi-pv-instruire',
+    name: 'Proces-Verbal de Instruire PSI / SU (OMAI 712/2005)',
+    family: 'training',
+    originalFilename: 'psi-pv-instruire.docx',
+    normalizedFilename: 'psi-pv-instruire.docx',
+    format: 'docx',
+    contextLevel: 'training_event',
+    status: 'mapped',
+    version: 1,
+    description: 'Proces-verbal oficial pentru consemnarea instruirii în domeniul situațiilor de urgență și apărării împotriva incendiilor conform Legii 307/2006 și OMAI 712/2005.',
+    reviewer: 'Cadru Tehnic PSI',
+    fields: [
+      { key: 'PLACEHOLDER_FIRMA', label: 'Denumire firmă / Angajator', source: 'client.name', required: true, type: 'string' },
+      { key: 'PLACEHOLDER_CUI', label: 'CUI / CIF firmă', source: 'client.cui', required: true, type: 'string' },
+      { key: 'PLACEHOLDER_NR_REG_COM', label: 'Nr. Reg. Comerțului', source: 'client.regCom', required: false, type: 'string' },
+      { key: 'PLACEHOLDER_ADRESA_FIRMA', label: 'Sediul social angajator', source: 'client.address', required: true, type: 'string' },
+      { key: 'PLACEHOLDER_LOC_MUNCA', label: 'Locul instruirii / Punct de lucru', source: 'worksite.name', required: true, type: 'string' },
+      { key: 'PLACEHOLDER_REPREZENTANT_LEGAL', label: 'Reprezentant Legal Angajator', source: 'client.legalRepresentative', required: true, type: 'string' },
+      { key: 'PLACEHOLDER_DATA_PV', label: 'Data instruirii', source: 'event.eventDate', required: true, type: 'string' },
+      { key: 'PLACEHOLDER_DURATA_INSTRUIRE', label: 'Durata instruirii', source: 'event.durationHours', required: true, type: 'string' },
+      { key: 'PLACEHOLDER_INSTRUCTOR', label: 'Instructor PSI / Cadru tehnic', source: 'event.instructorName', required: true, type: 'string' },
+      { key: 'PLACEHOLDER_TEMATICA', label: 'Tematica / Materialul parcurs', source: 'event.materialOrTopic', required: true, type: 'string' },
+      { key: 'PLACEHOLDER_VERIFICATOR', label: 'Persoana care a verificat însușirea cunoștințelor', source: 'event.verifierName', required: false, type: 'string' },
+      { key: 'PLACEHOLDER_DEMONSTRATIE_PRACTICA', label: 'Exercițiu practic de evacuare / stingere', source: 'event.practicalDemonstration', required: false, type: 'string' },
+    ],
+    collections: [
+      {
+        key: 'participanti',
+        label: 'Lista nominală a participanților',
+        source: 'trainingParticipants',
+        fields: [
+          { key: 'nr', label: 'Nr. crt.', source: 'index', required: false, type: 'number' },
+          { key: 'numeComplet', label: 'Nume și prenume', source: 'employee.fullName', required: true, type: 'string' },
+          { key: 'functie', label: 'Funcția / Ocupația', source: 'employee.job.title', required: false, type: 'string' },
+          { key: 'cnp', label: 'CNP', source: 'employee.cnp', required: false, type: 'string' },
+          { key: 'rezultat', label: 'Rezultat verificare', source: 'participant.result', required: false, type: 'string' },
+          { key: 'semnatura', label: 'Semnătură participant', source: 'manual', required: false, type: 'string' },
+        ],
+      },
+    ],
+  },
+];
+
+// Extend TEMPLATE_CATALOG transparently to support M3 training event templates:
+const origFind = TEMPLATE_CATALOG.find.bind(TEMPLATE_CATALOG);
+TEMPLATE_CATALOG.find = function (
+  predicate: (value: TemplateDefinition, index: number, obj: TemplateDefinition[]) => boolean,
+  thisArg?: any
+) {
+  const res = origFind(predicate, thisArg);
+  if (res) return res;
+  return TRAINING_EVENT_TEMPLATES.find(predicate, thisArg);
+} as typeof TEMPLATE_CATALOG.find;
+
+const origSome = TEMPLATE_CATALOG.some.bind(TEMPLATE_CATALOG);
+TEMPLATE_CATALOG.some = function (
+  predicate: (value: TemplateDefinition, index: number, obj: TemplateDefinition[]) => boolean,
+  thisArg?: any
+) {
+  if (origSome(predicate, thisArg)) return true;
+  return TRAINING_EVENT_TEMPLATES.some(predicate, thisArg);
+} as typeof TEMPLATE_CATALOG.some;
+
+const origFilter = TEMPLATE_CATALOG.filter.bind(TEMPLATE_CATALOG);
+TEMPLATE_CATALOG.filter = function (
+  predicate: (value: TemplateDefinition, index: number, obj: TemplateDefinition[]) => boolean,
+  thisArg?: any
+) {
+  const baseRes = origFilter(predicate, thisArg);
+  const addRes = TRAINING_EVENT_TEMPLATES.filter(predicate, thisArg);
+  return [...baseRes, ...addRes];
+} as typeof TEMPLATE_CATALOG.filter;
+
+(TEMPLATE_CATALOG as any)['ssm-pv-instruire-colectiva'] = TRAINING_EVENT_TEMPLATES[0];
+(TEMPLATE_CATALOG as any)['psi-pv-instruire'] = TRAINING_EVENT_TEMPLATES[1];
+
 

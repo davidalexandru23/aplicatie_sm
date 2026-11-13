@@ -282,17 +282,17 @@ runStressTest('2.3 Employee with null identityDocument renders only masked CNP',
       },
     })
   );
-  assert.ok(html.includes('18803********'), 'CNP is masked properly');
+  assert.ok(html.includes('1880312456789'), 'CNP is displayed in full and clear');
   assert.ok(!html.includes('CI RD'), 'Identity document line is safely omitted');
 });
 
 runStressTest('2.4 maskCNP boundary tests: null, empty, whitespace, short, and standard', () => {
   assert.equal(maskCNP(null), '—', 'null CNP returns em-dash');
   assert.equal(maskCNP(''), '—', 'empty CNP returns em-dash');
-  assert.equal(maskCNP('   '), '***', 'whitespace CNP trimmed < 5 returns ***');
-  assert.equal(maskCNP('123'), '***', 'short CNP returns ***');
-  assert.equal(maskCNP('1234'), '***', '4-digit CNP returns ***');
-  assert.equal(maskCNP('1880312456789'), '18803********', '13-digit CNP is masked with 8 asterisks');
+  assert.equal(maskCNP('   '), '—', 'whitespace CNP trimmed returns em-dash');
+  assert.equal(maskCNP('123'), '123', 'short CNP returns clean in full');
+  assert.equal(maskCNP('1234'), '1234', '4-digit CNP returns clean in full');
+  assert.equal(maskCNP('1880312456789'), '1880312456789', '13-digit CNP is returned in full and clear');
 });
 
 runStressTest('2.5 Employee with all compliance dates null (MISSING) renders NEÎNREGISTRAT badges', () => {

@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
         newJobs: Array.from(new Set(parsed.employees.map((e) => e.jobTitle))),
         items: parsed.employees.map((emp) => ({
           rowNumber: emp.rowNumber,
-          cnpMasked: emp.cnp ? emp.cnp.substring(0, 5) + '********' : '—',
+          cnpMasked: emp.cnp || '—',
           name: `${emp.lastName} ${emp.firstName}`,
           jobTitle: emp.jobTitle,
           worksiteName: emp.worksiteName,

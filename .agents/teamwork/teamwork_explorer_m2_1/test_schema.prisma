@@ -1,0 +1,586 @@
+// Test schema for Milestone 2 Prisma additions
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Client {
+  id                  String   @id @default(uuid())
+  name                String
+  cui                 String   @unique
+  regCom              String?
+  address             String
+  legalRepresentative String?
+  contactPerson       String?
+  contactEmail        String?
+  contactPhone        String?
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  caenCode            String?
+  caenActivity        String?
+  foundedYear         Int?
+
+  ssmProviderName     String?
+  ssmSpecialistName   String?
+  ssmSpecialistCert   String?
+
+  providerId          String?
+  provider            SsmProvider?   @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  specialistId        String?
+  specialist          SsmSpecialist? @relation(fields: [specialistId], references: [id], onDelete: SetNull)
+
+  designatedWorkerSsm String?
+  firstAidResponder   String?
+  psiResponder        String?
+  investigationMembers String?
+  decisionsDate       DateTime?
+
+  worksites          Worksite[]
+  jobs               Job[]
+  employees          Employee[]
+  riskAssessments    RiskAssessment[]
+  trainingEvents     TrainingEvent[]
+  generatedDocuments GeneratedDocument[]
+  importBatches      ImportBatch[]
+
+  @@index([cui])
+  @@index([caenCode])
+  @@index([providerId])
+  @@index([specialistId])
+}
+
+model SsmProvider {
+  id                    String         @id @default(uuid())
+  name                  String
+  cui                   String         @unique
+  regCom                String?
+  address               String
+  street                String?
+  number                String?
+  building              String?
+  entrance              String?
+  floor                 String?
+  apartment             String?
+  postalCode            String?
+  locality              String?
+  county                String?
+  authorizationNumber   String?
+  authorizationDate     DateTime?
+  authorizationDetails  String?
+  phone                 String?
+  email                 String?
+  website               String?
+  legalRepresentative   String?
+  representativeRole    String?
+  representativeDoc     String?
+  isDefault             Boolean        @default(false)
+  isActive              Boolean        @default(true)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  specialists           SsmSpecialist[]
+  clients               Client[]
+
+  @@index([isActive])
+}
+
+model SsmSpecialist {
+  id                String       @id @default(uuid())
+  providerId        String
+  provider          SsmProvider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name              String
+  role              String?
+  certificateNumber String?
+  qualification     String?
+  phone             String?
+  email             String?
+  cnp               String?
+  isDefault         Boolean      @default(false)
+  isActive          Boolean      @default(true)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  clients           Client[]
+
+  @@unique([providerId, name])
+  @@index([providerId])
+  @@index([isActive])
+}
+
+model Worksite {
+  id        String   @id @default(uuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  name      String
+  address   String
+  activity  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  employees          Employee[]
+  employmentHistory  EmploymentHistory[]
+  riskAssessments    RiskAssessment[]
+
+  @@unique([clientId, name])
+}
+
+model Job {
+  id              String   @id @default(uuid())
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  title           String
+  corCode         String?
+  mainActivities  String?
+  equipmentUsed   String?
+  workConditions  String?
+  workersCount    Int?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Milestone 2 additions: Job Risk Profiling
+  isFoodHandling    Boolean   @default(false)
+  isScreenWork      Boolean   @default(false)
+  isDrivingRequired Boolean   @default(false)
+  workPosture       String?
+  maxWeightKg       Float?
+  noiseExposed      Boolean   @default(false)
+
+  employees          Employee[]
+  employmentHistory  EmploymentHistory[]
+  riskAssessments    RiskAssessment[]
+  eipRequirements    JobEipRequirement[]
+
+  @@unique([clientId, title])
+}
+
+model Employee {
+  id              String   @id @default(uuid())
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  firstName       String
+  lastName        String
+  sex             String?
+  cnp             String
+  birthDate       DateTime?
+  birthPlace      String?
+  birthCounty     String?
+  citizenship     String?  @default("Română")
+
+  email           String?
+  phone           String?
+
+  currentJobId    String?
+  currentJob      Job?     @relation(fields: [currentJobId], references: [id], onDelete: SetNull)
+  currentWorksiteId String?
+  currentWorksite Worksite? @relation(fields: [currentWorksiteId], references: [id], onDelete: SetNull)
+  
+  startDateOnJob  DateTime?
+  hireDate        DateTime?
+  status          String   @default("ACTIV")
+  leaveDate       DateTime?
+
+  hygieneRequested        Boolean  @default(false)
+  hygieneModule           String?
+  hygienePreferredSession String?
+  adminNotes              String?
+
+  medicalLastExamDate          DateTime?
+  medicalIntervalMonths        Int       @default(12)
+  medicalFitnessVerdict        String?   @default("APT")
+  medicalNotes                 String?
+
+  ssmLastTrainingDate          DateTime?
+  ssmIntervalMonths            Int       @default(6)
+  ssmNotes                     String?
+
+  psiLastTrainingDate          DateTime?
+  psiIntervalMonths            Int       @default(6)
+  psiNotes                     String?
+
+  hygieneLastExamDate          DateTime?
+  hygieneCertificateNumber     String?
+  hygieneCertificateIssueDate  DateTime?
+  hygieneIntervalMonths        Int       @default(36)
+  hygieneNotes                 String?
+
+  // Milestone 2 additions: CIM & Statutory contract data
+  cimNumber                    String?
+  cimDate                      DateTime?
+  grossSalary                  Float?
+  workNorm                     Int       @default(8)
+  probationDays                Int       @default(90)
+  annualLeaveDays              Int       @default(20)
+  bankIban                     String?
+  bankName                     String?
+
+  // Milestone 2 additions: SSM, SU & Personal
+  bloodType                    String?
+  rhFactor                     String?
+  qualification                String?
+  commuteRoute                 String?
+  commuteDurationMinutes       Int?
+
+  // Milestone 2 additions: EIP sizes
+  shoeSize                     String?
+  clothingSize                 String?
+  gloveSize                    String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  identityDocument   IdentityDocument?
+  residenceAddress   ResidenceAddress?
+  employmentHistory  EmploymentHistory[]
+  trainingParticipants TrainingParticipant[]
+  hygieneParticipants  HygieneParticipant[]
+  generatedDocuments   GeneratedDocument[]
+  eipAssignments     EmployeeEipAssignment[]
+
+  @@unique([clientId, cnp])
+  @@index([clientId, status])
+}
+
+// Milestone 2 EIP models
+model EipItem {
+  id                String                  @id @default(uuid())
+  code              String                  @unique
+  name              String
+  standardCode      String
+  protectionType    String
+  replacementMonths Int                     @default(12)
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  requirements      JobEipRequirement[]
+  assignments       EmployeeEipAssignment[]
+
+  @@index([protectionType])
+}
+
+model JobEipRequirement {
+  id        String   @id @default(uuid())
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  eipItemId String
+  eipItem   EipItem  @relation(fields: [eipItemId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([jobId, eipItemId])
+  @@index([jobId])
+  @@index([eipItemId])
+}
+
+model EmployeeEipAssignment {
+  id            String    @id @default(uuid())
+  employeeId    String
+  employee      Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  eipItemId     String
+  eipItem       EipItem   @relation(fields: [eipItemId], references: [id], onDelete: Cascade)
+  assignedDate  DateTime  @default(now())
+  signatureDate DateTime?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([employeeId])
+  @@index([eipItemId])
+}
+
+model IdentityDocument {
+  id          String    @id @default(uuid())
+  employeeId  String    @unique
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  docType     String    @default("CI")
+  series      String?
+  number      String
+  issuedBy    String?
+  issueDate   DateTime?
+  expiryDate  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model ResidenceAddress {
+  id          String   @id @default(uuid())
+  employeeId  String   @unique
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  county      String
+  locality    String
+  street      String
+  number      String
+  building    String?
+  entrance    String?
+  floor       String?
+  apartment   String?
+  postalCode  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model EmploymentHistory {
+  id          String    @id @default(uuid())
+  employeeId  String
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  jobId       String?
+  job         Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  worksiteId  String?
+  worksite    Worksite? @relation(fields: [worksiteId], references: [id], onDelete: SetNull)
+  validFrom   DateTime
+  validTo     DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+model RiskAssessment {
+  id              String   @id @default(uuid())
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  worksiteId      String?
+  worksite        Worksite? @relation(fields: [worksiteId], references: [id], onDelete: SetNull)
+  jobId           String?
+  job             Job?     @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  title           String
+  method          String   @default("INCDPM")
+  version         Int      @default(1)
+  evaluatorName   String?
+  conclusions     String?
+  status          String   @default("draft")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  riskItems          RiskItem[]
+  preventionMeasures PreventionMeasure[]
+  hazardZones        HazardZone[]
+}
+
+model RiskItem {
+  id                String         @id @default(uuid())
+  assessmentId      String
+  assessment        RiskAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  hazard            String
+  riskSituation     String
+  consequence       String
+  severityScore     Int?
+  probabilityScore  Int?
+  riskLevel         Int?
+  existingMeasures  String?
+  residualRiskLevel Int?
+  sortOrder         Int            @default(0)
+
+  preventionMeasures PreventionMeasure[]
+}
+
+model PreventionMeasure {
+  id              String         @id @default(uuid())
+  assessmentId    String
+  assessment      RiskAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  riskItemId      String?
+  riskItem        RiskItem?      @relation(fields: [riskItemId], references: [id], onDelete: SetNull)
+  description     String
+  measureType     String         @default("tehnica")
+  responsiblePerson String?
+  deadline        String?
+  status          String         @default("planificat")
+  resources       String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model HazardZone {
+  id              String         @id @default(uuid())
+  assessmentId    String
+  assessment      RiskAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  zoneName        String
+  location        String
+  hazardDescription String
+  safetyMeasures  String
+  createdAt       DateTime       @default(now())
+}
+
+model TrainingMaterial {
+  id              String   @id @default(uuid())
+  type            String
+  title           String
+  code            String?
+  version         Int      @default(1)
+  contentSummary  String?
+  activityOrJob   String?
+  isApproved      Boolean  @default(true)
+  approvedBy      String?
+  approvedAt      DateTime?
+  createdAt       DateTime @default(now())
+}
+
+model TrainingEvent {
+  id                    String   @id @default(uuid())
+  clientId              String
+  client                Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  type                  String
+  eventDate             DateTime
+  durationHours         Float    @default(4.0)
+  materialOrTopic       String
+  practicalDemonstration String?
+  instructorName        String
+  verifierName          String?
+  location              String?
+  status                String   @default("planned")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  participants TrainingParticipant[]
+}
+
+model TrainingParticipant {
+  id              String        @id @default(uuid())
+  eventId         String
+  event           TrainingEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  employeeId      String
+  employee        Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  result          String        @default("admis")
+  recordedAt      DateTime?
+  scannedSheetUrl String?
+  createdAt       DateTime      @default(now())
+
+  @@unique([eventId, employeeId])
+}
+
+model HygieneSession {
+  id                  String   @id @default(uuid())
+  providerName        String   @default("Firma Prestatoare SSM")
+  msAuthorization     String?
+  meAuthorization     String?
+  sessionDate         DateTime
+  examDate            DateTime
+  location            String
+  commissionPresident String?
+  commissionMember1   String?
+  commissionMember2   String?
+  commissionSecretary String?
+  pvSeriesNumber      String?
+  status              String   @default("programata")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  participants HygieneParticipant[]
+}
+
+model HygieneParticipant {
+  id                String          @id @default(uuid())
+  sessionId         String
+  session           HygieneSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  employeeId        String?
+  employee          Employee?       @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  clientName        String
+  lastName          String
+  firstName         String
+  cnp               String
+  birthDate         DateTime?
+  birthPlace        String?
+  docType           String?         @default("CI")
+  docSeries         String?
+  docNumber         String?
+  jobTitle          String?
+  attendance        String          @default("prezent")
+  examGrade         Float?
+  examResult        String          @default("admis")
+  certificateSeries String?
+  certificateNumber String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([sessionId])
+}
+
+model Template {
+  id                 String   @id @default(uuid())
+  code               String   @unique
+  name               String
+  family             String
+  originalFilename   String
+  normalizedFilename String
+  format             String
+  contextLevel       String
+  status             String   @default("inventory")
+  version            Int      @default(1)
+  description        String?
+  manifestJson       String
+  reviewer           String?
+  approvedAt         DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  generatedDocuments GeneratedDocument[]
+}
+
+model GeneratedDocument {
+  id                 String   @id @default(uuid())
+  clientId           String
+  client             Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  employeeId         String?
+  employee           Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  jobId              String?
+  eventId            String?
+  hygieneSessionId   String?
+  templateId         String
+  template           Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  templateVersion    Int      @default(1)
+  title              String
+  status             String   @default("draft")
+  filePath           String
+  mimeType           String
+  fileSizeBytes      Int      @default(0)
+  snapshotData       String
+  missingFields      String?
+  createdBy          String
+  reviewedBy         String?
+  approvedBy         String?
+  signedScanPath     String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([clientId, status])
+  @@index([templateId])
+}
+
+model ImportBatch {
+  id                 String   @id @default(uuid())
+  clientId           String
+  client             Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  filename           String
+  schemaVersion      String   @default("1.0")
+  rowCount           Int      @default(0)
+  newCount           Int      @default(0)
+  updatedCount       Int      @default(0)
+  errorCount         Int      @default(0)
+  ambiguousCount     Int      @default(0)
+  status             String   @default("uploaded")
+  validationReport   String?
+  diffData           String?
+  operatorName       String
+  createdAt          DateTime @default(now())
+
+  @@index([clientId])
+}
+
+model AuditEvent {
+  id                 String   @id @default(uuid())
+  actorName          String
+  actorEmail         String?
+  action             String
+  entityType         String
+  entityId           String?
+  details            String?
+  ipAddress          String?
+  createdAt          DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}

@@ -18,9 +18,9 @@
  *    dynamic header resolution, dirty data resilience, line attribution, safe partial
  *    commit with atomic rollback, expat passport validation, template downloads,
  *    and 100% round-trip fidelity (calls scripts/verify-excel-import-export.ts).
- * 4. Comprehensive Opaque-Box E2E Suite: 53/53 requirement-driven test cases pass
- *    across Tiers 1–4 (Feature isolation, Boundaries, Cross-feature combinations,
- *    and Full Romanian Employee Lifecycle) (calls scripts/e2e-suite.ts).
+ * 4. Comprehensive Opaque-Box E2E Suite: 333/333 requirement-driven test cases pass
+ *    across Tiers 1–4 (Feature isolation: 155, Boundaries: 155, Cross-feature combinations: 15,
+ *    and Full Romanian Employee Lifecycle: 8) (calls scripts/e2e-suite.ts).
  * 5. Production Application Build: Executes npm run build verifying clean
  *    compilation under Next.js Turbopack with 0 errors.
  * 
@@ -256,24 +256,24 @@ async function runUnifiedVerification() {
   const s4 = await runSubprocess('npx', ['tsx', 'scripts/e2e-suite.ts']);
   const s4Match = s4.stdout.match(/TOTAL:\s*(\d+)\/(\d+)\s*PASSED/i);
   const s4PassedCount = s4Match ? parseInt(s4Match[1], 10) : 0;
-  const s4TotalCount = s4Match ? parseInt(s4Match[2], 10) : 53;
-  const s4Passed = s4.exitCode === 0 && s4PassedCount === s4TotalCount && s4TotalCount === 53;
+  const s4TotalCount = s4Match ? parseInt(s4Match[2], 10) : 333;
+  const s4Passed = s4.exitCode === 0 && s4PassedCount === s4TotalCount && s4TotalCount >= 333;
 
   results.push({
     id: 4,
     name: 'Comprehensive E2E Suite (Tiers 1–4)',
-    scope: 'Isolation, Boundaries, Combinations, Lifecycles',
+    scope: 'T1: 155, T2: 155, T3: 15, T4: 8 (333 total)',
     passedCount: s4PassedCount,
     totalCount: s4TotalCount,
     durationMs: s4.durationMs,
     status: s4Passed ? 'PASS' : 'FAIL',
     details: s4Passed
-      ? '53/53 requirement-driven E2E tests passed across all 4 tiers'
+      ? `${s4PassedCount}/${s4TotalCount} requirement-driven E2E tests passed across all 4 tiers`
       : `Exit code: ${s4.exitCode}, passed: ${s4PassedCount}/${s4TotalCount}`,
   });
 
   if (s4Passed) {
-    console.log(`  ${COLORS.green}✓${COLORS.reset} Suite 4 Passed: 53/53 E2E test cases passed (${s4.durationMs}ms)`);
+    console.log(`  ${COLORS.green}✓${COLORS.reset} Suite 4 Passed: ${s4PassedCount}/${s4TotalCount} E2E test cases passed (${s4.durationMs}ms)`);
   } else {
     console.log(`  ${COLORS.red}✗${COLORS.reset} Suite 4 Failed (${s4.durationMs}ms)`);
     console.error(s4.stderr || s4.stdout);

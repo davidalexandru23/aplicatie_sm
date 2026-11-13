@@ -22,6 +22,8 @@ export interface ComplianceItemResult {
 export interface EmployeeComplianceSummary {
   employeeId: string;
   employeeName: string;
+  status?: string;
+  isTerminated?: boolean;
   occupationalMedicine: ComplianceItemResult;
   ssmTraining: ComplianceItemResult;
   psiTraining: ComplianceItemResult;
@@ -51,6 +53,8 @@ export interface EmployeeComplianceInput {
   firstName?: string | null;
   lastName?: string | null;
   fullName?: string | null;
+  status?: string | null;
+  leaveDate?: Date | string | null;
   medicalLastExamDate?: Date | string | null;
   medicalIntervalMonths?: number | null;
   medicalFitnessVerdict?: string | null;
@@ -228,9 +232,21 @@ export function calculateEmployeeCompliance(
     referenceDate
   );
 
-  // 4. Hygiene Course (Ordinul 2209/4469/2022) - conditionally tracked
+  // 4. Hygiene Course (Ordinul 2209/4469/2022) - statutory compliance on CAEN 5610 & food-handling jobs
+  const rawCaen = (employee as any)?.client?.caenCode ?? (employee as any)?.caenCode;
+  const caenCode = rawCaen ? String(rawCaen).trim() : '';
+  const isFoodCaen = ['5610', '5621', '5630', '1071', '4711'].includes(caenCode);
+  const isFoodHandlingJob = Boolean(
+    (employee as any)?.currentJob?.isFoodHandling ??
+    (employee as any)?.job?.isFoodHandling ??
+    (employee as any)?.isFoodHandling
+  );
+
   const isHygieneApplicable = Boolean(
-    employee?.hygieneRequested || employee?.hygieneLastExamDate
+    employee?.hygieneRequested ||
+    employee?.hygieneLastExamDate ||
+    isFoodCaen ||
+    isFoodHandlingJob
   );
 
   const hygieneLastExam = (employee?.hygieneLastExamDate as Date | string | null | undefined) ?? null;
@@ -269,9 +285,16 @@ export function calculateEmployeeCompliance(
     overallStatus = 'VALID';
   }
 
+  const rawStatus = typeof (employee as any)?.status === 'string' && (employee as any).status
+    ? String((employee as any).status).trim().toUpperCase()
+    : 'ACTIV';
+  const isTerminated = rawStatus === 'PLECAT';
+
   return {
     employeeId,
     employeeName,
+    status: rawStatus,
+    isTerminated,
     occupationalMedicine,
     ssmTraining,
     psiTraining,
@@ -282,13 +305,25 @@ export function calculateEmployeeCompliance(
 
 /**
  * Calculates aggregated compliance metrics for a group of employees (e.g. at company level).
+ * Strictly excludes employees with status 'PLECAT' by default unless options.includeTerminated is true.
  */
 export function calculateCompanyMetrics(
   employees: (EmployeeComplianceInput | Record<string, unknown>)[],
-  referenceDate: Date = new Date()
+  referenceDate: Date = new Date(),
+  options?: { includeTerminated?: boolean }
 ): CompanyComplianceMetrics {
   const employeeList = Array.isArray(employees) ? employees : [];
-  const totalEmployees = employeeList.length;
+
+  const targetEmployees = options?.includeTerminated
+    ? employeeList
+    : employeeList.filter((emp) => {
+        const st = typeof (emp as any)?.status === 'string'
+          ? String((emp as any).status).trim().toUpperCase()
+          : 'ACTIV';
+        return st !== 'PLECAT';
+      });
+
+  const totalEmployees = targetEmployees.length;
 
   let totalItemsTracked = 0;
   let validCount = 0;
@@ -296,7 +331,7 @@ export function calculateCompanyMetrics(
   let overdueCount = 0;
   let missingCount = 0;
 
-  for (const emp of employeeList) {
+  for (const emp of targetEmployees) {
     const summary = calculateEmployeeCompliance(emp, referenceDate);
     const items: ComplianceItemResult[] = [
       summary.occupationalMedicine,

@@ -18,6 +18,9 @@ import {
   AlertTriangle,
   FileText,
   Download,
+  Edit,
+  X,
+  Filter,
 } from 'lucide-react';
 
 interface Participant {
@@ -32,6 +35,7 @@ interface Participant {
   examResult: string;
   certificateSeries?: string;
   certificateNumber?: string;
+  certificateDate?: string;
   employeeId?: string;
   employee?: {
     clientId: string;
@@ -40,6 +44,12 @@ interface Participant {
 
 interface HygieneSession {
   id: string;
+  clientId?: string | null;
+  client?: {
+    id: string;
+    name: string;
+    cui: string;
+  } | null;
   providerName: string;
   msAuthorization?: string;
   meAuthorization?: string;
@@ -103,6 +113,9 @@ export default function HygienePage() {
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
+  // Filter state
+  const [filterClientId, setFilterClientId] = useState<string>('');
+
   // Add participants state
   const [addParticipantsSessionId, setAddParticipantsSessionId] = useState<string | null>(null);
   const [clients, setClients] = useState<ClientOption[]>([]);
@@ -111,7 +124,31 @@ export default function HygienePage() {
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>([]);
   const [downloadingDoc, setDownloadingDoc] = useState<string | null>(null);
 
+  // Edit participant state
+  const [editingParticipant, setEditingParticipant] = useState<{
+    session: HygieneSession;
+    participant: Participant;
+  } | null>(null);
+  const [editFormData, setEditFormData] = useState<{
+    attendance: string;
+    examGrade: string;
+    examResult: string;
+    certificateSeries: string;
+    certificateNumber: string;
+    certificateDate: string;
+  }>({
+    attendance: 'prezent',
+    examGrade: '',
+    examResult: 'admis',
+    certificateSeries: '',
+    certificateNumber: '',
+    certificateDate: '',
+  });
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
   const resolveSessionClientId = useCallback((session: HygieneSession): string => {
+    if (session.clientId) return session.clientId;
     const pWithClient = session.participants.find((p) => p.employee?.clientId);
     if (pWithClient?.employee?.clientId) return pWithClient.employee.clientId;
 
@@ -164,10 +201,14 @@ export default function HygienePage() {
     }
   };
 
-  const fetchSessions = useCallback(async () => {
+  const fetchSessions = useCallback(async (clientFilter?: string) => {
     setLoading(true);
     try {
-      const res = await fetch('/api/hygiene/sessions');
+      const activeFilter = clientFilter !== undefined ? clientFilter : filterClientId;
+      const url = activeFilter
+        ? `/api/hygiene/sessions?clientId=${encodeURIComponent(activeFilter)}`
+        : '/api/hygiene/sessions';
+      const res = await fetch(url);
       const data = await res.json();
       if (Array.isArray(data)) setSessions(data);
     } catch {
@@ -175,11 +216,91 @@ export default function HygienePage() {
     } finally {
       setLoading(false);
     }
+  }, [filterClientId]);
+
+  // Load clients on mount for session creation and filtering
+  useEffect(() => {
+    fetch('/api/clients')
+      .then((r) => r.json())
+      .then((d) => {
+        if (Array.isArray(d)) setClients(d);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
     fetchSessions();
   }, [fetchSessions]);
+
+  const openEditParticipant = (session: HygieneSession, participant: Participant) => {
+    setEditingParticipant({ session, participant });
+    setEditError(null);
+    setEditFormData({
+      attendance: participant.attendance || 'prezent',
+      examGrade: participant.examGrade != null ? String(participant.examGrade) : '',
+      examResult: participant.examResult || 'admis',
+      certificateSeries: participant.certificateSeries || '',
+      certificateNumber: participant.certificateNumber || '',
+      certificateDate: participant.certificateDate
+        ? new Date(participant.certificateDate).toISOString().slice(0, 10)
+        : (session.examDate ? new Date(session.examDate).toISOString().slice(0, 10) : ''),
+    });
+  };
+
+  const handleSaveParticipant = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingParticipant) return;
+    setEditLoading(true);
+    setEditError(null);
+
+    try {
+      const payload: any = {
+        attendance: editFormData.attendance,
+        examResult: editFormData.examResult,
+      };
+
+      if (editFormData.examGrade !== '') {
+        const g = parseFloat(editFormData.examGrade);
+        if (isNaN(g) || g < 1 || g > 10) {
+          throw new Error('Nota la examen trebuie să fie un număr între 1.0 și 10.0');
+        }
+        payload.examGrade = g;
+      } else {
+        payload.examGrade = null;
+      }
+
+      if (editFormData.attendance === 'absent' || editFormData.examResult === 'respins') {
+        payload.certificateSeries = null;
+        payload.certificateNumber = null;
+        payload.certificateDate = null;
+      } else {
+        payload.certificateSeries = editFormData.certificateSeries.trim() || null;
+        payload.certificateNumber = editFormData.certificateNumber.trim() || null;
+        payload.certificateDate = editFormData.certificateDate || null;
+      }
+
+      const res = await fetch(
+        `/api/hygiene/sessions/${editingParticipant.session.id}/participants/${editingParticipant.participant.id}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Eroare la salvarea cursantului.');
+      }
+
+      setEditingParticipant(null);
+      await fetchSessions();
+    } catch (err: any) {
+      setEditError(err.message || 'Eroare la salvare.');
+    } finally {
+      setEditLoading(false);
+    }
+  };
 
   // Load clients for add-participants
   useEffect(() => {
@@ -276,7 +397,9 @@ export default function HygienePage() {
     setError(null);
 
     try {
+      const clientId = (fd.get('clientId') as string) || undefined;
       const payload = {
+        clientId,
         providerName: fd.get('providerName') as string || undefined,
         msAuthorization: fd.get('msAuthorization') as string || undefined,
         meAuthorization: fd.get('meAuthorization') as string || undefined,
@@ -344,7 +467,28 @@ export default function HygienePage() {
             Evidența sesiunilor de instruire igienă, cataloage cursanți, examinare și adeverințe (Ord. MS/ME 2209/4469/2022).
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {clients.length > 0 && (
+            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5">
+              <Filter className="w-3.5 h-3.5 text-slate-500" />
+              <select
+                value={filterClientId}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFilterClientId(val);
+                  fetchSessions(val);
+                }}
+                className="text-xs bg-transparent focus:outline-none text-slate-800 font-medium cursor-pointer"
+              >
+                <option value="">Toate companiile</option>
+                {clients.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <button
             onClick={() => fetchSessions()}
             className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-2 rounded-lg hover:bg-slate-200 transition"
@@ -382,7 +526,19 @@ export default function HygienePage() {
             Creează Sesiune Nouă de Igienă
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Companie Client (asociere)</label>
+              <select
+                name="clientId"
+                className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              >
+                <option value="">-- Alege compania (opțional) --</option>
+                {clients.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name} (CUI: {c.cui})</option>
+                ))}
+              </select>
+            </div>
             <div>
               <label className="block text-[11px] font-semibold text-slate-600 mb-1">Furnizor Cursuri</label>
               <input name="providerName" placeholder="Ex: EXPERT SSM S.R.L." className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
@@ -395,6 +551,9 @@ export default function HygienePage() {
               <label className="block text-[11px] font-semibold text-slate-600 mb-1">Data Examenului *</label>
               <input type="date" name="examDate" required className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
               <label className="block text-[11px] font-semibold text-slate-600 mb-1">Locație *</label>
               <input name="location" required placeholder="Ex: București, Sala A2" className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
@@ -545,7 +704,7 @@ export default function HygienePage() {
                         />
                       </td>
                       <td className="px-3 py-2 font-medium text-slate-800">{emp.lastName} {emp.firstName}</td>
-                      <td className="px-3 py-2 text-slate-500 font-mono">{emp.cnp.slice(0, 4)}****</td>
+                      <td className="px-3 py-2 text-slate-500 font-mono">{emp.cnp}</td>
                       <td className="px-3 py-2 text-slate-600">{emp.currentJob?.title || '—'}</td>
                     </tr>
                   ))}
@@ -714,7 +873,7 @@ export default function HygienePage() {
                                 </td>
                                 <td className="px-3 py-2 text-slate-600">{p.clientName}</td>
                                 <td className="px-3 py-2 text-slate-600">{p.jobTitle || '—'}</td>
-                                <td className="px-3 py-2 text-slate-500 font-mono">{p.cnp.slice(0, 4)}****</td>
+                                <td className="px-3 py-2 text-slate-500 font-mono">{p.cnp}</td>
                                 <td className="px-3 py-2">
                                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.attendance === 'prezent' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
                                     {p.attendance}
@@ -731,7 +890,16 @@ export default function HygienePage() {
                                     ? `${p.certificateSeries} ${p.certificateNumber}`
                                     : '—'}
                                 </td>
-                                <td className="px-3 py-2 text-right">
+                                <td className="px-3 py-2 text-right space-x-1.5 whitespace-nowrap">
+                                  <button
+                                    type="button"
+                                    title="Editează note, prezență sau certificat"
+                                    onClick={() => openEditParticipant(session, p)}
+                                    className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded transition"
+                                  >
+                                    <Edit className="w-3 h-3 text-blue-600" />
+                                    Editează
+                                  </button>
                                   <button
                                     type="button"
                                     title="Descarcă adeverință cursant"
@@ -819,6 +987,166 @@ export default function HygienePage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Modal Editare Participant & Emitere Certificat */}
+      {editingParticipant && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 space-y-4 border border-slate-200">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Award className="w-5 h-5 text-blue-600" />
+                <h3 className="text-sm font-bold text-slate-900">
+                  Evaluare Cursant & Serie Certificat Igienă
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingParticipant(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-slate-50 p-3 rounded-lg text-xs space-y-1 text-slate-700">
+              <p><span className="font-semibold">Cursant:</span> {editingParticipant.participant.lastName} {editingParticipant.participant.firstName}</p>
+              <p><span className="font-semibold">Companie:</span> {editingParticipant.participant.clientName}</p>
+              <p><span className="font-semibold">Funcție:</span> {editingParticipant.participant.jobTitle || 'Nespecificată'}</p>
+              <p><span className="font-semibold">Sesiune:</span> {new Date(editingParticipant.session.sessionDate).toLocaleDateString('ro-RO')} (Examen: {new Date(editingParticipant.session.examDate).toLocaleDateString('ro-RO')})</p>
+            </div>
+
+            {editError && (
+              <div className="p-2.5 bg-rose-50 border border-rose-200 rounded text-xs text-rose-700">
+                {editError}
+              </div>
+            )}
+
+            <form onSubmit={handleSaveParticipant} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                    Prezență Curs *
+                  </label>
+                  <select
+                    value={editFormData.attendance}
+                    onChange={(e) => {
+                      const att = e.target.value;
+                      setEditFormData((prev) => ({
+                        ...prev,
+                        attendance: att,
+                        ...(att === 'absent' ? { examResult: 'respins', examGrade: '' } : {}),
+                      }));
+                    }}
+                    className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  >
+                    <option value="prezent">Prezent</option>
+                    <option value="absent">Absent</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                    Rezultat Examen *
+                  </label>
+                  <select
+                    disabled={editFormData.attendance === 'absent'}
+                    value={editFormData.examResult}
+                    onChange={(e) => {
+                      const res = e.target.value;
+                      setEditFormData((prev) => ({
+                        ...prev,
+                        examResult: res,
+                      }));
+                    }}
+                    className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400"
+                  >
+                    <option value="admis">Admis</option>
+                    <option value="respins">Respins</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                    Notă Examen (1.0 - 10.0)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="1"
+                    max="10"
+                    disabled={editFormData.attendance === 'absent'}
+                    value={editFormData.examGrade}
+                    onChange={(e) => setEditFormData((prev) => ({ ...prev, examGrade: e.target.value }))}
+                    placeholder="Ex: 9.5"
+                    className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                    Data Emiterii Certificatului
+                  </label>
+                  <input
+                    type="date"
+                    disabled={editFormData.attendance === 'absent' || editFormData.examResult === 'respins'}
+                    value={editFormData.certificateDate}
+                    onChange={(e) => setEditFormData((prev) => ({ ...prev, certificateDate: e.target.value }))}
+                    className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                    Serie Certificat
+                  </label>
+                  <input
+                    type="text"
+                    disabled={editFormData.attendance === 'absent' || editFormData.examResult === 'respins'}
+                    value={editFormData.certificateSeries}
+                    onChange={(e) => setEditFormData((prev) => ({ ...prev, certificateSeries: e.target.value }))}
+                    placeholder="Ex: IG"
+                    className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400 uppercase"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                    Număr Certificat
+                  </label>
+                  <input
+                    type="text"
+                    disabled={editFormData.attendance === 'absent' || editFormData.examResult === 'respins'}
+                    value={editFormData.certificateNumber}
+                    onChange={(e) => setEditFormData((prev) => ({ ...prev, certificateNumber: e.target.value }))}
+                    placeholder="Ex: 004128"
+                    className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingParticipant(null)}
+                  className="text-xs text-slate-600 hover:text-slate-800 px-3 py-2 rounded-lg"
+                >
+                  Anulează
+                </button>
+                <button
+                  type="submit"
+                  disabled={editLoading}
+                  className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition"
+                >
+                  {editLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Award className="w-3.5 h-3.5" />}
+                  <span>Salvează Evaluarea</span>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

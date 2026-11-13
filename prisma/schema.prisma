@@ -57,6 +57,7 @@ model Client {
   employees          Employee[]
   riskAssessments    RiskAssessment[]
   trainingEvents     TrainingEvent[]
+  hygieneSessions    HygieneSession[]
   generatedDocuments GeneratedDocument[]
   importBatches      ImportBatch[]
 
@@ -175,6 +176,9 @@ model Job {
   workPosture        String?  // "standing", "sitting", "mixed"
   maxWeightKg        Float?   // Manipulare manuală mase (kg)
   noiseExposed       Boolean  @default(false) // Expunere la zgomot > 80 dB(A)
+  chemicalExposed    Boolean  @default(false) // Expunere la agenți chimici (HG 355/2007 Fișa 141)
+  vibrationExposed   Boolean  @default(false) // Expunere la vibrații mecanice (HG 355/2007 Fișa 140)
+  heightWork         Boolean  @default(false) // Lucru la înălțime (HG 355/2007 Fișa 203)
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -470,6 +474,8 @@ model TrainingParticipant {
 
 model HygieneSession {
   id                  String   @id @default(uuid())
+  clientId            String?
+  client              Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
   providerName        String   @default("Firma Prestatoare SSM") // Se completează cu furnizorul autorizat
   msAuthorization     String?  // Număr/dată aviz Ministerul Sănătății
   meAuthorization     String?  // Număr/dată aviz Ministerul Educației
@@ -486,6 +492,8 @@ model HygieneSession {
   updatedAt           DateTime @updatedAt
 
   participants HygieneParticipant[]
+
+  @@index([clientId])
 }
 
 model HygieneParticipant {
@@ -511,6 +519,7 @@ model HygieneParticipant {
   examResult        String          @default("admis") // admis / respins
   certificateSeries String?
   certificateNumber String?
+  certificateDate   DateTime?
 
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt

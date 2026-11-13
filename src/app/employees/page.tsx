@@ -26,7 +26,12 @@ export default async function EmployeesPage({
       },
     }),
     prisma.client.findMany({
-      select: { id: true, name: true },
+      select: {
+        id: true,
+        name: true,
+        jobs: { select: { id: true, title: true } },
+        worksites: { select: { id: true, name: true } },
+      },
       orderBy: { name: 'asc' },
     }),
   ]);
@@ -39,7 +44,11 @@ export default async function EmployeesPage({
     cnp: emp.cnp,
     status: emp.status,
     hireDate: emp.hireDate ? emp.hireDate.toISOString() : null,
+    leaveDate: emp.leaveDate ? emp.leaveDate.toISOString() : null,
+    medicalLastExamDate: emp.medicalLastExamDate ? emp.medicalLastExamDate.toISOString() : null,
+    medicalIntervalMonths: emp.medicalIntervalMonths,
     medicalFitnessVerdict: emp.medicalFitnessVerdict,
+    medicalNotes: emp.medicalNotes,
     client: emp.client,
     currentJob: emp.currentJob,
     currentWorksite: emp.currentWorksite,

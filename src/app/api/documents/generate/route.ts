@@ -11,11 +11,19 @@ export async function POST(request: NextRequest) {
       clientId,
       employeeId,
       jobId,
+      worksiteId,
       hygieneSessionId,
       hygieneParticipantId,
+      trainingEventId: rawTrainingEventId,
+      eventId: rawEventId,
+      assessmentId: rawAssessmentId,
+      riskAssessmentId: rawRiskAssessmentId,
       customFields,
       operatorName = 'Operator Intern',
     } = body;
+
+    const trainingEventId = rawTrainingEventId || rawEventId;
+    const assessmentId = rawAssessmentId || rawRiskAssessmentId;
 
     if (!templateCode || !clientId) {
       return NextResponse.json(
@@ -30,8 +38,11 @@ export async function POST(request: NextRequest) {
       clientId,
       employeeId,
       jobId,
+      worksiteId,
+      assessmentId,
       hygieneSessionId,
       hygieneParticipantId,
+      trainingEventId,
       customOverrides: customFields && typeof customFields === 'object' ? customFields : {},
     });
 
@@ -40,6 +51,8 @@ export async function POST(request: NextRequest) {
       clientId,
       employeeId,
       jobId,
+      worksiteId,
+      eventId: trainingEventId,
       hygieneSessionId,
       data: resolvedData,
       operatorName,

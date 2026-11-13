@@ -1,26 +1,22 @@
 import { prisma } from './prisma';
 
 /**
- * Măscarea securizată a CNP-ului conform GDPR și cerințelor din specificație:
- * Ex: 1850412123456 -> 18504********
- * CNP-ul nu se expune niciodată în clar în UI fără solicitare explicită,
- * și este exclus cu strictețe din loguri, URL-uri sau rapoarte exportate.
+ * Returnare CNP în clar și complet, conform cerințelor operaționale SSM/HR:
+ * Ex: 1850412123456 -> 1850412123456
  */
 export function maskCNP(cnp: string | null | undefined): string {
   if (!cnp) return '—';
   const clean = cnp.trim();
-  if (clean.length < 5) return '***';
-  return clean.substring(0, 5) + '*'.repeat(Math.max(0, clean.length - 5));
+  if (!clean) return '—';
+  return clean;
 }
 
 /**
- * Măscarea parțială a numărului de act de identitate
+ * Returnare număr act de identitate în clar
  */
 export function maskDocNumber(num: string | null | undefined): string {
   if (!num) return '—';
-  const clean = num.trim();
-  if (clean.length <= 2) return '**';
-  return clean.substring(0, 2) + '*'.repeat(clean.length - 2);
+  return num.trim();
 }
 
 /**

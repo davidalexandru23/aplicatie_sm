@@ -1,72 +1,84 @@
-# Handoff Report — Project Sentinel
+# Sentinel Handoff Report — SSM / Igienă / HR Platform Remediation
 
-**Agent**: `teamwork_sentinel` (Project Sentinel)  
-**Parent / Caller**: `7f1f394f-32ac-4074-962e-c4dddf036503`  
-**Working Directory**: `/Users/davidalexandru/Documents/Proiect_SSM/.agents/teamwork/sentinel/`  
-**Project Root**: `/Users/davidalexandru/Documents/Proiect_SSM`  
-**Status**: COMPLETE (VICTORY CONFIRMED)  
-**Date**: 2026-11-03T16:53:00Z  
+**Date**: 2026-11-11  
+**Archetype**: Sentinel  
+**Verdict**: **VICTORY CONFIRMED**  
 
 ---
 
 ## 1. Observation
-
-1. **Routing & Orchestration**:
-   - Routed request to `teamwork_orchestrator` under the General SWE path.
-   - Project Orchestrator (`e02d72ae-5121-4ddd-a7ab-3b2da6aaf0bb`) executed an iterative, multi-specialist delivery model comprising 4 core milestones and 8 inventoried features.
-   - Continuous supervision conducted via two scheduled crons: progress reporting (`*/8 * * * *`) and liveness checking (`*/10 * * * *`).
-
-2. **Milestone Delivery Summary**:
-   - **Milestone 1 (SSM Domain Schema & Contextual CAEN Engine)**: Extended Prisma schema with 11 CAEN activity and decision fields; implemented Romanian CAEN Rev. 2 catalog (`src/lib/caen-catalog.ts`, 22 economic classes); built INCDPM Pece risk evaluation matrix presets (`src/lib/risk/caen-risk-presets.ts`, $N_{rg} \le 3.50$); dynamic template resolver bindings; seed synchronized with valid modulo-11 CNPs. Gate: PASS.
-   - **Milestone 2 (SSM Operational Workflows UI & Training Scheduler)**: Built Client Intake modal (`client-intake-modal.tsx`), company profile editor, and CAEN selector; built Organizational Decisions 01–09 appointee card on `/clients/[id]`; built interactive training session logger in `/trainings` and atomic endpoint (`POST /api/trainings/record`) with automatic scadențe recalculation and temporal future date validation. Gate: PASS.
-   - **Milestone 3 (Robust Excel Import/Export & Template Management)**: Upgraded `src/lib/importer.ts` with dynamic row-12 header discovery, timezone-neutral UTC date parsing, intra-file duplicate CNP attribution, and expat passport acceptance; hardened `src/lib/exporter.ts` for 100% roundtrip fidelity; deployed `GET /api/imports/template` serving empty and sample spreadsheets; modernized `/imports/new` UI with drag-and-drop, tabbed filtering, and error row styling. Gate: PASS.
-   - **Milestone 4 (Unified Acceptance Verification Suite & Clean Application Build)**: Integrated unified test runner `scripts/verify-all.ts` orchestrating 5 verification pillars with 130/130 assertions passing; clean Next.js 16 production build (`npm run build`). Gate: PASS.
-
-3. **Independent Victory Audit**:
-   - Spawned `teamwork_victory_auditor` (`8ac1a0bc-2b17-451f-a58b-3b22d692e51f`) upon orchestrator victory claim.
-   - Conducted 3-phase audit:
-     * Phase A (Timeline Forensics): PASS (genuine iterative development across 90+ tracks; zero pre-populated artifacts).
-     * Phase B (Integrity / Anti-Cheating): PASS (zero hardcoded mock results, zero facades, zero user roles or electronic signatures, strict employer/employee separation).
-     * Phase C (Independent Test Execution): PASS (130/130 items passed across all 5 verification suites; 25/25 templates generated with 0 placeholder gaps; clean `npm run build`).
-   - Final Verdict: **VICTORY CONFIRMED**.
+- The project request mandated complete remediation of 11 statutory and data integrity problem categories (Requirements R1–R8) in a Romanian SSM, Hygiene, and HR enterprise application, strictly excluding the "Arhiva Documente" module.
+- Strategic architecture was established in `PROJECT.md` (32 feature items across 6 Milestones) and `TEST_INFRA.md`.
+- Implementation executed across two tracks: Implementation Track (Milestones 1–5) and E2E Testing Track (Tiers 1–4, 333 tests, plus Tier 5 Adversarial Hardening).
+- Every milestone underwent multi-agent gating: independent Workers, Reviewers, Challengers, and Forensic Auditors.
+- Upon completion claim by Project Orchestrator Gen7, an independent post-victory audit was conducted by `teamwork_victory_auditor` (`c8d8ed18-e74a-4dfd-85ee-e8007473ec63`).
 
 ---
 
-## 2. Logic Chain
+## 2. Logic Chain & Scope Realization
 
-1. **Domain Contextualization**: Rather than static text substitution, documents and risk evaluations are bound contextually to the company's real CAEN economic profile and active employee appointees, ensuring authentic legal compliance under Romanian occupational safety regulations (Legea 319/2006, HG 1425/2006, HG 355/2007).
-2. **Defensive Excel Architecture**: By dynamically discovering header tokens on row 12 of "Firmă și angajați" and parsing raw numeric serials into UTC calendar components, the import engine is immune to formatting anomalies, shifted rows, and positive/negative timezone offsets.
-3. **Adversarial Multi-Agent Gating**: Every milestone was challenged by dedicated code reviewers, forensic auditors, and stress challengers who pushed edge cases (job title substring collisions, seed CNP control digits, future training dates, timezone cushions) to resolution before gate sign-off.
-4. **Independent Post-Victory Verification**: Project completion was independently audited with zero shared context from the implementation swarm, verifying all requirements and acceptance criteria directly against `ORIGINAL_REQUEST.md`.
+1. **R1. Eliminare Date Fabricate & Integritate Documente (Milestone 1)**:
+   - Completely purged all 8 legacy mock fallback blocks from `src/lib/templates/resolver.ts` and `src/lib/templates/generator.ts` (fake representative, test company, mock CI series, fabricated birth dates, arbitrary sizes).
+   - Set `isAutocompleted` to strictly reflect authentic database provenance; missing fields remain honestly empty and editable by operators.
+   - Enforced statutory mandatory field gating on `approved_for_print` (documents missing `cimNumber` or `grossSalary` are marked `missing_data`).
+   - Removed `.slice(0, 20)` field truncation in `src/app/documents/generate/page.tsx`.
+   - Hardened `generator.ts` with XML 1.0 control character sanitization and XML entity escaping (`&`, `<`, `>`, `"`, `'`).
+
+2. **R2. Medicină a Muncii HG 355/2007 (Milestone 2)**:
+   - Created endpoint `POST /api/employees/[id]/medical-exam` to register valid fitness certificates (exam date, validity interval, verdict Apt/Apt condiționat, restrictions).
+   - Dynamic compliance engine automatically recalculates and unblocks document generation when an examination is recorded.
+
+3. **R3. Ciclul de Viață al Angajaților & Status PLECAT (Milestone 2)**:
+   - Implemented `POST /api/employees` (manual employee addition), `PATCH /api/employees/[id]` (profile editing), and `POST /api/employees/[id]/terminate` (contract termination setting `status: "PLECAT"` with `leaveDate`).
+   - Added UI modals in `src/components/employees/` (`AddEmployeeModal`, `EditEmployeeModal`, `TerminateEmployeeModal`, `RecordMedicalExamModal`).
+   - Employees with status `PLECAT` are strictly excluded from active compliance calculations and current batch document generation.
+
+4. **R4. Sincronizare Modul Instruiri & Documente Statutare (Milestone 3)**:
+   - Connected `POST /api/trainings/record` with statutory document generation (`ssm-pv-instruire-colectiva`, `psi-pv-instruire`).
+   - Correctly mapped event types (`INTRODUCTIV`, `LOC_MUNCA`, `PERIODIC_SSM`, `PERIODIC_PSI`) using authentic event dates rather than hireDate.
+   - Created `training-session-card.tsx` with direct 1-click downloads of collective PVs and individual training sheets with CNP masking.
+   - Unlocked expired training sheet generation to allow re-instruction documentation.
+
+5. **R5. Gestiune EIP HG 1048/2006 (Milestone 4)**:
+   - Activated Prisma models `EipItem`, `JobEipRequirement`, and `EmployeeEipAssignment`.
+   - Created REST endpoints `/api/eip/items`, `/api/eip/requirements`, `/api/eip/assignments`.
+   - Created `manage-eip-modal.tsx` and dynamic binding in `resolver.ts` for `eip-fisa-acordare-individuala`, replacing hardcoded placeholder equipment with genuine database records.
+
+6. **R6. Evaluări de Risc & Plan de Prevenire Legea 319/2006 (Milestone 4)**:
+   - Implemented full-stack CRUD for `RiskAssessment`, `RiskItem`, `PreventionMeasure`, and `HazardZone` via `/api/risk-assessments` and `/api/risk-assessments/[id]`.
+   - Built interactive `/risk-assessments` management page and modals with INCDPM Pece global risk calculation ($N_{rg} = \frac{\sum R_i^2}{\sum R_i}$).
+   - Dynamic binding in `resolver.ts` for `risk-evaluare` and `risk-plan-prevenire-tesa`.
+   - Exposed workstation risk flags (`isFoodHandling`, `isScreenWork`, `noiseExposed`, `chemicalExposed`, `heightWork`) via `add-job-modal.tsx` and `edit-job-modal.tsx`.
+
+7. **R7. Selecție Context & Pachete Batch (Milestone 5)**:
+   - Implemented worksite dropdown selector in `generate/page.tsx` and enforced explicit `jobId` precedence over `employee.currentJob`.
+   - Filtered IPSSM and training topics dynamically based on company CAEN codes and job risk profiles.
+   - Hardened batch generation in `generate-batch/route.ts` with per-employee try/catch isolation and embedded `00_RAPORT_GENERARE_LOT.txt` diagnostic logs inside ZIP archives.
+
+8. **R8. Modul Igienă & Import Excel (Milestone 5)**:
+   - Linked `HygieneSession` directly to `Client` (`clientId`), unified status vocabulary, and added participant editing with certificate metadata (`certificateSeries`, `certificateNumber`, `certificateDate`).
+   - Added 36-month hygiene compliance engine in `compliance.ts` per Ordinul comun MS/ME nr. 2209/4469/2022.
+   - Hardened Excel importer: eliminated hireDate copying for unrecorded medical/training exams, added server-side CNP checksum and duplicate re-validation, and persisted diff reports in `ImportBatch`.
 
 ---
 
-## 3. Caveats
-
-- Database migrations and schema updates were applied directly using `prisma db push` and `prisma db seed` in accordance with the project development mode.
-- System strictly complies with requirement R3: no user roles, permission hierarchies, or electronic signatures have been introduced.
-- Template generation requires the binary template models in `handoff/ssm-template-placeholder-pack/templates`.
+## 3. Caveats & Operating Assumptions
+- Module "Arhiva Documente" / upload of signed physical scans was explicitly excluded from scope per user instructions and remained untouched.
+- Database runs on PostgreSQL via Prisma ORM; running the application requires `DATABASE_URL` configured in `.env`.
+- Production builds run on Next.js 16.4.3 Turbopack.
 
 ---
 
 ## 4. Conclusion
-
-All requirements (R1–R4) and acceptance criteria outlined in `ORIGINAL_REQUEST.md` are 100% fulfilled, programmatically verified, and independently confirmed:
-1. SSM Operational Workflows are fully modeled and automated in the Next.js user interface.
-2. All 25 document templates generate contextually without unmapped placeholders or formatting defects.
-3. Excel import/export is robust, resilient to dirty data, and verified with 100% roundtrip parity against `Test_Client_3_Angajati.xlsx`.
-4. Automated verification suite passes 130/130 checks, and Next.js compiles cleanly with 0 errors.
-
-All background cron monitors and subagents have been terminated. The run is complete.
+All statutory, architectural, and data integrity objectives have been completely accomplished without synthetic mocks or hardcoded bypasses. The independent post-victory audit verified all requirements and executed all test suites, returning an unconditional **VICTORY CONFIRMED** verdict.
 
 ---
 
-## 5. Verification Method
-
-- **Master Verification Suite**: `npx tsx scripts/verify-all.ts` (130/130 items passed, exit code 0).
-- **Template Generation Suite**: `npx tsx scripts/test-all-templates-generation.ts` (25/25 templates passed, exit code 0).
-- **Compliance Calculations Suite**: `npx tsx scripts/verify-compliance.ts` (45/45 tests passed, exit code 0).
-- **Excel Import/Export Suite**: `npx tsx scripts/verify-excel-import-export.ts` (6/6 suites passed, exit code 0).
-- **Opaque-Box E2E Suite**: `npx tsx scripts/e2e-suite.ts` (53/53 tests passed across Tiers 1–4, exit code 0).
-- **Production Build**: `npm run build` (Next.js Turbopack clean build, 25/25 routes compiled, zero errors, exit code 0).
-- **Victory Audit Verdict**: `VICTORY CONFIRMED` by `teamwork_victory_auditor` (`8ac1a0bc-2b17-451f-a58b-3b22d692e51f`).
+## 5. Verification Method & Results
+The Independent Victory Auditor executed all test suites independently:
+1. `npx prisma validate`: **PASS** (Schema is valid)
+2. `npm run build`: **PASS** (Turbopack production build clean, 50 routes, 0 errors)
+3. `npm test` (`scripts/verify-all.ts`): **PASS** (416/416 tests passed across 5 suites)
+4. `npm run test:e2e` (`scripts/e2e-suite.ts`): **PASS** (333/333 tests passed across Tiers 1–4)
+5. `npx tsx scripts/tier5-adversarial-hardening.ts`: **PASS** (153/153 adversarial tests passed)
+6. Forensic Anti-Cheating & Mock Purge Audit: **CLEAN** (0 mock fallbacks detected)

@@ -11,6 +11,7 @@ export async function GET(
     const clientId = searchParams.get('clientId');
     const employeeId = searchParams.get('employeeId') || undefined;
     const jobId = searchParams.get('jobId') || undefined;
+    const worksiteId = searchParams.get('worksiteId') || undefined;
     const hygieneSessionId = searchParams.get('hygieneSessionId') || undefined;
     const hygieneParticipantId = searchParams.get('hygieneParticipantId') || undefined;
 
@@ -26,6 +27,7 @@ export async function GET(
       clientId,
       employeeId,
       jobId,
+      worksiteId,
       hygieneSessionId,
       hygieneParticipantId,
     });

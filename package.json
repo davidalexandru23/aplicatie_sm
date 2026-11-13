@@ -6,7 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "npx tsx scripts/verify-all.ts",
+    "test:e2e": "npx tsx scripts/e2e-suite.ts",
+    "test:tier1": "npx tsx scripts/e2e-tier1-features.ts",
+    "test:tier2": "npx tsx scripts/e2e-tier2-boundaries.ts",
+    "test:tier3": "npx tsx scripts/e2e-tier3-pairwise.ts",
+    "test:tier4": "npx tsx scripts/e2e-tier4-scenarios.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

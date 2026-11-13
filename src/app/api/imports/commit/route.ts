@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { commitImport, ParsedWorkbook } from '@/lib/importer';
+import {
+  commitImport,
+  compareWithDatabase,
+  revalidateParsedWorkbook,
+  ParsedWorkbook,
+  ImportDiffData,
+} from '@/lib/importer';
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,9 +23,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Datele de import lipsesc.' }, { status: 400 });
     }
 
-    // Dacă clientul nu există încă în DB, îl creăm din antetul Excelului
+    // 1. Re-validare strictă server-side (checksum CNP, duplicate intra-lot, câmpuri obligatorii)
+    const {
+      revalidatedData,
+      validationReport,
+      hasValidRows,
+      totalRows,
+    } = revalidateParsedWorkbook(
+      parsedData,
+      operatorName || 'Operator Intern',
+      filename || 'Model_date_client_SSM.xlsx'
+    );
+
+    // Defensive check: nu permitem commit dacă fișierul nu are niciun rând valid
+    if (totalRows > 0 && !hasValidRows) {
+      return NextResponse.json(
+        {
+          error: 'Niciun rând valid de importat. Toate rândurile conțin erori de validare.',
+          validationReport,
+        },
+        { status: 400 }
+      );
+    }
+
+    // 2. Dacă clientul nu există încă în DB, îl creăm din antetul Excelului
     if (!clientId) {
-      if (!parsedData.company.cui || !parsedData.company.name) {
+      if (!revalidatedData.company.cui || !revalidatedData.company.name) {
         return NextResponse.json(
           { error: 'Denumirea și CUI-ul firmei sunt obligatorii în fișier pentru crearea clientului.' },
           { status: 400 }
@@ -27,49 +56,66 @@ export async function POST(request: NextRequest) {
       }
 
       const newClient = await prisma.client.upsert({
-        where: { cui: parsedData.company.cui.trim() },
+        where: { cui: revalidatedData.company.cui.trim() },
         update: {
-          name: parsedData.company.name,
-          address: parsedData.company.address || 'Conform registru',
-          regCom: parsedData.company.regCom,
-          legalRepresentative: parsedData.company.legalRepresentative,
-          contactPerson: parsedData.company.contactPerson,
-          contactEmail: parsedData.company.contactEmail,
-          contactPhone: parsedData.company.contactPhone,
+          name: revalidatedData.company.name,
+          address: revalidatedData.company.address || 'Conform registru',
+          regCom: revalidatedData.company.regCom,
+          legalRepresentative: revalidatedData.company.legalRepresentative,
+          contactPerson: revalidatedData.company.contactPerson,
+          contactEmail: revalidatedData.company.contactEmail,
+          contactPhone: revalidatedData.company.contactPhone,
         },
         create: {
-          name: parsedData.company.name,
-          cui: parsedData.company.cui.trim(),
-          address: parsedData.company.address || 'Conform registru',
-          regCom: parsedData.company.regCom,
-          legalRepresentative: parsedData.company.legalRepresentative,
-          contactPerson: parsedData.company.contactPerson,
-          contactEmail: parsedData.company.contactEmail,
-          contactPhone: parsedData.company.contactPhone,
+          name: revalidatedData.company.name,
+          cui: revalidatedData.company.cui.trim(),
+          address: revalidatedData.company.address || 'Conform registru',
+          regCom: revalidatedData.company.regCom,
+          legalRepresentative: revalidatedData.company.legalRepresentative,
+          contactPerson: revalidatedData.company.contactPerson,
+          contactEmail: revalidatedData.company.contactEmail,
+          contactPhone: revalidatedData.company.contactPhone,
         },
       });
       clientId = newClient.id;
     }
 
-    // Defensive check: nu permitem commit dacă fișierul nu are niciun rând valid
-    if (parsedData.employees.length > 0 && parsedData.employees.every((e) => !e.isValid)) {
-      return NextResponse.json(
-        { error: 'Niciun rând valid de importat. Toate rândurile conțin erori de validare.' },
-        { status: 400 }
-      );
-    }
+    // 3. Calcul diferențe reale cu baza de date pentru generarea raportului diff forensic
+    const previewReport = await compareWithDatabase(clientId, revalidatedData);
 
+    const diffData: ImportDiffData = {
+      schemaVersion: '1.0',
+      generatedAt: new Date().toISOString(),
+      clientId,
+      summary: previewReport.summary,
+      newWorksites: previewReport.newWorksites,
+      newJobs: previewReport.newJobs,
+      items: previewReport.items.map((it) => ({
+        rowNumber: it.rowNumber,
+        cnpMasked: it.cnpMasked,
+        name: it.name,
+        jobTitle: it.jobTitle,
+        worksiteName: it.worksiteName,
+        status: it.status,
+        errors: it.errors,
+        changes: it.changes,
+      })),
+    };
+
+    // 4. Commit atomic cu persistența validationReport și diffData în ImportBatch
     const batchId = await commitImport(
       clientId,
-      parsedData,
+      revalidatedData,
       operatorName || 'Operator Intern',
-      filename || 'Model_date_client_SSM.xlsx'
+      filename || 'Model_date_client_SSM.xlsx',
+      { validationReport, diffData }
     );
 
     return NextResponse.json({
       success: true,
       batchId,
       clientId,
+      summary: previewReport.summary,
     });
   } catch (err: unknown) {
     console.error('Import commit error:', err);

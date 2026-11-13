@@ -26,6 +26,106 @@ export interface GenerationResult {
   missingFields: string[];
 }
 
+/**
+ * Strips non-printable ASCII / XML 1.0 illegal control characters:
+ * #x00-#x08, #x0B-#x0C, #x0E-#x1F
+ * (Preserves #x09 TAB, #x0A LF, #x0D CR).
+ */
+export function sanitizeXmlString(val: string): string {
+  if (!val) return val;
+  return val.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
+}
+
+/**
+ * Escapes the 5 XML predefined entities to prevent OpenXML document corruption.
+ * Note: Ampersand (&) MUST be replaced first to avoid double-escaping.
+ */
+export function escapeXml(unsafe: unknown): string {
+  if (unsafe === undefined || unsafe === null) return '';
+  const str = sanitizeXmlString(String(unsafe));
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+/**
+ * Determines if a field value is missing, empty, or consists of blank/placeholder markers
+ * (e.g. dots, slashes, dashes, dots with currency units, or literal missing indicators).
+ */
+export function isBlankOrPlaceholderMarker(val: unknown): boolean {
+  if (val === undefined || val === null) return true;
+  const str = String(val).trim();
+  if (str === '') return true;
+
+  // Patterns composed solely of dots, dashes, slashes, underscores (e.g. "........ / ............", "---", "N/A")
+  if (/^[\s.\-_/–—…]+$/.test(str)) return true;
+
+  // Dot patterns followed by currency or time units (e.g. "........................ lei", ".... lei")
+  if (/^[\s.\-_/–—…]+(\s*(lei|ron|luni|zile|ore|ani))?$/i.test(str)) return true;
+
+  // Explicit missing markers
+  const upper = str.toUpperCase();
+  if (['[LIPSĂ DATE]', 'LIPSA DATE', '[LIPSA DATE]', 'N/A', 'UNDEFINED', 'NULL', 'NECUNOSCUT'].includes(upper)) return true;
+
+  // Raw placeholder tokens (e.g. "PLACEHOLDER_NUMAR_CIM", "{PLACEHOLDER_NUMAR_CIM}")
+  if (str.startsWith('PLACEHOLDER_') || str.startsWith('{PLACEHOLDER_')) return true;
+
+  return false;
+}
+
+export const STATUTORY_MANDATORY_FIELDS: Record<string, { key: string; label: string }[]> = {
+  // Model Cadru CIM Ordin MMSS 2171/2022
+  'hr-cim-model-cadru-2022': [
+    { key: 'PLACEHOLDER_NUMAR_CIM', label: 'Număr contract individual de muncă' },
+    { key: 'PLACEHOLDER_SALARIU_BRUT', label: 'Salariu de bază lunar brut' },
+    { key: 'PLACEHOLDER_CNP', label: 'Cod Numeric Personal (CNP)' },
+    { key: 'PLACEHOLDER_NUME_COMPLET', label: 'Nume și prenume salariat' },
+    { key: 'PLACEHOLDER_FIRMA', label: 'Denumire firmă / Angajator' },
+    { key: 'PLACEHOLDER_CUI', label: 'Cod de identificare fiscală (CUI)' },
+    { key: 'PLACEHOLDER_REPREZENTANT_LEGAL', label: 'Reprezentant legal angajator' },
+    { key: 'PLACEHOLDER_FUNCTIE', label: 'Funcția conform COR' },
+    { key: 'PLACEHOLDER_DATA_INCEPERE', label: 'Data începerii activității' },
+  ],
+  // CIM 2026
+  'hr-cim-2026': [
+    { key: 'PLACEHOLDER_NUMAR_CIM', label: 'Număr contract individual de muncă' },
+    { key: 'PLACEHOLDER_SALARIU_BRUT', label: 'Salariu de bază lunar brut' },
+    { key: 'PLACEHOLDER_CNP', label: 'Cod Numeric Personal (CNP)' },
+    { key: 'PLACEHOLDER_NUME_COMPLET', label: 'Nume și prenume salariat' },
+    { key: 'PLACEHOLDER_FIRMA', label: 'Denumire firmă / Angajator' },
+    { key: 'PLACEHOLDER_CUI', label: 'Cod de identificare fiscală (CUI)' },
+    { key: 'PLACEHOLDER_REPREZENTANT_LEGAL', label: 'Reprezentant legal angajator' },
+    { key: 'PLACEHOLDER_FUNCTIE', label: 'Funcția conform COR' },
+  ],
+  // Anexa Fisa Postului SSM
+  'hr-anexa-fisa-post': [
+    { key: 'PLACEHOLDER_NUMAR_CIM', label: 'Număr contract individual de muncă' },
+    { key: 'PLACEHOLDER_NUME_COMPLET', label: 'Nume și prenume salariat' },
+    { key: 'PLACEHOLDER_CNP', label: 'Cod Numeric Personal (CNP)' },
+    { key: 'PLACEHOLDER_FUNCTIE', label: 'Funcția conform COR' },
+    { key: 'PLACEHOLDER_FIRMA', label: 'Denumire firmă / Angajator' },
+  ],
+  // Fisa Instruire Individuala SSM (Anexa 11 HG 1425/2006)
+  'ssm-fisa-instruire-individuala': [
+    { key: 'PLACEHOLDER_NUME_COMPLET', label: 'Nume și prenume salariat' },
+    { key: 'PLACEHOLDER_CNP', label: 'Cod Numeric Personal (CNP)' },
+    { key: 'PLACEHOLDER_FIRMA', label: 'Denumire firmă / Angajator' },
+    { key: 'PLACEHOLDER_CUI', label: 'Cod de identificare fiscală (CUI)' },
+    { key: 'PLACEHOLDER_FUNCTIE', label: 'Funcția / Ocupația' },
+  ],
+  // Fisa Instructaj PSI (OMAI 712/2005)
+  'psi-fisa-instructaj-individuala': [
+    { key: 'PLACEHOLDER_NUME_COMPLET', label: 'Nume și prenume salariat' },
+    { key: 'PLACEHOLDER_CNP', label: 'Cod Numeric Personal (CNP)' },
+    { key: 'PLACEHOLDER_FIRMA', label: 'Denumire firmă / Angajator' },
+    { key: 'PLACEHOLDER_CUI', label: 'Cod de identificare fiscală (CUI)' },
+    { key: 'PLACEHOLDER_FUNCTIE', label: 'Funcția / Ocupația' },
+  ],
+};
+
 export function validateMissingFields(
   fieldDefs: TemplateFieldDef[],
   data: Record<string, unknown>
@@ -34,8 +134,8 @@ export function validateMissingFields(
   for (const f of fieldDefs) {
     if (f.required) {
       const val = data[f.key];
-      if (val === undefined || val === null || val === '') {
-        missing.push(f.label);
+      if (isBlankOrPlaceholderMarker(val)) {
+        missing.push(f.label || f.key);
       }
     }
   }
@@ -193,34 +293,34 @@ export function formatParticipantValue(token: string, participant: Record<string
   const birth = parseBirthInfo(participant.birthDate, participant.cnp);
   const fullName = [participant.lastName, participant.firstName].filter(Boolean).join(' ');
   const identity = [
-    participant.docType || 'CI',
-    participant.docSeries ? `seria ${participant.docSeries}` : 'seria RX',
-    participant.docNumber ? `nr. ${participant.docNumber}` : 'nr. 123456',
+    participant.docType || '',
+    participant.docSeries ? `seria ${participant.docSeries}` : '',
+    participant.docNumber ? `nr. ${participant.docNumber}` : '',
   ]
     .filter(Boolean)
     .join(' ');
 
   const map: Record<string, unknown> = {
     NUMAR_ORDINE: participant.rowNumber || 1,
-    NUME_COMPLET: participant.fullName || fullName || 'Stan Alexandru',
-    CNP: participant.cnp || '1880315410127',
+    NUME_COMPLET: participant.fullName || fullName || '',
+    CNP: participant.cnp || '',
     ACT_IDENTITATE: participant.identityDocument || identity,
-    DATA_LOC_NASTERII: [birth.dateFormatted || '15.03.1988', participant.birthPlace || 'București'].filter(Boolean).join(', '),
-    DATA_NASTERII: birth.dateFormatted || '15.03.1988',
-    LOCALITATE_NASTERII: participant.birthPlace || 'București',
-    MODUL_NIVEL: [participant.module || 'Modulul 1', participant.level || 'Nivelul 1'].filter(Boolean).join(' - ') || 'Modulul 1',
-    NOTA_EXAMEN: participant.examGrade || '10',
-    REZULTAT_EXAMEN: participant.examResult || 'Admis',
-    DATA_SESIUNE: participant.sessionDate || '10.03.2026',
-    SERIE_NUMAR_CERTIFICAT: [participant.certificateSeries || 'IGI', participant.certificateNumber || '0042'].filter(Boolean).join(' '),
-    MODUL_ABSOLVIT: participant.module || 'Modulul 1 - Servicii de alimentație',
-    PERIOADA_CURS: participant.coursePeriod || '01.03.2026 - 10.03.2026',
-    PRESTATOR_SSM: participant.providerName || 'EXPERT SSM & SITUAȚII DE URGENȚĂ S.R.L.',
-    AN_NASTERII: birth.year || '1988',
-    LUNA_NASTERII: birth.month || '03',
-    ZIUA_NASTERII: birth.day || '15',
-    LOC_NASTERII: participant.birthPlace || 'București',
-    DATA_ELIBERARE: participant.examDate || participant.sessionDate || '15.03.2026',
+    DATA_LOC_NASTERII: [birth.dateFormatted || '', participant.birthPlace || ''].filter(Boolean).join(', '),
+    DATA_NASTERII: birth.dateFormatted || '',
+    LOCALITATE_NASTERII: participant.birthPlace || '',
+    MODUL_NIVEL: [participant.module || '', participant.level || ''].filter(Boolean).join(' - ') || '',
+    NOTA_EXAMEN: participant.examGrade || '',
+    REZULTAT_EXAMEN: participant.examResult || '',
+    DATA_SESIUNE: participant.sessionDate || '',
+    SERIE_NUMAR_CERTIFICAT: [participant.certificateSeries || '', participant.certificateNumber || ''].filter(Boolean).join(' '),
+    MODUL_ABSOLVIT: participant.module || '',
+    PERIOADA_CURS: participant.coursePeriod || '',
+    PRESTATOR_SSM: participant.providerName || '',
+    AN_NASTERII: birth.year || '',
+    LUNA_NASTERII: birth.month || '',
+    ZIUA_NASTERII: birth.day || '',
+    LOC_NASTERII: participant.birthPlace || '',
+    DATA_ELIBERARE: participant.examDate || participant.sessionDate || '',
   };
 
   const value = map[key];
@@ -332,10 +432,25 @@ export async function renderTemplateBuffer(
       nullGetter: (part) => (part.value ? `{${part.value}}` : ''),
     });
 
+    const sanitizeValue = (v: unknown): unknown => {
+      if (typeof v === 'string') {
+        return sanitizeXmlString(v);
+      }
+      if (Array.isArray(v)) {
+        return v.map(sanitizeValue);
+      }
+      if (v !== null && typeof v === 'object') {
+        return Object.fromEntries(
+          Object.entries(v as Record<string, unknown>).map(([k, val]) => [k, sanitizeValue(val)])
+        );
+      }
+      return v;
+    };
+
     const renderData = Object.fromEntries(
-      Object.entries(data).filter(([key, value]) =>
-        !key.startsWith('PLACEHOLDER_') || (value !== undefined && value !== null && String(value).trim() !== '')
-      )
+      Object.entries(data)
+        .filter(([_, value]) => value !== undefined && value !== null)
+        .map(([key, value]) => [key, sanitizeValue(value)])
     );
 
     doc.render(renderData);
@@ -344,22 +459,23 @@ export async function renderTemplateBuffer(
     // Multi-part post-processing: scan all XML and .rels parts for unresolved tokens & bare rels targets
     for (const [relativePath, file] of Object.entries(docZip.files)) {
       if (
-        (relativePath.startsWith('word/') || relativePath.startsWith('customXml/')) &&
+        (relativePath.startsWith('word/') || relativePath.startsWith('customXml/') || relativePath.startsWith('docProps/')) &&
         (relativePath.endsWith('.xml') || relativePath.endsWith('.rels'))
       ) {
         let text = file.asText();
         let changed = false;
 
         for (const [k, v] of Object.entries(data)) {
-          if (v !== undefined && v !== null && String(v).trim() !== '') {
+          if (v !== undefined && v !== null) {
             const strVal = String(v);
+            const escapedVal = escapeXml(strVal);
             const curly = `{${k}}`;
             if (text.includes(curly)) {
-              text = text.replaceAll(curly, strVal);
+              text = text.replaceAll(curly, escapedVal);
               changed = true;
             }
             if (relativePath.endsWith('.rels') && text.includes(k)) {
-              text = text.replaceAll(k, strVal);
+              text = text.replaceAll(k, escapedVal);
               changed = true;
             }
           }
@@ -498,7 +614,7 @@ export async function renderTemplateBuffer(
 
         const replaced = cell.v.replace(/PLACEHOLDER_[A-Z0-9_]+/g, (token: string) => {
           const directValue = effectiveData[token];
-          if (directValue !== undefined && directValue !== null && String(directValue).trim() !== '') {
+          if (directValue !== undefined && directValue !== null) {
             return textValue(directValue);
           }
 
@@ -532,6 +648,7 @@ export async function generateDocument(params: {
   clientId: string;
   employeeId?: string;
   jobId?: string;
+  worksiteId?: string;
   eventId?: string;
   hygieneSessionId?: string;
   data: Record<string, unknown>;
@@ -549,9 +666,19 @@ export async function generateDocument(params: {
   const templateFilename = catalogDef?.normalizedFilename || template.normalizedFilename;
   const templateFormat = catalogDef?.format || template.format;
   const manifest = JSON.parse(template.manifestJson || '{}');
-  const fieldDefs: TemplateFieldDef[] = manifest.fields || catalogDef?.fields || [];
+  // Canonical code definitions take priority over DB manifest to avoid stale requirement flags
+  const fieldDefs: TemplateFieldDef[] = catalogDef?.fields || manifest.fields || [];
 
   const missingFields = new Set(validateMissingFields(fieldDefs, params.data));
+
+  // Enforce statutory mandatory fields per template
+  const statutoryReqs = STATUTORY_MANDATORY_FIELDS[params.templateCode] || [];
+  for (const req of statutoryReqs) {
+    const val = params.data[req.key];
+    if (isBlankOrPlaceholderMarker(val)) {
+      missingFields.add(req.label);
+    }
+  }
 
   const docId = crypto.randomUUID();
   const templateFilePath = path.join(

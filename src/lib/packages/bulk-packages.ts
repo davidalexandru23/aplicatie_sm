@@ -25,6 +25,8 @@ export function sanitizeZipPath(raw: string): string {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') // remove diacritics for ultra-compatible zip filenames
     .replace(/[<>:"/\\|?*]/g, '_')
+    .replace(/^\.+/g, '')
+    .replace(/\.{2,}/g, '_')
     .replace(/\s+/g, '_')
     .trim();
 }
@@ -74,11 +76,94 @@ async function renderDocx(
 // F16: EMPLOYEE ONBOARDING PACKAGE (1-CLICK ZIP PER EMPLOYEE)
 // ============================================================================
 
+/**
+ * Helper: dynamically resolve applicable IPSSMs based on CAEN and job risk flags.
+ * - Driving required or transport CAEN -> ipssm-autovehicule
+ * - Screen work / sitting posture or IT/office CAEN -> ipssm-birou
+ * - Food handling, standing, mixed posture or restaurant/retail/industrial CAEN -> ipssm-alunecari
+ * - Administrative / TESA title or office CAEN -> ipssm-tesa
+ * - Universal base (HG 1425/2006) -> ipssm-universale (always included)
+ * - Statutory Opis -> ipssm-opis (always included at end)
+ */
+export function resolveApplicableIpssms(
+  caenCode: string | null | undefined,
+  jobs: Array<{
+    isDrivingRequired?: boolean;
+    isFoodHandling?: boolean;
+    isScreenWork?: boolean;
+    workPosture?: string | null;
+    heightWork?: boolean;
+    title?: string;
+  }>,
+  targetJob?: {
+    isDrivingRequired?: boolean;
+    isFoodHandling?: boolean;
+    isScreenWork?: boolean;
+    workPosture?: string | null;
+    heightWork?: boolean;
+    title?: string;
+  } | null
+): string[] {
+  const caen = caenCode ? String(caenCode).trim() : '6201';
+  const relevantJobs = targetJob ? [targetJob] : jobs;
+
+  const hasDriving =
+    relevantJobs.some((j) => j.isDrivingRequired) ||
+    ['6201', '4941', '4932', '5320'].includes(caen);
+
+  const hasScreenWork =
+    relevantJobs.some((j) => j.isScreenWork || j.workPosture === 'sitting') ||
+    ['6201', '6202', '6203', '6209', '6311', '7022', '6920'].includes(caen);
+
+  const hasFoodOrSlip =
+    relevantJobs.some(
+      (j) =>
+        j.isFoodHandling ||
+        j.heightWork ||
+        j.workPosture === 'standing' ||
+        j.workPosture === 'mixed'
+    ) ||
+    ['5610', '5621', '5630', '4711', '4120', '6201'].includes(caen) ||
+    jobs.length === 0;
+
+  const isTesaJob = (title?: string) => {
+    if (!title) return false;
+    const t = title.toLowerCase();
+    return (
+      t.includes('manager') ||
+      t.includes('director') ||
+      t.includes('inginer') ||
+      t.includes('programator') ||
+      t.includes('contabil') ||
+      t.includes('administrator') ||
+      t.includes('secretar') ||
+      t.includes('specialist') ||
+      t.includes('tehnician')
+    );
+  };
+  const hasTesa =
+    relevantJobs.some((j) => isTesaJob(j.title)) ||
+    ['6201', '6202', '7022', '6920'].includes(caen) ||
+    relevantJobs.length === 0;
+
+  const items: string[] = [];
+  if (hasScreenWork) items.push('ipssm-birou');
+  if (hasFoodOrSlip) items.push('ipssm-alunecari');
+  if (hasDriving) items.push('ipssm-autovehicule');
+  if (hasTesa) items.push('ipssm-tesa');
+  items.push('ipssm-universale');
+  items.push('ipssm-opis');
+
+  return items;
+}
+
 export interface EmployeeOnboardingOptions {
   clientId: string;
   employeeId: string;
   operatorName?: string;
   preferCimModelCadru?: boolean;
+  jobId?: string;
+  worksiteId?: string;
 }
 
 export async function generateEmployeeOnboardingZip(
@@ -114,9 +199,12 @@ export async function generateEmployeeOnboardingZip(
   if (!client) throw new Error(`Clientul cu id ${options.clientId} nu a fost găsit.`);
   const employee = client.employees[0];
   if (!employee) throw new Error(`Salariatul cu id ${options.employeeId} nu a fost găsit.`);
+  if (employee.status === 'PLECAT') {
+    throw new Error(`Salariatul ${employee.lastName} ${employee.firstName} are contractul de muncă încetat (status PLECAT). Nu se poate genera pachetul de onboarding.`);
+  }
 
-  const job = employee.currentJob || client.jobs[0] || null;
-  const worksite = employee.currentWorksite || client.worksites[0] || null;
+  const job = employee.currentJob || (options.jobId ? (client.jobs.find((j) => j.id === options.jobId) || null) : null) || null;
+  const worksite = employee.currentWorksite || (options.worksiteId ? (client.worksites.find((w) => w.id === options.worksiteId) || null) : null) || null;
 
   const resolutionContext: TemplateResolutionOptions = {
     client,
@@ -175,6 +263,8 @@ export async function generateEmployeeOnboardingZip(
 export interface CompanyDossierOptions {
   clientId: string;
   operatorName?: string;
+  jobId?: string;
+  worksiteId?: string;
 }
 
 export async function generateCompanyDossierZip(
@@ -187,6 +277,7 @@ export async function generateCompanyDossierZip(
       worksites: true,
       trainingEvents: true,
       employees: {
+        where: { status: { not: 'PLECAT' } },
         include: {
           identityDocument: true,
           residenceAddress: true,
@@ -210,29 +301,47 @@ export async function generateCompanyDossierZip(
 
   const resolutionContext: TemplateResolutionOptions = {
     client,
-    job: client.jobs[0] || null,
-    worksite: client.worksites[0] || null,
+    job: options.jobId ? (client.jobs.find((j) => j.id === options.jobId) || null) : null,
+    worksite: options.worksiteId ? (client.worksites.find((w) => w.id === options.worksiteId) || null) : null,
     allowOfflineBlank: true,
   };
 
-  const companyManifest = [
-    { code: 'decizii-angajator', label: '01_Decizii_Organizatorice_SSM_PSI.docx' },
-    { code: 'risk-evaluare', label: '02_Evaluarea_Riscurilor_Profesionale.docx' },
-    { code: 'risk-plan-prevenire-tesa', label: '03_Plan_Prevenire_si_Protectie.docx' },
-    { code: 'risk-plan-actiune-urgenta', label: '04_Plan_Actiune_Pericol_Grav_si_Iminent.docx' },
-    { code: 'risk-zone-pericol', label: '05_Delimitare_Zone_Risc_Ridicat.docx' },
-    { code: 'training-tematica-introductiv', label: '06_Tematica_Instruire_Introductiv_Generala.docx' },
-    { code: 'training-tematica-loc-munca', label: '07_Tematica_Instruire_Loc_Munca.docx' },
-    { code: 'training-detaliu-introductiv', label: '08_Detaliu_Tematica_Introductiv_Generala.docx' },
-    { code: 'training-detaliu-loc-munca', label: '09_Detaliu_Tematica_Loc_Munca.docx' },
-    { code: 'ipssm-birou', label: '10_IPSSM_Activitati_de_Birou.docx' },
-    { code: 'ipssm-alunecari', label: '11_IPSSM_Alunecari_si_Impiedicari.docx' },
-    { code: 'ipssm-autovehicule', label: '12_IPSSM_Autovehicule_in_Trafic.docx' },
-    { code: 'ipssm-tesa', label: '13_IPSSM_Personal_TESA.docx' },
-    { code: 'ipssm-universale', label: '14_IPSSM_Universale.docx' },
-    { code: 'ipssm-opis', label: '15_Opis_Documente_SSM.docx' },
-    { code: 'hr-info-dosar', label: '16_Informare_Dosar_Personal.docx' },
+  const baseCompanyManifest: Array<{ code: string; title: string }> = [
+    { code: 'decizii-angajator', title: 'Decizii_Organizatorice_SSM_PSI' },
+    { code: 'risk-evaluare', title: 'Evaluarea_Riscurilor_Profesionale' },
+    { code: 'risk-plan-prevenire-tesa', title: 'Plan_Prevenire_si_Protectie' },
+    { code: 'risk-plan-actiune-urgenta', title: 'Plan_Actiune_Pericol_Grav_si_Iminent' },
+    { code: 'risk-zone-pericol', title: 'Delimitare_Zone_Risc_Ridicat' },
+    { code: 'training-tematica-introductiv', title: 'Tematica_Instruire_Introductiv_Generala' },
+    { code: 'training-tematica-loc-munca', title: 'Tematica_Instruire_Loc_Munca' },
+    { code: 'training-detaliu-introductiv', title: 'Detaliu_Tematica_Introductiv_Generala' },
+    { code: 'training-detaliu-loc-munca', title: 'Detaliu_Tematica_Loc_Munca' },
   ];
+
+  const ipssmTitles: Record<string, string> = {
+    'ipssm-birou': 'IPSSM_Activitati_de_Birou',
+    'ipssm-alunecari': 'IPSSM_Alunecari_si_Impiedicari',
+    'ipssm-autovehicule': 'IPSSM_Autovehicule_in_Trafic',
+    'ipssm-tesa': 'IPSSM_Personal_TESA',
+    'ipssm-universale': 'IPSSM_Universale',
+    'ipssm-opis': 'Opis_Documente_SSM',
+  };
+
+  const applicableIpssms = resolveApplicableIpssms(client.caenCode, client.jobs, resolutionContext.job);
+
+  const allCompanyDocs: Array<{ code: string; title: string }> = [
+    ...baseCompanyManifest,
+    ...applicableIpssms.map((code) => ({ code, title: ipssmTitles[code] || code })),
+    { code: 'hr-info-dosar', title: 'Informare_Dosar_Personal' },
+  ];
+
+  const companyManifest = allCompanyDocs.map((item, idx) => {
+    const pad = String(idx + 1).padStart(2, '0');
+    return {
+      code: item.code,
+      label: `${pad}_${item.title}.docx`,
+    };
+  });
 
   const zip = new PizZip();
 
@@ -264,6 +373,8 @@ export interface InspectionArchiveOptions {
   clientId: string;
   operatorName?: string;
   includeAllEmployees?: boolean;
+  jobId?: string;
+  worksiteId?: string;
 }
 
 export async function generateInspectionArchiveZip(
@@ -301,8 +412,8 @@ export async function generateInspectionArchiveZip(
   const zip = new PizZip();
   const companyContext: TemplateResolutionOptions = {
     client,
-    job: client.jobs[0] || null,
-    worksite: client.worksites[0] || null,
+    job: options.jobId ? (client.jobs.find((j) => j.id === options.jobId) || null) : null,
+    worksite: options.worksiteId ? (client.worksites.find((w) => w.id === options.worksiteId) || null) : null,
     allowOfflineBlank: true,
   };
 
@@ -338,16 +449,23 @@ export async function generateInspectionArchiveZip(
   }
 
   // 3. Folder 03_TEMATICI_SI_INSTRUCTIUNI_PROPRII
+  const applicableIpssmsInspection = resolveApplicableIpssms(client.caenCode, client.jobs, companyContext.job);
+  const inspectionIpssmPaths: Record<string, string> = {
+    'ipssm-birou': '03_TEMATICI_SI_INSTRUCTIUNI_PROPRII/IPSSM_Activitati_de_Birou.docx',
+    'ipssm-alunecari': '03_TEMATICI_SI_INSTRUCTIUNI_PROPRII/IPSSM_Alunecari_si_Impiedicari.docx',
+    'ipssm-autovehicule': '03_TEMATICI_SI_INSTRUCTIUNI_PROPRII/IPSSM_Autovehicule_in_Trafic.docx',
+    'ipssm-tesa': '03_TEMATICI_SI_INSTRUCTIUNI_PROPRII/IPSSM_Personal_TESA.docx',
+    'ipssm-universale': '03_TEMATICI_SI_INSTRUCTIUNI_PROPRII/IPSSM_Universale.docx',
+  };
+
   const folder03 = [
     { code: 'training-tematica-introductiv', path: '03_TEMATICI_SI_INSTRUCTIUNI_PROPRII/Tematica_Instruire_Introductiv_Generala.docx' },
     { code: 'training-tematica-loc-munca', path: '03_TEMATICI_SI_INSTRUCTIUNI_PROPRII/Tematica_Instruire_Loc_Munca.docx' },
     { code: 'training-detaliu-introductiv', path: '03_TEMATICI_SI_INSTRUCTIUNI_PROPRII/Detaliu_Tematica_Introductiv_Generala.docx' },
     { code: 'training-detaliu-loc-munca', path: '03_TEMATICI_SI_INSTRUCTIUNI_PROPRII/Detaliu_Tematica_Loc_Munca.docx' },
-    { code: 'ipssm-birou', path: '03_TEMATICI_SI_INSTRUCTIUNI_PROPRII/IPSSM_Activitati_de_Birou.docx' },
-    { code: 'ipssm-alunecari', path: '03_TEMATICI_SI_INSTRUCTIUNI_PROPRII/IPSSM_Alunecari_si_Impiedicari.docx' },
-    { code: 'ipssm-autovehicule', path: '03_TEMATICI_SI_INSTRUCTIUNI_PROPRII/IPSSM_Autovehicule_in_Trafic.docx' },
-    { code: 'ipssm-tesa', path: '03_TEMATICI_SI_INSTRUCTIUNI_PROPRII/IPSSM_Personal_TESA.docx' },
-    { code: 'ipssm-universale', path: '03_TEMATICI_SI_INSTRUCTIUNI_PROPRII/IPSSM_Universale.docx' },
+    ...applicableIpssmsInspection
+      .filter((code) => inspectionIpssmPaths[code])
+      .map((code) => ({ code, path: inspectionIpssmPaths[code] })),
   ];
   for (const item of folder03) {
     try {
@@ -365,8 +483,8 @@ export async function generateInspectionArchiveZip(
     const empContext: TemplateResolutionOptions = {
       client,
       employee: emp,
-      job: emp.currentJob || client.jobs[0] || null,
-      worksite: emp.currentWorksite || client.worksites[0] || null,
+      job: emp.currentJob || null,
+      worksite: emp.currentWorksite || null,
       allowOfflineBlank: true,
     };
 

@@ -29,6 +29,12 @@ import {
   OverallComplianceBadge,
   ComplianceScoreBadge 
 } from '@/components/compliance-badge';
+import {
+  AddEmployeeModal,
+  RecordMedicalExamModal,
+  EditEmployeeModal,
+  TerminateEmployeeModal,
+} from '@/components/employees';
 
 export interface EmployeeWithCompliance {
   id: string;
@@ -38,7 +44,11 @@ export interface EmployeeWithCompliance {
   cnp: string;
   status: string; // ACTIV / PLECAT
   hireDate: string | null;
+  leaveDate?: string | null;
+  medicalLastExamDate?: string | null;
+  medicalIntervalMonths?: number | null;
   medicalFitnessVerdict?: string | null;
+  medicalNotes?: string | null;
   client: { id: string; name: string };
   currentJob: { id: string; title: string } | null;
   currentWorksite: { id: string; name: string } | null;
@@ -48,12 +58,17 @@ export interface EmployeeWithCompliance {
 
 export interface EmployeeRegistryClientProps {
   employees: EmployeeWithCompliance[];
-  clients: { id: string; name: string }[];
+  clients: Array<{
+    id: string;
+    name: string;
+    jobs?: Array<{ id: string; title: string }>;
+    worksites?: Array<{ id: string; name: string }>;
+  }>;
   metrics: CompanyComplianceMetrics;
   initialStatus?: string;
 }
 
-type TabType = 'ALL' | 'VALID' | 'UPCOMING' | 'OVERDUE' | 'MISSING';
+type TabType = 'ALL' | 'VALID' | 'UPCOMING' | 'OVERDUE' | 'MISSING' | 'PLECAT';
 
 function EmployeeRegistryInner({
   employees,
@@ -70,6 +85,7 @@ function EmployeeRegistryInner({
     if (param === 'UPCOMING') return 'UPCOMING';
     if (param === 'MISSING') return 'MISSING';
     if (param === 'VALID') return 'VALID';
+    if (param === 'PLECAT') return 'PLECAT';
     return 'ALL';
   };
 
@@ -100,17 +116,21 @@ function EmployeeRegistryInner({
     }
   };
 
-  // Counts for tabs
+  // Counts for tabs (excluding PLECAT from active compliance tabs)
   const tabCounts = useMemo(() => {
+    const activeEmps = employees.filter((e) => e.status !== 'PLECAT');
+    const plecatEmps = employees.filter((e) => e.status === 'PLECAT');
+
     const counts = {
-      ALL: employees.length,
+      ALL: activeEmps.length,
       VALID: 0,
       UPCOMING: 0,
       OVERDUE: 0,
       MISSING: 0,
+      PLECAT: plecatEmps.length,
     };
 
-    for (const emp of employees) {
+    for (const emp of activeEmps) {
       const st = emp.compliance.overallStatus;
       if (st in counts) {
         counts[st as keyof typeof counts]++;
@@ -124,9 +144,14 @@ function EmployeeRegistryInner({
     const query = searchQuery.trim().toLowerCase();
 
     return employees.filter((emp) => {
-      // 1. Tab filter
-      if (activeTab !== 'ALL' && emp.compliance.overallStatus !== activeTab) {
-        return false;
+      // 1. Tab filter & Status segregation
+      if (activeTab === 'PLECAT') {
+        if (emp.status !== 'PLECAT') return false;
+      } else {
+        if (emp.status === 'PLECAT') return false;
+        if (activeTab !== 'ALL' && emp.compliance.overallStatus !== activeTab) {
+          return false;
+        }
       }
 
       // 2. Client filter
@@ -205,9 +230,10 @@ function EmployeeRegistryInner({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <AddEmployeeModal clients={clients} />
           <Link
             href="/imports/new"
-            className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition"
+            className="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition"
           >
             <span>Import Registru Excel</span>
           </Link>
@@ -344,6 +370,17 @@ function EmployeeRegistryInner({
               <AlertCircle className="w-3.5 h-3.5" />
               <span>Date lipsă ({tabCounts.MISSING})</span>
             </button>
+            <button
+              type="button"
+              onClick={() => handleTabChange('PLECAT')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
+                activeTab === 'PLECAT'
+                  ? 'bg-slate-700 text-white shadow-sm'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'
+              }`}
+            >
+              <span>Plecați / Arhivă ({tabCounts.PLECAT})</span>
+            </button>
           </div>
 
           {/* Search & Company Filter */}
@@ -412,7 +449,7 @@ function EmployeeRegistryInner({
                   <th className="px-4 py-3">Instruire SSM</th>
                   <th className="px-4 py-3">Instruire PSI/SU</th>
                   <th className="px-4 py-3">Curs Igienă</th>
-                  <th className="px-4 py-3 text-right">Documente</th>
+                  <th className="px-4 py-3 text-right">Acțiuni & Documente</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -428,7 +465,7 @@ function EmployeeRegistryInner({
                           {emp.lastName} {emp.firstName}
                         </div>
                         <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
-                          <span className="font-mono">{maskCNP(emp.cnp)}</span>
+                          <span className="font-mono">{emp.cnp || '—'}</span>
                           {emp.identityDocument && (
                             <>
                               <span>•</span>
@@ -526,24 +563,46 @@ function EmployeeRegistryInner({
                         )}
                       </td>
 
-                      {/* 8. Documente */}
-                      <td className="px-4 py-3.5 text-right whitespace-nowrap space-x-1.5">
-                        <a
-                          href={`/api/clients/${emp.client.id}/packages/onboarding?employeeId=${emp.id}`}
-                          download
-                          className="inline-flex items-center gap-1 text-[11px] text-emerald-700 bg-emerald-50 hover:bg-emerald-100 font-semibold px-2 py-1 rounded border border-emerald-200 shadow-2xs transition"
-                          title="Descarcă dosarul complet de angajare (11 DOCX ZIP)"
-                        >
-                          <Download className="w-3 h-3 text-emerald-600" />
-                          Onboarding ZIP
-                        </a>
-                        <Link
-                          href={`/documents/generate?clientId=${emp.client.id}&employeeId=${emp.id}&templateCode=hr-cim-2026`}
-                          className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded"
-                          title="Generează CIM individual"
-                        >
-                          CIM
-                        </Link>
+                      {/* 8. Acțiuni & Documente */}
+                      <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {emp.status === 'ACTIV' ? (
+                            <>
+                              <RecordMedicalExamModal employee={emp} />
+                              <EditEmployeeModal employeeId={emp.id} employeeName={emp.fullName} />
+                              <TerminateEmployeeModal employee={emp} />
+                              <a
+                                href={`/api/clients/${emp.client.id}/packages/onboarding?employeeId=${emp.id}`}
+                                download
+                                className="inline-flex items-center gap-1 text-[11px] text-emerald-700 bg-emerald-50 hover:bg-emerald-100 font-semibold px-2 py-1.5 rounded border border-emerald-200 shadow-2xs transition"
+                                title="Descarcă dosarul complet de angajare (11 DOCX ZIP)"
+                              >
+                                <Download className="w-3 h-3 text-emerald-600" />
+                                Onboarding ZIP
+                              </a>
+                              <Link
+                                href={`/documents/generate?clientId=${emp.client.id}&employeeId=${emp.id}&templateCode=hr-cim-2026`}
+                                className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1.5 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
+                                title="Generează CIM individual"
+                              >
+                                CIM
+                              </Link>
+                            </>
+                          ) : (
+                            <>
+                              <span className="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200">
+                                PLECAT: {formatRoDate(emp.leaveDate)}
+                              </span>
+                              <EditEmployeeModal employeeId={emp.id} employeeName={emp.fullName} />
+                              <span
+                                className="inline-flex items-center gap-1 text-[11px] text-slate-400 bg-slate-100 font-medium px-2 py-1.5 rounded border border-slate-200 cursor-not-allowed"
+                                title="Generarea este blocată pentru salariați cu contract încetat"
+                              >
+                                Generare Blocată
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
