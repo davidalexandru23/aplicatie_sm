@@ -185,7 +185,6 @@ export default function HygienePage() {
     diplomaDelivered: false,
     diplomaDeliveredDate: '',
   });
-  const [isBisMode, setIsBisMode] = useState(false);
   const [usedNumbersInYear, setUsedNumbersInYear] = useState<string[]>([]);
   const [nextYearNumber, setNextYearNumber] = useState<number>(1);
   const [loadingNumbering, setLoadingNumbering] = useState(false);
@@ -346,13 +345,57 @@ export default function HygienePage() {
     return set.size;
   }, [portfolioEmployees, createSelectedEmpIds]);
 
+  // Fetch numbering info for a given calendar year
+  const fetchNumberingForYear = useCallback(async (year: number) => {
+    setLoadingNumbering(true);
+    try {
+      const res = await fetch(`/api/hygiene/certificates/next-number?year=${year}`);
+      const data = await res.json();
+      if (data && !data.error) {
+        setUsedNumbersInYear(data.usedNumbers || []);
+        setNextYearNumber(data.nextNumber || 1);
+      }
+    } catch {
+      // fallback
+    } finally {
+      setLoadingNumbering(false);
+    }
+  }, []);
+
+  // Smart Auto-BIS: Dacă utilizatorul introduce un număr deja folosit, adaugă automat sufixul BIS
+  const checkAndApplyBis = useCallback((inputVal: string, originalVal?: string | null): string => {
+    if (!inputVal) return '';
+    let trimmed = inputVal.trim();
+    if (!trimmed) return '';
+
+    // Normalizează orice BIS existent la majuscule fără spații
+    trimmed = trimmed.replace(/\s*bis$/i, 'BIS');
+
+    // Extrage numărul de bază fără BIS
+    const baseNumber = trimmed.replace(/bis$/i, '').trim();
+    if (!baseNumber) return trimmed;
+
+    // Verifică dacă acest număr este deja în lista numerelor folosite din acel an
+    const isUsedInYear = usedNumbersInYear.some((n) => {
+      const existingBase = n.replace(/bis$/i, '').trim();
+      return existingBase.toLowerCase() === baseNumber.toLowerCase();
+    });
+
+    if (isUsedInYear) {
+      const origBase = (originalVal || '').replace(/bis$/i, '').trim();
+      const isOriginalOwnerNonBis = origBase && origBase.toLowerCase() === baseNumber.toLowerCase() && !originalVal?.toUpperCase().includes('BIS');
+      if (!isOriginalOwnerNonBis && !trimmed.toUpperCase().endsWith('BIS')) {
+        return `${baseNumber}BIS`;
+      }
+    }
+
+    return trimmed;
+  }, [usedNumbersInYear]);
+
   // Open Edit Participant Modal
   const openEditParticipant = async (session: HygieneSession, participant: Participant) => {
     setEditingParticipant({ session, participant });
     setEditError(null);
-
-    const hasBis = participant.certificateNumber ? participant.certificateNumber.toUpperCase().includes('BIS') : false;
-    setIsBisMode(hasBis);
 
     const initialDate = participant.certificateDate
       ? new Date(participant.certificateDate).toISOString().slice(0, 10)
@@ -372,19 +415,7 @@ export default function HygienePage() {
 
     // Fetch numbering info for that year
     const targetYear = initialDate ? new Date(initialDate).getFullYear() : new Date().getFullYear();
-    setLoadingNumbering(true);
-    try {
-      const res = await fetch(`/api/hygiene/certificates/next-number?year=${targetYear}`);
-      const data = await res.json();
-      if (data && !data.error) {
-        setUsedNumbersInYear(data.usedNumbers || []);
-        setNextYearNumber(data.nextNumber || 1);
-      }
-    } catch {
-      // fallback
-    } finally {
-      setLoadingNumbering(false);
-    }
+    fetchNumberingForYear(targetYear);
   };
 
   const handleSaveParticipant = async (e: React.FormEvent) => {
@@ -426,7 +457,11 @@ export default function HygienePage() {
         payload.certificateNumber = null;
         payload.certificateDate = null;
       } else {
-        payload.certificateNumber = editFormData.certificateNumber.trim() || null;
+        const adjustedCertNumber = checkAndApplyBis(
+          editFormData.certificateNumber,
+          editingParticipant.participant.certificateNumber
+        );
+        payload.certificateNumber = adjustedCertNumber.trim() || null;
         payload.certificateDate = editFormData.certificateDate || null;
       }
 
@@ -1415,14 +1450,21 @@ export default function HygienePage() {
                     type="date"
                     disabled={editFormData.attendance === 'absent' || editFormData.examResult === 'respins'}
                     value={editFormData.certificateDate}
-                    onChange={(e) => setEditFormData((prev) => ({ ...prev, certificateDate: e.target.value }))}
+                    onChange={(e) => {
+                      const d = e.target.value;
+                      setEditFormData((prev) => ({ ...prev, certificateDate: d }));
+                      if (d) {
+                        const y = new Date(d).getFullYear();
+                        if (!isNaN(y)) fetchNumberingForYear(y);
+                      }
+                    }}
                     className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400"
                   />
                 </div>
               </div>
 
               {/* Număr Adeverință DSP (Fără Serie!) */}
-              <div className="pt-2 border-t border-slate-100 space-y-3">
+              <div className="pt-2 border-t border-slate-100 space-y-2">
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
@@ -1439,75 +1481,78 @@ export default function HygienePage() {
                       disabled={editFormData.attendance === 'absent' || editFormData.examResult === 'respins'}
                       value={editFormData.certificateNumber}
                       onChange={(e) => setEditFormData((prev) => ({ ...prev, certificateNumber: e.target.value }))}
+                      onBlur={(e) => {
+                        const adjusted = checkAndApplyBis(e.target.value, editingParticipant?.participant.certificateNumber);
+                        if (adjusted !== e.target.value) {
+                          setEditFormData((prev) => ({ ...prev, certificateNumber: adjusted }));
+                        }
+                      }}
                       placeholder={String(nextYearNumber)}
                       className="w-full pl-9 pr-3 py-2 font-mono font-bold text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400"
                     />
                   </div>
-                  <span className="text-[10px] text-slate-400 block mt-0.5">
-                    Numerotarea este globală (1 la X per an calendaristic).
-                  </span>
                 </div>
 
-                {/* Opțiune Remediere Control: Adeverință Retroactivă BIS */}
-                <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-lg space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
-                      <History className="w-3.5 h-3.5 text-amber-700" />
-                      Remediere Control DSP / ITM (Număr BIS în trecut)
+                {/* Feedback inteligent auto-BIS când numărul este deja folosit */}
+                {(() => {
+                  const currentVal = editFormData.certificateNumber.trim();
+                  const baseNum = currentVal.replace(/bis$/i, '').trim();
+                  const isBis = currentVal.toUpperCase().endsWith('BIS');
+                  const isUsed = Boolean(baseNum && usedNumbersInYear.some((n) => n.replace(/bis$/i, '').trim().toLowerCase() === baseNum.toLowerCase()));
+                  const isSelf = Boolean(baseNum && editingParticipant?.participant.certificateNumber?.replace(/bis$/i, '').trim().toLowerCase() === baseNum.toLowerCase() && !editingParticipant?.participant.certificateNumber?.toUpperCase().includes('BIS'));
+
+                  if (isBis) {
+                    return (
+                      <div className="flex items-center gap-1.5 p-2 bg-amber-50 border border-amber-300 rounded-lg text-amber-900 text-xs font-medium">
+                        <History className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                        <span>
+                          Număr de remediere control cu sufix <strong>BIS</strong> ({currentVal}).
+                        </span>
+                      </div>
+                    );
+                  }
+
+                  if (isUsed && !isSelf) {
+                    return (
+                      <div className="flex items-center justify-between gap-2 p-2 bg-amber-50 border border-amber-300 rounded-lg text-amber-900 text-xs">
+                        <div className="flex items-center gap-1.5 font-medium">
+                          <History className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                          <span>
+                            Numărul <strong>{baseNum}</strong> este deja utilizat &rarr; se adaugă automat <strong>{baseNum}BIS</strong>.
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setEditFormData((prev) => ({ ...prev, certificateNumber: `${baseNum}BIS` }))}
+                          className="text-[10px] font-bold px-2 py-0.5 bg-amber-600 hover:bg-amber-700 text-white rounded transition shrink-0"
+                        >
+                          Aplică {baseNum}BIS
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  if (isUsed && isSelf) {
+                    return (
+                      <div className="flex items-center justify-between gap-2 p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 text-xs">
+                        <span>Numărul curent oficial al cursantului.</span>
+                        <button
+                          type="button"
+                          onClick={() => setEditFormData((prev) => ({ ...prev, certificateNumber: `${baseNum}BIS` }))}
+                          className="text-[10px] font-bold px-2 py-0.5 bg-slate-200 hover:bg-amber-100 hover:text-amber-900 text-slate-700 rounded border border-slate-300 transition shrink-0"
+                        >
+                          Transformă în {baseNum}BIS
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <span className="text-[10px] text-slate-400 block mt-0.5">
+                      Numerotarea este secvențială (1 la X per an). Dacă scrieți un număr deja folosit, se pune automat <strong>BIS</strong>.
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => setIsBisMode(!isBisMode)}
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded border transition ${isBisMode ? 'bg-amber-600 text-white border-amber-700' : 'bg-white text-amber-800 border-amber-300 hover:bg-amber-100'}`}
-                    >
-                      {isBisMode ? 'Activată' : 'Activează opțiune BIS'}
-                    </button>
-                  </div>
-
-                  {isBisMode && (
-                    <div className="space-y-2 pt-1 border-t border-amber-200/60">
-                      <p className="text-[11px] text-amber-800 leading-relaxed">
-                        Alegeți un număr deja utilizat din acel an pentru a adăuga sufixul <strong>BIS</strong> (ex: <strong>12BIS</strong>), permițând remedierea dosarelor la control fără decalarea numerotării curente.
-                      </p>
-
-                      {loadingNumbering ? (
-                        <div className="text-[10px] text-slate-500 flex items-center gap-1">
-                          <RefreshCw className="w-3 h-3 animate-spin" /> Se încarcă numerele folosite...
-                        </div>
-                      ) : usedNumbersInYear.length > 0 ? (
-                        <div>
-                          <label className="block text-[10px] font-semibold text-amber-900 mb-1">
-                            Alege numărul folosit pentru a genera BIS:
-                          </label>
-                          <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto p-1 bg-white rounded border border-amber-200">
-                            {usedNumbersInYear.map((num) => {
-                              const bisCandidate = `${num.replace(/bis.*$/i, '')}BIS`;
-                              return (
-                                <button
-                                  key={num}
-                                  type="button"
-                                  onClick={() => {
-                                    setEditFormData((prev) => ({
-                                      ...prev,
-                                      certificateNumber: bisCandidate,
-                                    }));
-                                  }}
-                                  className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 hover:bg-amber-100 border border-slate-200 hover:border-amber-400 text-slate-800 font-semibold transition"
-                                >
-                                  {num} &rarr; {bisCandidate}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-[10px] text-amber-800">
-                          Nu există încă numere emise în acest an. Puteți tasta direct numărul (ex: 1BIS).
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                  );
+                })()}
               </div>
 
               {/* Predare Diplomă DSP către Angajat */}
