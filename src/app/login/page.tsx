@@ -55,9 +55,9 @@ const ROLES: RoleCard[] = [
   },
   {
     role: 'IGIENA',
-    title: 'Formator Igienă',
-    badge: 'Igienă',
-    subtitle: 'Cursuri, sesiuni examen DSP & adeverințe',
+    title: 'CLM',
+    badge: 'CLM',
+    subtitle: 'Cursuri & Adeverințe',
     desc: 'Evidență sesiuni de instruire, cataloage examen, registru salariați, emitere adeverințe DSP (numere anuale & BIS) și predare diplome.',
     icon: Award,
     badgeColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
@@ -204,7 +204,7 @@ export default function LoginPage() {
               <option value="ADMIN">Admin Master</option>
               <option value="SSM">Specialist SSM</option>
               <option value="HR">Resurse Umane (HR)</option>
-              <option value="IGIENA">Formator Igienă</option>
+              <option value="IGIENA">CLM (Cursuri & Adeverințe)</option>
             </select>
           </div>
 

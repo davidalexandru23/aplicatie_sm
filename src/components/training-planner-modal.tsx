@@ -421,12 +421,12 @@ export function TrainingPlannerModal({
                   </div>
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                      Instructor / Formator *
+                      Instructor / CLM *
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="Nume formator..."
+                      placeholder="Nume instructor / CLM..."
                       value={instructorName}
                       onChange={(e) => setInstructorName(e.target.value)}
                       className="w-full text-xs px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"

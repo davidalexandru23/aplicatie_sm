@@ -2651,13 +2651,16 @@ export async function resolveTemplateData(
           emp?.currentJob?.title ||
           (emp?.currentJobId && client?.jobs?.find((j: any) => j.id === emp.currentJobId)?.title) ||
           'Lucrător';
-        const cnpVal = emp?.cnp ? emp.cnp.trim() : (p?.cnp ? String(p.cnp).trim() : '');
+        const hireDateVal = emp?.hireDate
+          ? formatDateRo(emp.hireDate)
+          : (p?.hireDate ? formatDateRo(p.hireDate) : '-');
         const rez = p.result || 'admis';
         return {
           nr: idx + 1,
           numeComplet: empName,
           functie: func,
-          cnp: cnpVal,
+          dataAngajarii: hireDateVal,
+          cnp: hireDateVal,
           rezultat: rez,
           semnatura: '',
         };

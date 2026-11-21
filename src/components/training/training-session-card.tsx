@@ -160,7 +160,7 @@ export function TrainingSessionCard({ event }: TrainingSessionCardProps) {
 
       {/* Instructor info */}
       <div className="text-xs text-slate-500">
-        Formator / Instructor: <strong className="text-slate-700">{event.instructorName}</strong>
+        Instructor / CLM: <strong className="text-slate-700">{event.instructorName}</strong>
       </div>
 
       {/* Error display */}

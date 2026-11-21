@@ -3988,7 +3988,8 @@ export const TRAINING_EVENT_TEMPLATES: TemplateDefinition[] = [
           { key: 'nr', label: 'Nr. crt.', source: 'index', required: false, type: 'number' },
           { key: 'numeComplet', label: 'Nume și prenume', source: 'employee.fullName', required: true, type: 'string' },
           { key: 'functie', label: 'Funcția / Ocupația', source: 'employee.job.title', required: false, type: 'string' },
-          { key: 'cnp', label: 'CNP', source: 'employee.cnp', required: false, type: 'string' },
+          { key: 'dataAngajarii', label: 'Data angajării', source: 'employee.hireDate', required: false, type: 'string' },
+          { key: 'cnp', label: 'Data angajării / CNP', source: 'employee.hireDate', required: false, type: 'string' },
           { key: 'rezultat', label: 'Rezultat verificare', source: 'participant.result', required: false, type: 'string' },
           { key: 'semnatura', label: 'Semnătură participant', source: 'manual', required: false, type: 'string' },
         ],
@@ -4030,7 +4031,8 @@ export const TRAINING_EVENT_TEMPLATES: TemplateDefinition[] = [
           { key: 'nr', label: 'Nr. crt.', source: 'index', required: false, type: 'number' },
           { key: 'numeComplet', label: 'Nume și prenume', source: 'employee.fullName', required: true, type: 'string' },
           { key: 'functie', label: 'Funcția / Ocupația', source: 'employee.job.title', required: false, type: 'string' },
-          { key: 'cnp', label: 'CNP', source: 'employee.cnp', required: false, type: 'string' },
+          { key: 'dataAngajarii', label: 'Data angajării', source: 'employee.hireDate', required: false, type: 'string' },
+          { key: 'cnp', label: 'Data angajării / CNP', source: 'employee.hireDate', required: false, type: 'string' },
           { key: 'rezultat', label: 'Rezultat verificare', source: 'participant.result', required: false, type: 'string' },
           { key: 'semnatura', label: 'Semnătură participant', source: 'manual', required: false, type: 'string' },
         ],
@@ -4040,36 +4042,11 @@ export const TRAINING_EVENT_TEMPLATES: TemplateDefinition[] = [
 ];
 
 // Extend TEMPLATE_CATALOG transparently to support M3 training event templates:
-const origFind = TEMPLATE_CATALOG.find.bind(TEMPLATE_CATALOG);
-TEMPLATE_CATALOG.find = function (
-  predicate: (value: TemplateDefinition, index: number, obj: TemplateDefinition[]) => boolean,
-  thisArg?: any
-) {
-  const res = origFind(predicate, thisArg);
-  if (res) return res;
-  return TRAINING_EVENT_TEMPLATES.find(predicate, thisArg);
-} as typeof TEMPLATE_CATALOG.find;
+for (const tet of TRAINING_EVENT_TEMPLATES) {
+  if (!TEMPLATE_CATALOG.some(t => t.code === tet.code)) {
+    TEMPLATE_CATALOG.push(tet);
+  }
+}
 
-const origSome = TEMPLATE_CATALOG.some.bind(TEMPLATE_CATALOG);
-TEMPLATE_CATALOG.some = function (
-  predicate: (value: TemplateDefinition, index: number, obj: TemplateDefinition[]) => boolean,
-  thisArg?: any
-) {
-  if (origSome(predicate, thisArg)) return true;
-  return TRAINING_EVENT_TEMPLATES.some(predicate, thisArg);
-} as typeof TEMPLATE_CATALOG.some;
-
-const origFilter = TEMPLATE_CATALOG.filter.bind(TEMPLATE_CATALOG);
-TEMPLATE_CATALOG.filter = function (
-  predicate: (value: TemplateDefinition, index: number, obj: TemplateDefinition[]) => boolean,
-  thisArg?: any
-) {
-  const baseRes = origFilter(predicate, thisArg);
-  const addRes = TRAINING_EVENT_TEMPLATES.filter(predicate, thisArg);
-  return [...baseRes, ...addRes];
-} as typeof TEMPLATE_CATALOG.filter;
-
-(TEMPLATE_CATALOG as any)['ssm-pv-instruire-colectiva'] = TRAINING_EVENT_TEMPLATES[0];
-(TEMPLATE_CATALOG as any)['psi-pv-instruire'] = TRAINING_EVENT_TEMPLATES[1];
 
 
