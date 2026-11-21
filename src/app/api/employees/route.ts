@@ -3,6 +3,51 @@ import { prisma } from '@/lib/prisma';
 import { validateCNP } from '@/lib/importer';
 import { calculateEmployeeCompliance } from '@/lib/compliance';
 
+export const dynamic = 'force-dynamic';
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get('status');
+    const clientId = searchParams.get('clientId');
+    const search = searchParams.get('search');
+
+    const where: any = {};
+    if (status) {
+      where.status = status;
+    }
+    if (clientId) {
+      where.clientId = clientId;
+    }
+    if (search) {
+      where.OR = [
+        { lastName: { contains: search, mode: 'insensitive' } },
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { cnp: { contains: search } },
+      ];
+    }
+
+    const employees = await prisma.employee.findMany({
+      where,
+      orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+      include: {
+        client: { select: { id: true, name: true, cui: true } },
+        currentJob: { select: { id: true, title: true, corCode: true } },
+        currentWorksite: { select: { id: true, name: true } },
+        identityDocument: { select: { docType: true, series: true, number: true } },
+      },
+    });
+
+    return NextResponse.json(employees);
+  } catch (err: unknown) {
+    console.error('GET /api/employees error:', err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Eroare la preluarea angajaților.' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

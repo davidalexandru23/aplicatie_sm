@@ -283,13 +283,16 @@ export default function HygienePage() {
   const loadPortfolioEmployees = useCallback(async () => {
     setLoadingPortfolio(true);
     try {
-      const res = await fetch('/api/employees');
+      const res = await fetch('/api/employees', { cache: 'no-store' });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
       const data = await res.json();
       if (Array.isArray(data)) {
         setPortfolioEmployees(data);
       }
-    } catch {
-      console.warn('Nu s-au putut încărca toți angajații din portofoliu.');
+    } catch (err) {
+      console.warn('Nu s-au putut încărca toți angajații din portofoliu:', err);
     } finally {
       setLoadingPortfolio(false);
     }
@@ -299,6 +302,20 @@ export default function HygienePage() {
     fetchSessions();
     loadPortfolioEmployees();
   }, [fetchSessions, loadPortfolioEmployees]);
+
+  // Combined company list derived from clients and loaded portfolio employees
+  const availableCompanies = useMemo(() => {
+    const map = new Map<string, string>();
+    clients.forEach((c) => {
+      if (c.id && c.name) map.set(c.id, c.name);
+    });
+    portfolioEmployees.forEach((e) => {
+      if (e.clientId && e.client?.name) {
+        map.set(e.clientId, e.client.name);
+      }
+    });
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [clients, portfolioEmployees]);
 
   // Filtered employees for Create Session Modal
   const filteredCreateEmployees = useMemo(() => {
@@ -579,10 +596,13 @@ export default function HygienePage() {
             </div>
           )}
           <button
-            onClick={() => fetchSessions()}
+            onClick={() => {
+              fetchSessions();
+              loadPortfolioEmployees();
+            }}
             className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs font-semibold px-3 py-2 rounded-lg hover:bg-slate-200 transition"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading || loadingPortfolio ? 'animate-spin' : ''}`} />
             <span>Reîncarcă</span>
           </button>
           <button
@@ -708,8 +728,8 @@ export default function HygienePage() {
                   onChange={(e) => setCreateCompanyFilter(e.target.value)}
                   className="text-xs border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
                 >
-                  <option value="">Toate firmele ({portfolioEmployees.length})</option>
-                  {clients.map((c) => (
+                  <option value="">Toate firmele ({availableCompanies.length})</option>
+                  {availableCompanies.map((c) => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
@@ -738,8 +758,36 @@ export default function HygienePage() {
                 Se încarcă angajații din portofoliu...
               </div>
             ) : filteredCreateEmployees.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-500">
-                Niciun salariat găsit conform filtrelor alese.
+              <div className="p-8 text-center text-xs text-slate-500 space-y-2">
+                {portfolioEmployees.length === 0 ? (
+                  <>
+                    <p>Nu s-au putut prelua salariații sau portofoliul este gol.</p>
+                    <button
+                      type="button"
+                      onClick={() => loadPortfolioEmployees()}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-800 rounded-md font-medium text-xs hover:bg-emerald-200 transition"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      Reîncearcă încărcarea
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p>Niciun salariat găsit conform căutării sau filtrelor alese.</p>
+                    {(createCompanyFilter || createSearchTerm) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCreateCompanyFilter('');
+                          setCreateSearchTerm('');
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 text-xs text-slate-600 hover:text-slate-900 underline"
+                      >
+                        Resetează filtrele
+                      </button>
+                    )}
+                  </>
+                )}
               </div>
             ) : (
               <div className="max-h-64 overflow-y-auto">
@@ -864,8 +912,8 @@ export default function HygienePage() {
               onChange={(e) => setAddCompanyFilter(e.target.value)}
               className="text-xs border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Toate companiile</option>
-              {clients.map((c) => (
+              <option value="">Toate firmele ({availableCompanies.length})</option>
+              {availableCompanies.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
