@@ -25,7 +25,32 @@ export async function POST(request: NextRequest) {
     const trainingEventId = rawTrainingEventId || rawEventId;
     const assessmentId = rawAssessmentId || rawRiskAssessmentId;
 
-    if (!templateCode || !clientId) {
+    let effClientId = clientId;
+    if (!effClientId && hygieneParticipantId) {
+      const part = await prisma.hygieneParticipant.findUnique({
+        where: { id: hygieneParticipantId },
+        include: { employee: true },
+      });
+      if (part?.employee?.clientId) {
+        effClientId = part.employee.clientId;
+      }
+    }
+    if (!effClientId && hygieneSessionId) {
+      const sess = await prisma.hygieneSession.findUnique({
+        where: { id: hygieneSessionId },
+        include: { client: true, participants: { include: { employee: true } } },
+      });
+      if (sess?.clientId) {
+        effClientId = sess.clientId;
+      } else if (sess?.participants && sess.participants.length > 0) {
+        const pWithClient = sess.participants.find(p => p.employee?.clientId);
+        if (pWithClient?.employee?.clientId) {
+          effClientId = pWithClient.employee.clientId;
+        }
+      }
+    }
+
+    if (!templateCode || !effClientId) {
       return NextResponse.json(
         { error: 'Codul șablonului și clientul sunt obligatorii.' },
         { status: 400 }
@@ -35,7 +60,7 @@ export async function POST(request: NextRequest) {
     // Resolve all template placeholders using the central resolver
     const { resolvedData } = await resolveTemplatePlaceholders({
       templateCode,
-      clientId,
+      clientId: effClientId,
       employeeId,
       jobId,
       worksiteId,
@@ -48,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     const result = await generateDocument({
       templateCode,
-      clientId,
+      clientId: effClientId,
       employeeId,
       jobId,
       worksiteId,

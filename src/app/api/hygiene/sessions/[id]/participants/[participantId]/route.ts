@@ -134,9 +134,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     // Sincronizare automată în fișa salariatului dacă acesta este asociat cu un Employee
     if (updated.employeeId && updated.examResult === 'admis') {
-      const fullCertNumber = updated.certificateNumber
-        ? (updated.certificateSeries ? `${updated.certificateSeries} ${updated.certificateNumber}` : updated.certificateNumber)
-        : null;
+      const fullCertNumber = updated.certificateNumber || null;
       const certIssueDate = updated.certificateDate || updated.session.examDate || updated.session.sessionDate;
 
       await prisma.employee.update({

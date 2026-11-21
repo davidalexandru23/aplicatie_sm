@@ -97,13 +97,28 @@ export async function POST(request: NextRequest) {
       commissionMember2,
       commissionSecretary,
       pvSeriesNumber,
-      participants,
+      participants: rawParticipants,
+      employeeIds,
     } = body;
 
+    // Load default provider for hygiene configurations
+    const defaultProvider = await prisma.ssmProvider.findFirst({
+      where: { isDefault: true },
+    }) || await prisma.ssmProvider.findFirst();
+
+    const effProviderName = providerName || defaultProvider?.hygieneProviderName || defaultProvider?.name || 'Firma Prestatoare SSM';
+    const effMsAuth = msAuthorization || defaultProvider?.hygieneMsAuthNumber || null;
+    const effMeAuth = meAuthorization || defaultProvider?.hygieneMeAuthNumber || null;
+    const effLocation = location || defaultProvider?.hygieneDefaultLocation || 'Sediul prestatorului';
+    const effPresident = commissionPresident || defaultProvider?.hygieneCommissionPresident || null;
+    const effMember1 = commissionMember1 || defaultProvider?.hygieneCommissionMember1 || null;
+    const effMember2 = commissionMember2 || defaultProvider?.hygieneCommissionMember2 || null;
+    const effSecretary = commissionSecretary || defaultProvider?.hygieneCommissionSecretary || null;
+
     // Validate required fields
-    if (!sessionDate || !examDate || !location) {
+    if (!sessionDate || !examDate) {
       return NextResponse.json(
-        { error: 'Data sesiunii, data examenului și locația sunt obligatorii.' },
+        { error: 'Data sesiunii și data examenului sunt obligatorii.' },
         { status: 400 }
       );
     }
@@ -117,9 +132,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!participants || !Array.isArray(participants) || participants.length === 0) {
+    // Build participants either from employeeIds (portfolio employees) or from participants array
+    let participants: ParticipantPayload[] = [];
+
+    if (Array.isArray(employeeIds) && employeeIds.length > 0) {
+      const selectedEmployees = await prisma.employee.findMany({
+        where: { id: { in: employeeIds } },
+        include: {
+          client: { select: { id: true, name: true } },
+          currentJob: { select: { title: true } },
+          identityDocument: true,
+        },
+      });
+
+      participants = selectedEmployees.map((emp) => ({
+        clientName: emp.client.name,
+        lastName: emp.lastName,
+        firstName: emp.firstName,
+        cnp: emp.cnp,
+        birthDate: emp.birthDate ? emp.birthDate.toISOString() : undefined,
+        birthPlace: emp.birthPlace || undefined,
+        docType: emp.identityDocument?.docType || 'CI',
+        docSeries: emp.identityDocument?.series || undefined,
+        docNumber: emp.identityDocument?.number || undefined,
+        jobTitle: emp.currentJob?.title || undefined,
+        attendance: 'prezent',
+        examResult: 'admis',
+        employeeId: emp.id,
+      }));
+    } else if (Array.isArray(rawParticipants) && rawParticipants.length > 0) {
+      participants = rawParticipants;
+    }
+
+    if (participants.length === 0) {
       return NextResponse.json(
-        { error: 'Cel puțin un cursant este necesar.' },
+        { error: 'Cel puțin un cursant este necesar (selectează angajați din portofoliu sau furnizează lista).' },
         { status: 400 }
       );
     }
@@ -156,16 +203,16 @@ export async function POST(request: NextRequest) {
     const session = await prisma.hygieneSession.create({
       data: {
         clientId: resolvedClientId,
-        providerName: providerName || 'Firma Prestatoare SSM',
-        msAuthorization: msAuthorization || null,
-        meAuthorization: meAuthorization || null,
+        providerName: effProviderName,
+        msAuthorization: effMsAuth,
+        meAuthorization: effMeAuth,
         sessionDate: parsedSessionDate,
         examDate: parsedExamDate,
-        location,
-        commissionPresident: commissionPresident || null,
-        commissionMember1: commissionMember1 || null,
-        commissionMember2: commissionMember2 || null,
-        commissionSecretary: commissionSecretary || null,
+        location: effLocation,
+        commissionPresident: effPresident,
+        commissionMember1: effMember1,
+        commissionMember2: effMember2,
+        commissionSecretary: effSecretary,
         pvSeriesNumber: pvSeriesNumber || null,
         status: 'programata',
         participants: {

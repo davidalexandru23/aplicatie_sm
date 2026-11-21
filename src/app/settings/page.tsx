@@ -18,6 +18,7 @@ import {
   Award,
   FileText,
   Star,
+  Sparkles,
   X,
 } from 'lucide-react';
 
@@ -60,6 +61,19 @@ interface ProviderData {
   itmCertNumber: string;
   itmCertDate: string;
   itmAuthority: string;
+  // Date Igienă (Ord. MS/ME 2209/2022)
+  hygieneProviderName: string;
+  hygieneMsAuthNumber: string;
+  hygieneMeAuthNumber: string;
+  hygieneDspNumber: string;
+  hygieneRepresentative: string;
+  hygieneRepresentativeRole: string;
+  hygieneDefaultLocation: string;
+  hygieneDoctorName: string;
+  hygieneCommissionPresident: string;
+  hygieneCommissionMember1: string;
+  hygieneCommissionMember2: string;
+  hygieneCommissionSecretary: string;
   isDefault: boolean;
   isActive: boolean;
   specialists: Specialist[];
@@ -95,6 +109,18 @@ export default function SettingsProviderPage() {
     itmCertNumber: '4812/2021',
     itmCertDate: '2021-06-15',
     itmAuthority: 'Ministerul Muncii - ITM București',
+    hygieneProviderName: 'EXPERT SSM & SITUAȚII DE URGENȚĂ S.R.L.',
+    hygieneMsAuthNumber: 'REG1/25711/16.09.2025',
+    hygieneMeAuthNumber: '31160/14.10.2025',
+    hygieneDspNumber: '10442',
+    hygieneRepresentative: 'Ing. Mihai Popescu',
+    hygieneRepresentativeRole: 'Director Executiv',
+    hygieneDefaultLocation: 'București, Str. Agricultori nr. 35, Sector 2, Sala A1',
+    hygieneDoctorName: 'Dr. Alexandru Ionescu - Medic Primar Igienă',
+    hygieneCommissionPresident: 'Dr. Radu Ionescu - Medic Primar DSP',
+    hygieneCommissionMember1: 'Ing. Mihai Popescu - Reprezentant Furnizor',
+    hygieneCommissionMember2: 'Insp. Dan Mihai - Inspector DSP',
+    hygieneCommissionSecretary: 'Secretar Andreea Dumitru',
     isDefault: true,
     isActive: true,
     specialists: [],
@@ -157,6 +183,18 @@ export default function SettingsProviderPage() {
             ? data.itmCertDate.substring(0, 10)
             : '',
           itmAuthority: data.authorizationDetails || data.itmAuthority || '',
+          hygieneProviderName: data.hygieneProviderName || '',
+          hygieneMsAuthNumber: data.hygieneMsAuthNumber || '',
+          hygieneMeAuthNumber: data.hygieneMeAuthNumber || '',
+          hygieneDspNumber: data.hygieneDspNumber || '',
+          hygieneRepresentative: data.hygieneRepresentative || '',
+          hygieneRepresentativeRole: data.hygieneRepresentativeRole || 'Administrator',
+          hygieneDefaultLocation: data.hygieneDefaultLocation || '',
+          hygieneDoctorName: data.hygieneDoctorName || '',
+          hygieneCommissionPresident: data.hygieneCommissionPresident || '',
+          hygieneCommissionMember1: data.hygieneCommissionMember1 || '',
+          hygieneCommissionMember2: data.hygieneCommissionMember2 || '',
+          hygieneCommissionSecretary: data.hygieneCommissionSecretary || '',
           isDefault: data.isDefault ?? true,
           isActive: data.isActive ?? true,
           specialists: data.specialists || [],
@@ -689,6 +727,233 @@ export default function SettingsProviderPage() {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* ========================================================= */}
+        {/* SECȚIUNE SEPARATĂ: SETĂRI & GENERARE DOCUMENTE IGIENĂ */}
+        {/* ========================================================= */}
+        <div className="bg-white border-2 border-emerald-200/80 rounded-xl p-6 shadow-sm space-y-6 col-span-full lg:col-span-3 w-full">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-emerald-100 pb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 bg-emerald-100 text-emerald-800 rounded-lg">
+                  <Sparkles className="w-5 h-5 text-emerald-700" />
+                </span>
+                <h2 className="text-base font-bold text-slate-900 tracking-tight">
+                  Configurare & Date Generare Cursuri Igienă
+                </h2>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  Ord. MS/ME 2209/4469/2022
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Aceste informații se aplică automat la generarea adeverințelor, cataloagelor și proceselor-verbale de examen DSP/MS pentru cursurile de noțiuni fundamentale de igienă (secțiune separată de SSM).
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleSaveProvider}
+              disabled={savingProvider}
+              className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow-sm cursor-pointer disabled:opacity-50"
+            >
+              <Save className="w-4 h-4" />
+              <span>Salvează Setări Igienă</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Coloana 1: Entitate Furnizor & Reprezentant */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-emerald-950 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                <Building2 className="w-4 h-4 text-emerald-600" />
+                Entitate Furnizor & Reprezentant
+              </h3>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Denumire Furnizor Cursuri Igienă
+                </label>
+                <input
+                  type="text"
+                  value={providerForm.hygieneProviderName}
+                  onChange={(e) => setProviderForm({ ...providerForm, hygieneProviderName: e.target.value })}
+                  placeholder="EXPERT SSM & SITUAȚII DE URGENȚĂ S.R.L."
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                />
+                <span className="text-[10px] text-slate-400 mt-0.5 block">Lăsați neschimbat dacă se folosește aceeași entitate prestatoare</span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Nume Reprezentant Cursuri Igienă
+                </label>
+                <input
+                  type="text"
+                  value={providerForm.hygieneRepresentative}
+                  onChange={(e) => setProviderForm({ ...providerForm, hygieneRepresentative: e.target.value })}
+                  placeholder="Ing. Mihai Popescu"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Funcție Reprezentant
+                </label>
+                <input
+                  type="text"
+                  value={providerForm.hygieneRepresentativeRole}
+                  onChange={(e) => setProviderForm({ ...providerForm, hygieneRepresentativeRole: e.target.value })}
+                  placeholder="Director Executiv / Administrator"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Locație Sală Curs & Examen (Implicită)
+                </label>
+                <textarea
+                  rows={2}
+                  value={providerForm.hygieneDefaultLocation}
+                  onChange={(e) => setProviderForm({ ...providerForm, hygieneDefaultLocation: e.target.value })}
+                  placeholder="București, Str. Agricultori nr. 35, Sector 2, Sala A1"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+            </div>
+
+            {/* Coloana 2: Acreditări & Avize (Fără Serie DSP) */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-emerald-950 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                <Award className="w-4 h-4 text-emerald-600" />
+                Avize Ministere & DSP
+              </h3>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Nr. & Dată Aviz Ministerul Sănătății (MS)
+                </label>
+                <input
+                  type="text"
+                  value={providerForm.hygieneMsAuthNumber}
+                  onChange={(e) => setProviderForm({ ...providerForm, hygieneMsAuthNumber: e.target.value })}
+                  placeholder="REG1/25711/16.09.2025"
+                  className="w-full px-3 py-2 font-mono border border-slate-300 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Nr. & Dată Aviz Ministerul Educației (ME)
+                </label>
+                <input
+                  type="text"
+                  value={providerForm.hygieneMeAuthNumber}
+                  onChange={(e) => setProviderForm({ ...providerForm, hygieneMeAuthNumber: e.target.value })}
+                  placeholder="31160/14.10.2025"
+                  className="w-full px-3 py-2 font-mono border border-slate-300 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Număr Notificare / Decizie DSP
+                </label>
+                <input
+                  type="text"
+                  value={providerForm.hygieneDspNumber}
+                  onChange={(e) => setProviderForm({ ...providerForm, hygieneDspNumber: e.target.value })}
+                  placeholder="10442"
+                  className="w-full px-3 py-2 font-mono font-bold border border-slate-300 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Medic Igienist / Formator Coordonator Curs
+                </label>
+                <input
+                  type="text"
+                  value={providerForm.hygieneDoctorName}
+                  onChange={(e) => setProviderForm({ ...providerForm, hygieneDoctorName: e.target.value })}
+                  placeholder="Dr. Alexandru Ionescu - Medic Primar Igienă"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+            </div>
+
+            {/* Coloana 3: Comisie Examinare DSP */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-emerald-950 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                <Users className="w-4 h-4 text-emerald-600" />
+                Comisie Examinare DSP (Implicită)
+              </h3>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Președinte Comisie (Reprezentant DSP)
+                </label>
+                <input
+                  type="text"
+                  value={providerForm.hygieneCommissionPresident}
+                  onChange={(e) => setProviderForm({ ...providerForm, hygieneCommissionPresident: e.target.value })}
+                  placeholder="Dr. Radu Ionescu - Medic Primar DSP"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Membru 1 Comisie (Furnizor de Formare)
+                </label>
+                <input
+                  type="text"
+                  value={providerForm.hygieneCommissionMember1}
+                  onChange={(e) => setProviderForm({ ...providerForm, hygieneCommissionMember1: e.target.value })}
+                  placeholder="Ing. Mihai Popescu - Reprezentant Furnizor"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Membru 2 Comisie (Inspector DSP)
+                </label>
+                <input
+                  type="text"
+                  value={providerForm.hygieneCommissionMember2}
+                  onChange={(e) => setProviderForm({ ...providerForm, hygieneCommissionMember2: e.target.value })}
+                  placeholder="Insp. Dan Mihai - Inspector DSP"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Secretar Comisie Examinare
+                </label>
+                <input
+                  type="text"
+                  value={providerForm.hygieneCommissionSecretary}
+                  onChange={(e) => setProviderForm({ ...providerForm, hygieneCommissionSecretary: e.target.value })}
+                  placeholder="Secretar Andreea Dumitru"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Previzualizare Antet Adeverință */}
+          <div className="p-3.5 bg-emerald-50/50 border border-emerald-200 rounded-lg text-xs space-y-1.5">
+            <span className="font-bold text-emerald-900 block flex items-center gap-1.5">
+              <FileText className="w-3.5 h-3.5 text-emerald-600" />
+              Previzualizare Antet & Bază Legală Adeverință Igienă:
+            </span>
+            <p className="font-mono text-[11px] text-slate-700 bg-white p-2.5 rounded border border-emerald-200 break-words leading-relaxed">
+              Curs organizat de <strong>{providerForm.hygieneProviderName || providerForm.name}</strong>, în baza Avizului MS nr. <strong>{providerForm.hygieneMsAuthNumber || '—'}</strong> și ME nr. <strong>{providerForm.hygieneMeAuthNumber || '—'}</strong>, înregistrare DSP <strong>{providerForm.hygieneDspNumber || '—'}</strong>. Eliberare adeverință: <strong>Nr. [1..X / BIS]</strong> (fără serie DSP).
+            </p>
           </div>
         </div>
       </form>

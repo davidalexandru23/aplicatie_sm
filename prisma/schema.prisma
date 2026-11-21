@@ -102,6 +102,22 @@ model SsmProvider {
   representativeRole    String?        // Calitate reprezentant (ex: "Director Executiv", "Administrator")
   representativeDoc     String?        // Act reprezentare (ex: "Decizia Asociaților nr. 01/2020")
 
+  // ==========================================
+  // Date Autorizare & Generare Documente IGIENĂ (Ord. MS/ME 2209/2022)
+  // ==========================================
+  hygieneProviderName        String?   // Nume furnizor curs igienă (dacă diferă de prestator SEPP)
+  hygieneMsAuthNumber        String?   // Nr./dată aviz Ministerul Sănătății (ex: "REG1/25711/16.09.2025")
+  hygieneMeAuthNumber        String?   // Nr./dată aviz Ministerul Educației (ex: "31160/14.10.2025")
+  hygieneDspNumber           String?   // Număr autorizare/notificare DSP (doar număr, fără serie)
+  hygieneRepresentative      String?   // Reprezentant legal cursuri igienă
+  hygieneRepresentativeRole  String?   // Funcție reprezentant (ex: "Administrator")
+  hygieneDefaultLocation     String?   // Sediul/locația implicită de desfășurare curs/examen
+  hygieneDoctorName          String?   // Medic igienist / formator coordonator
+  hygieneCommissionPresident String?   // Președinte comisie examinare DSP
+  hygieneCommissionMember1   String?   // Membru 1 comisie examinare
+  hygieneCommissionMember2   String?   // Membru 2 comisie examinare
+  hygieneCommissionSecretary String?   // Secretar comisie examinare
+
   // Stare & Configurare
   isDefault             Boolean        @default(false) // Profilul principal/activ în Setări
   isActive              Boolean        @default(true)

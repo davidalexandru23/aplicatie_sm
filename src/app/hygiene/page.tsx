@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import {
   Sparkles,
@@ -21,6 +21,10 @@ import {
   Edit,
   X,
   Filter,
+  Search,
+  Hash,
+  History,
+  Building2,
 } from 'lucide-react';
 
 interface Participant {
@@ -71,12 +75,23 @@ interface ClientOption {
   cui: string;
 }
 
-interface EmployeeOption {
+interface PortfolioEmployee {
   id: string;
   firstName: string;
   lastName: string;
   cnp: string;
-  currentJob?: { title: string };
+  clientId: string;
+  client?: {
+    id: string;
+    name: string;
+    cui: string;
+  };
+  currentJob?: {
+    id: string;
+    title: string;
+  };
+  hygieneModule?: string | null;
+  status?: string;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -116,15 +131,35 @@ export default function HygienePage() {
   // Filter state
   const [filterClientId, setFilterClientId] = useState<string>('');
 
-  // Add participants state
-  const [addParticipantsSessionId, setAddParticipantsSessionId] = useState<string | null>(null);
+  // Portfolio & Clients
   const [clients, setClients] = useState<ClientOption[]>([]);
-  const [selectedClientId, setSelectedClientId] = useState('');
-  const [employees, setEmployees] = useState<EmployeeOption[]>([]);
-  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>([]);
+  const [portfolioEmployees, setPortfolioEmployees] = useState<PortfolioEmployee[]>([]);
+  const [loadingPortfolio, setLoadingPortfolio] = useState(false);
   const [downloadingDoc, setDownloadingDoc] = useState<string | null>(null);
 
-  // Edit participant state
+  // Create Session State (Portfolio selection)
+  const [createSelectedEmpIds, setCreateSelectedEmpIds] = useState<string[]>([]);
+  const [createSearchTerm, setCreateSearchTerm] = useState('');
+  const [createCompanyFilter, setCreateCompanyFilter] = useState('');
+  const [providerDefaults, setProviderDefaults] = useState({
+    providerName: '',
+    msAuthorization: '',
+    meAuthorization: '',
+    dspNumber: '',
+    location: '',
+    commissionPresident: '',
+    commissionMember1: '',
+    commissionMember2: '',
+    commissionSecretary: '',
+  });
+
+  // Add participants to existing session state
+  const [addParticipantsSessionId, setAddParticipantsSessionId] = useState<string | null>(null);
+  const [addSearchTerm, setAddSearchTerm] = useState('');
+  const [addCompanyFilter, setAddCompanyFilter] = useState('');
+  const [addSelectedEmpIds, setAddSelectedEmpIds] = useState<string[]>([]);
+
+  // Edit participant & BIS Retroactive Certificate state
   const [editingParticipant, setEditingParticipant] = useState<{
     session: HygieneSession;
     participant: Participant;
@@ -133,17 +168,19 @@ export default function HygienePage() {
     attendance: string;
     examGrade: string;
     examResult: string;
-    certificateSeries: string;
     certificateNumber: string;
     certificateDate: string;
   }>({
     attendance: 'prezent',
     examGrade: '',
     examResult: 'admis',
-    certificateSeries: '',
     certificateNumber: '',
     certificateDate: '',
   });
+  const [isBisMode, setIsBisMode] = useState(false);
+  const [usedNumbersInYear, setUsedNumbersInYear] = useState<string[]>([]);
+  const [nextYearNumber, setNextYearNumber] = useState<number>(1);
+  const [loadingNumbering, setLoadingNumbering] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
 
@@ -168,11 +205,6 @@ export default function HygienePage() {
     participantId?: string
   ) => {
     const clientId = resolveSessionClientId(session);
-    if (!clientId) {
-      alert('Nu s-a putut asocia o firmă client pentru această sesiune.');
-      return;
-    }
-
     const docKey = `${session.id}_${templateCode}_${participantId || ''}`;
     setDownloadingDoc(docKey);
 
@@ -182,7 +214,7 @@ export default function HygienePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           templateCode,
-          clientId,
+          clientId: clientId || undefined,
           hygieneSessionId: session.id,
           hygieneParticipantId: participantId,
         }),
@@ -194,8 +226,8 @@ export default function HygienePage() {
       }
 
       window.location.href = data.downloadUrl;
-    } catch (err: any) {
-      alert(`Eroare la descărcare: ${err.message}`);
+    } catch (err: unknown) {
+      alert(`Eroare la descărcare: ${err instanceof Error ? err.message : 'Necunoscută'}`);
     } finally {
       setDownloadingDoc(null);
     }
@@ -218,7 +250,7 @@ export default function HygienePage() {
     }
   }, [filterClientId]);
 
-  // Load clients on mount for session creation and filtering
+  // Load clients & provider defaults on mount
   useEffect(() => {
     fetch('/api/clients')
       .then((r) => r.json())
@@ -226,25 +258,104 @@ export default function HygienePage() {
         if (Array.isArray(d)) setClients(d);
       })
       .catch(() => {});
+
+    fetch('/api/settings/provider')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && !data.error) {
+          setProviderDefaults({
+            providerName: data.hygieneProviderName || data.name || '',
+            msAuthorization: data.hygieneMsAuthNumber || '',
+            meAuthorization: data.hygieneMeAuthNumber || '',
+            dspNumber: data.hygieneDspNumber || '',
+            location: data.hygieneDefaultLocation || (data.locality ? `${data.locality}, ${data.address || ''}` : ''),
+            commissionPresident: data.hygieneCommissionPresident || '',
+            commissionMember1: data.hygieneCommissionMember1 || '',
+            commissionMember2: data.hygieneCommissionMember2 || '',
+            commissionSecretary: data.hygieneCommissionSecretary || '',
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Load all employees in portfolio for multi-client hygiene session builder
+  const loadPortfolioEmployees = useCallback(async () => {
+    setLoadingPortfolio(true);
+    try {
+      const res = await fetch('/api/employees');
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setPortfolioEmployees(data);
+      }
+    } catch {
+      console.warn('Nu s-au putut încărca toți angajații din portofoliu.');
+    } finally {
+      setLoadingPortfolio(false);
+    }
   }, []);
 
   useEffect(() => {
     fetchSessions();
-  }, [fetchSessions]);
+    loadPortfolioEmployees();
+  }, [fetchSessions, loadPortfolioEmployees]);
 
-  const openEditParticipant = (session: HygieneSession, participant: Participant) => {
+  // Filtered employees for Create Session Modal
+  const filteredCreateEmployees = useMemo(() => {
+    return portfolioEmployees.filter((emp) => {
+      if (createCompanyFilter && emp.clientId !== createCompanyFilter) return false;
+      if (!createSearchTerm.trim()) return true;
+      const term = createSearchTerm.toLowerCase();
+      const fullName = `${emp.lastName || ''} ${emp.firstName || ''}`.toLowerCase();
+      const cnp = (emp.cnp || '').toLowerCase();
+      const company = (emp.client?.name || '').toLowerCase();
+      const job = (emp.currentJob?.title || '').toLowerCase();
+      return fullName.includes(term) || cnp.includes(term) || company.includes(term) || job.includes(term);
+    });
+  }, [portfolioEmployees, createCompanyFilter, createSearchTerm]);
+
+  // Unique companies count for selection
+  const selectedCompaniesCount = useMemo(() => {
+    const selectedEmps = portfolioEmployees.filter((e) => createSelectedEmpIds.includes(e.id));
+    const set = new Set(selectedEmps.map((e) => e.clientId));
+    return set.size;
+  }, [portfolioEmployees, createSelectedEmpIds]);
+
+  // Open Edit Participant Modal
+  const openEditParticipant = async (session: HygieneSession, participant: Participant) => {
     setEditingParticipant({ session, participant });
     setEditError(null);
+
+    const hasBis = participant.certificateNumber ? participant.certificateNumber.toUpperCase().includes('BIS') : false;
+    setIsBisMode(hasBis);
+
+    const initialDate = participant.certificateDate
+      ? new Date(participant.certificateDate).toISOString().slice(0, 10)
+      : (session.examDate ? new Date(session.examDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10));
+
     setEditFormData({
       attendance: participant.attendance || 'prezent',
       examGrade: participant.examGrade != null ? String(participant.examGrade) : '',
       examResult: participant.examResult || 'admis',
-      certificateSeries: participant.certificateSeries || '',
       certificateNumber: participant.certificateNumber || '',
-      certificateDate: participant.certificateDate
-        ? new Date(participant.certificateDate).toISOString().slice(0, 10)
-        : (session.examDate ? new Date(session.examDate).toISOString().slice(0, 10) : ''),
+      certificateDate: initialDate,
     });
+
+    // Fetch numbering info for that year
+    const targetYear = initialDate ? new Date(initialDate).getFullYear() : new Date().getFullYear();
+    setLoadingNumbering(true);
+    try {
+      const res = await fetch(`/api/hygiene/certificates/next-number?year=${targetYear}`);
+      const data = await res.json();
+      if (data && !data.error) {
+        setUsedNumbersInYear(data.usedNumbers || []);
+        setNextYearNumber(data.nextNumber || 1);
+      }
+    } catch {
+      // fallback
+    } finally {
+      setLoadingNumbering(false);
+    }
   };
 
   const handleSaveParticipant = async (e: React.FormEvent) => {
@@ -254,9 +365,20 @@ export default function HygienePage() {
     setEditError(null);
 
     try {
-      const payload: any = {
+      const payload: {
+        attendance: string;
+        examResult: string;
+        examGrade: number | null;
+        certificateSeries: null;
+        certificateNumber: string | null;
+        certificateDate: string | null;
+      } = {
         attendance: editFormData.attendance,
         examResult: editFormData.examResult,
+        examGrade: null,
+        certificateSeries: null, // Serie DSP complet eliminată
+        certificateNumber: null,
+        certificateDate: null,
       };
 
       if (editFormData.examGrade !== '') {
@@ -265,16 +387,12 @@ export default function HygienePage() {
           throw new Error('Nota la examen trebuie să fie un număr între 1.0 și 10.0');
         }
         payload.examGrade = g;
-      } else {
-        payload.examGrade = null;
       }
 
       if (editFormData.attendance === 'absent' || editFormData.examResult === 'respins') {
-        payload.certificateSeries = null;
         payload.certificateNumber = null;
         payload.certificateDate = null;
       } else {
-        payload.certificateSeries = editFormData.certificateSeries.trim() || null;
         payload.certificateNumber = editFormData.certificateNumber.trim() || null;
         payload.certificateDate = editFormData.certificateDate || null;
       }
@@ -295,29 +413,12 @@ export default function HygienePage() {
 
       setEditingParticipant(null);
       await fetchSessions();
-    } catch (err: any) {
-      setEditError(err.message || 'Eroare la salvare.');
+    } catch (err: unknown) {
+      setEditError(err instanceof Error ? err.message : 'Eroare la salvare.');
     } finally {
       setEditLoading(false);
     }
   };
-
-  // Load clients for add-participants
-  useEffect(() => {
-    if (addParticipantsSessionId) {
-      fetch('/api/clients')
-        .then((r) => r.json())
-        .then((d) => { if (Array.isArray(d)) setClients(d); });
-    }
-  }, [addParticipantsSessionId]);
-
-  // Load employees when client selected
-  useEffect(() => {
-    if (!selectedClientId) { setEmployees([]); return; }
-    fetch(`/api/clients/${selectedClientId}/employees`)
-      .then((r) => r.json())
-      .then((d) => { if (Array.isArray(d)) setEmployees(d); });
-  }, [selectedClientId]);
 
   const handleAdvanceStatus = async (sessionId: string) => {
     const session = sessions.find((s) => s.id === sessionId);
@@ -358,14 +459,15 @@ export default function HygienePage() {
     }
   };
 
-  const handleAddParticipants = async () => {
-    if (!addParticipantsSessionId || selectedEmployeeIds.length === 0) return;
+  // Add participants to an existing session from portfolio
+  const handleAddParticipantsToSession = async () => {
+    if (!addParticipantsSessionId || addSelectedEmpIds.length === 0) return;
     setActionLoading(addParticipantsSessionId);
     try {
       const res = await fetch(`/api/hygiene/sessions/${addParticipantsSessionId}/participants`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ employeeIds: selectedEmployeeIds }),
+        body: JSON.stringify({ employeeIds: addSelectedEmpIds }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -373,8 +475,7 @@ export default function HygienePage() {
         return;
       }
       setAddParticipantsSessionId(null);
-      setSelectedClientId('');
-      setSelectedEmployeeIds([]);
+      setAddSelectedEmpIds([]);
       await fetchSessions();
     } catch {
       setError('Eroare la adăugarea cursanților.');
@@ -383,12 +484,7 @@ export default function HygienePage() {
     }
   };
 
-  const toggleEmployeeSelection = (empId: string) => {
-    setSelectedEmployeeIds((prev) =>
-      prev.includes(empId) ? prev.filter((id) => id !== empId) : [...prev, empId]
-    );
-  };
-
+  // Create Session Handler with portfolio employees
   const handleCreateSession = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
@@ -397,38 +493,30 @@ export default function HygienePage() {
     setError(null);
 
     try {
-      const clientId = (fd.get('clientId') as string) || undefined;
-      const payload = {
-        clientId,
-        providerName: fd.get('providerName') as string || undefined,
-        msAuthorization: fd.get('msAuthorization') as string || undefined,
-        meAuthorization: fd.get('meAuthorization') as string || undefined,
-        sessionDate: fd.get('sessionDate') as string,
-        examDate: fd.get('examDate') as string,
-        location: fd.get('location') as string,
-        commissionPresident: fd.get('commissionPresident') as string || undefined,
-        commissionMember1: fd.get('commissionMember1') as string || undefined,
-        commissionMember2: fd.get('commissionMember2') as string || undefined,
-        commissionSecretary: fd.get('commissionSecretary') as string || undefined,
-        pvSeriesNumber: fd.get('pvSeriesNumber') as string || undefined,
-        participants: [
-          {
-            clientName: fd.get('p_clientName') as string,
-            lastName: fd.get('p_lastName') as string,
-            firstName: fd.get('p_firstName') as string,
-            cnp: fd.get('p_cnp') as string,
-            jobTitle: fd.get('p_jobTitle') as string || undefined,
-          },
-        ],
-      };
-
-      if (!payload.sessionDate || !payload.examDate || !payload.location) {
-        setError('Completează data sesiunii, data examenului și locația.');
+      if (createSelectedEmpIds.length === 0) {
+        setError('Selectați cel puțin un angajat din portofoliu pentru a crea sesiunea.');
+        setActionLoading(null);
         return;
       }
 
-      if (!payload.participants[0].clientName || !payload.participants[0].lastName || !payload.participants[0].firstName || !payload.participants[0].cnp) {
-        setError('Completează datele primului cursant (firmă, nume, prenume, CNP).');
+      const payload = {
+        providerName: (fd.get('providerName') as string) || providerDefaults.providerName || undefined,
+        msAuthorization: (fd.get('msAuthorization') as string) || providerDefaults.msAuthorization || undefined,
+        meAuthorization: (fd.get('meAuthorization') as string) || providerDefaults.meAuthorization || undefined,
+        sessionDate: fd.get('sessionDate') as string,
+        examDate: fd.get('examDate') as string,
+        location: (fd.get('location') as string) || providerDefaults.location || undefined,
+        commissionPresident: (fd.get('commissionPresident') as string) || providerDefaults.commissionPresident || undefined,
+        commissionMember1: (fd.get('commissionMember1') as string) || providerDefaults.commissionMember1 || undefined,
+        commissionMember2: (fd.get('commissionMember2') as string) || providerDefaults.commissionMember2 || undefined,
+        commissionSecretary: (fd.get('commissionSecretary') as string) || providerDefaults.commissionSecretary || undefined,
+        pvSeriesNumber: (fd.get('pvSeriesNumber') as string) || undefined,
+        employeeIds: createSelectedEmpIds,
+      };
+
+      if (!payload.sessionDate || !payload.examDate) {
+        setError('Completează data sesiunii și data examenului.');
+        setActionLoading(null);
         return;
       }
 
@@ -445,6 +533,7 @@ export default function HygienePage() {
       }
 
       setShowCreateForm(false);
+      setCreateSelectedEmpIds([]);
       form.reset();
       await fetchSessions();
     } catch {
@@ -464,7 +553,7 @@ export default function HygienePage() {
             <span>Cursuri Noțiuni Fundamentale de Igienă</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Evidența sesiunilor de instruire igienă, cataloage cursanți, examinare și adeverințe (Ord. MS/ME 2209/4469/2022).
+            Evidența sesiunilor de igienă per salariat (portofoliu multi-client), cataloage, examinare și adeverințe DSP (Ord. MS/ME 2209/4469/2022).
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -480,7 +569,7 @@ export default function HygienePage() {
                 }}
                 className="text-xs bg-transparent focus:outline-none text-slate-800 font-medium cursor-pointer"
               >
-                <option value="">Toate companiile</option>
+                <option value="">Toate firmele din portofoliu</option>
                 {clients.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -497,11 +586,14 @@ export default function HygienePage() {
             <span>Reîncarcă</span>
           </button>
           <button
-            onClick={() => setShowCreateForm(!showCreateForm)}
+            onClick={() => {
+              setShowCreateForm(!showCreateForm);
+              if (!showCreateForm) loadPortfolioEmployees();
+            }}
             className="inline-flex items-center gap-1.5 bg-emerald-600 text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-emerald-700 transition shadow-sm"
           >
             <Plus className="w-4 h-4" />
-            <span>Sesiune Nouă</span>
+            <span>Sesiune Nouă (Listă Angajați)</span>
           </button>
         </div>
       </div>
@@ -515,125 +607,223 @@ export default function HygienePage() {
         </div>
       )}
 
-      {/* Create Session Form */}
+      {/* Create Session Form with Portfolio Employee Picker */}
       {showCreateForm && (
         <form
           onSubmit={handleCreateSession}
-          className="bg-white p-6 rounded-xl border border-emerald-200 shadow-sm space-y-4"
+          className="bg-white p-6 rounded-xl border-2 border-emerald-300 shadow-md space-y-6"
         >
-          <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <Award className="w-4 h-4 text-emerald-600" />
-            Creează Sesiune Nouă de Igienă
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-emerald-100 pb-3">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Companie Client (asociere)</label>
-              <select
-                name="clientId"
+              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Award className="w-5 h-5 text-emerald-600" />
+                Creează Sesiune Igienă (Selectare Angajați din Portofoliu)
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Sesiunea este multi-client: puteți include salariați din orice companie clientă din portofoliu. Datele furnizorului și avizele se pre-completează din Setările SEPP.
+              </p>
+            </div>
+            <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
+              {createSelectedEmpIds.length} salariați selectați ({selectedCompaniesCount} companii)
+            </span>
+          </div>
+
+          {/* Date generale sesiune (pre-populate din Setări SEPP) */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div>
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">Data Cursului *</label>
+              <input type="date" name="sessionDate" required className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">Data Examenului DSP *</label>
+              <input type="date" name="examDate" required className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">Locație Sală Examen</label>
+              <input
+                name="location"
+                defaultValue={providerDefaults.location || 'București, Sediul prestatorului'}
                 className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-              >
-                <option value="">-- Alege compania (opțional) --</option>
-                {clients.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name} (CUI: {c.cui})</option>
-                ))}
-              </select>
+              />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Furnizor Cursuri</label>
-              <input name="providerName" placeholder="Ex: EXPERT SSM S.R.L." className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Data Sesiunii *</label>
-              <input type="date" name="sessionDate" required className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Data Examenului *</label>
-              <input type="date" name="examDate" required className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">Furnizor Curs</label>
+              <input
+                name="providerName"
+                defaultValue={providerDefaults.providerName || 'EXPERT SSM & SITUAȚII DE URGENȚĂ S.R.L.'}
+                className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Locație *</label>
-              <input name="location" required placeholder="Ex: București, Sala A2" className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Aviz Min. Sănătății (MS)</label>
+              <input
+                name="msAuthorization"
+                defaultValue={providerDefaults.msAuthorization || 'REG1/25711/16.09.2025'}
+                className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Aviz MS</label>
-              <input name="msAuthorization" placeholder="Nr. aviz Ministerul Sănătății" className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Aviz Min. Educației (ME)</label>
+              <input
+                name="meAuthorization"
+                defaultValue={providerDefaults.meAuthorization || '31160/14.10.2025'}
+                className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Aviz ME</label>
-              <input name="meAuthorization" placeholder="Nr. aviz Ministerul Educației" className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Președinte Comisie DSP</label>
+              <input
+                name="commissionPresident"
+                defaultValue={providerDefaults.commissionPresident || 'Dr. Radu Ionescu - Medic Primar DSP'}
+                className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Președinte Comisie</label>
-              <input name="commissionPresident" placeholder="Dr. ..." className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Membru Comisie 1</label>
-              <input name="commissionMember1" className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Membru Comisie 2</label>
-              <input name="commissionMember2" className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Secretar Comisie</label>
-              <input name="commissionSecretary" className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
-            </div>
-          </div>
+          {/* Selector Portofoliu Salariați */}
+          <div className="border border-emerald-200 rounded-xl overflow-hidden shadow-inner">
+            <div className="p-3 bg-emerald-50/70 border-b border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                <Users className="w-4 h-4 text-emerald-700" />
+                Selectează Salariații Participanți din Portofoliu:
+              </span>
 
-          <div>
-            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Nr. Serie Proces-Verbal</label>
-            <input name="pvSeriesNumber" placeholder="Ex: PV-IG/104" className="w-full md:w-1/3 text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
-          </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
+                  <input
+                    type="text"
+                    value={createSearchTerm}
+                    onChange={(e) => setCreateSearchTerm(e.target.value)}
+                    placeholder="Caută nume, CNP, firmă..."
+                    className="text-xs pl-8 pr-3 py-1.5 border border-slate-300 rounded-lg w-48 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
 
-          {/* First participant (inline) */}
-          <div className="pt-3 border-t border-slate-100">
-            <h3 className="text-[11px] font-bold text-slate-700 mb-2 flex items-center gap-1">
-              <Users className="w-3.5 h-3.5 text-emerald-600" />
-              Primul Cursant (restul se adaugă după crearea sesiunii)
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Firma Client *</label>
-                <input name="p_clientName" required placeholder="S.C. ... S.R.L." className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
-              </div>
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Nume *</label>
-                <input name="p_lastName" required placeholder="Popescu" className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
-              </div>
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Prenume *</label>
-                <input name="p_firstName" required placeholder="Ion" className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
-              </div>
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">CNP *</label>
-                <input name="p_cnp" required placeholder="1234567890123" className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
-              </div>
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Funcție</label>
-                <input name="p_jobTitle" placeholder="Bucătar" className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+                <select
+                  value={createCompanyFilter}
+                  onChange={(e) => setCreateCompanyFilter(e.target.value)}
+                  className="text-xs border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                >
+                  <option value="">Toate firmele ({portfolioEmployees.length})</option>
+                  {clients.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const ids = filteredCreateEmployees.map((e) => e.id);
+                    const allSelected = ids.every((id) => createSelectedEmpIds.includes(id));
+                    if (allSelected) {
+                      setCreateSelectedEmpIds((prev) => prev.filter((id) => !ids.includes(id)));
+                    } else {
+                      setCreateSelectedEmpIds((prev) => Array.from(new Set([...prev, ...ids])));
+                    }
+                  }}
+                  className="text-[11px] font-semibold bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg transition"
+                >
+                  Bifează / Debifează filtrați ({filteredCreateEmployees.length})
+                </button>
               </div>
             </div>
+
+            {loadingPortfolio ? (
+              <div className="p-8 text-center text-xs text-slate-500">
+                <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-1 text-slate-400" />
+                Se încarcă angajații din portofoliu...
+              </div>
+            ) : filteredCreateEmployees.length === 0 ? (
+              <div className="p-8 text-center text-xs text-slate-500">
+                Niciun salariat găsit conform filtrelor alese.
+              </div>
+            ) : (
+              <div className="max-h-64 overflow-y-auto">
+                <table className="w-full text-xs">
+                  <thead className="bg-slate-100 border-b border-slate-200 sticky top-0">
+                    <tr>
+                      <th className="px-3 py-2 text-left w-8">
+                        <input
+                          type="checkbox"
+                          checked={filteredCreateEmployees.length > 0 && filteredCreateEmployees.every((e) => createSelectedEmpIds.includes(e.id))}
+                          onChange={() => {
+                            const ids = filteredCreateEmployees.map((e) => e.id);
+                            const all = ids.every((id) => createSelectedEmpIds.includes(id));
+                            if (all) {
+                              setCreateSelectedEmpIds((prev) => prev.filter((id) => !ids.includes(id)));
+                            } else {
+                              setCreateSelectedEmpIds((prev) => Array.from(new Set([...prev, ...ids])));
+                            }
+                          }}
+                        />
+                      </th>
+                      <th className="px-3 py-2 text-left font-semibold text-slate-700">Nume & Prenume</th>
+                      <th className="px-3 py-2 text-left font-semibold text-slate-700">Companie Client</th>
+                      <th className="px-3 py-2 text-left font-semibold text-slate-700">CNP</th>
+                      <th className="px-3 py-2 text-left font-semibold text-slate-700">Post</th>
+                      <th className="px-3 py-2 text-left font-semibold text-slate-700">Modul Igienă</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredCreateEmployees.map((emp) => {
+                      const isChecked = createSelectedEmpIds.includes(emp.id);
+                      return (
+                        <tr
+                          key={emp.id}
+                          onClick={() => {
+                            setCreateSelectedEmpIds((prev) =>
+                              prev.includes(emp.id) ? prev.filter((id) => id !== emp.id) : [...prev, emp.id]
+                            );
+                          }}
+                          className={`hover:bg-emerald-50/60 cursor-pointer transition ${isChecked ? 'bg-emerald-50/40' : ''}`}
+                        >
+                          <td className="px-3 py-2">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => {}}
+                            />
+                          </td>
+                          <td className="px-3 py-2 font-bold text-slate-900">{emp.lastName} {emp.firstName}</td>
+                          <td className="px-3 py-2 text-slate-700 flex items-center gap-1">
+                            <Building2 className="w-3 h-3 text-slate-400" />
+                            {emp.client?.name || '—'}
+                          </td>
+                          <td className="px-3 py-2 font-mono text-slate-600">{emp.cnp}</td>
+                          <td className="px-3 py-2 text-slate-600">{emp.currentJob?.title || '—'}</td>
+                          <td className="px-3 py-2">
+                            <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-700">
+                              {emp.hygieneModule || 'Nivelul 1'}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-3 pt-2">
             <button
               type="submit"
-              disabled={actionLoading === 'create'}
+              disabled={actionLoading === 'create' || createSelectedEmpIds.length === 0}
               className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-semibold px-5 py-2.5 rounded-lg shadow-sm transition"
             >
               {actionLoading === 'create' ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-              <span>Creează Sesiunea</span>
+              <span>Creează Sesiunea ({createSelectedEmpIds.length} cursanți)</span>
             </button>
             <button
               type="button"
-              onClick={() => setShowCreateForm(false)}
+              onClick={() => {
+                setShowCreateForm(false);
+                setCreateSelectedEmpIds([]);
+              }}
               className="text-xs text-slate-500 hover:text-slate-700"
             >
               Anulează
@@ -642,88 +832,102 @@ export default function HygienePage() {
         </form>
       )}
 
-      {/* Add Participants Modal */}
+      {/* Add Participants Modal to Existing Session */}
       {addParticipantsSessionId && (
         <div className="bg-white p-6 rounded-xl border border-blue-200 shadow-sm space-y-4">
-          <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <Users className="w-4 h-4 text-blue-600" />
-            Adaugă Cursanți din Registrul Angajaților
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Selectează Firma Client</label>
-              <select
-                value={selectedClientId}
-                onChange={(e) => { setSelectedClientId(e.target.value); setSelectedEmployeeIds([]); }}
-                className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              >
-                <option value="">-- Alege firma --</option>
-                {clients.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name} (CUI: {c.cui})</option>
-                ))}
-              </select>
-            </div>
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <Users className="w-4 h-4 text-blue-600" />
+              Adaugă Cursanți în Sesiune din Portofoliu
+            </h2>
+            <button
+              onClick={() => { setAddParticipantsSessionId(null); setAddSelectedEmpIds([]); }}
+              className="text-slate-400 hover:text-slate-600 text-xs"
+            >
+              ✕
+            </button>
           </div>
 
-          {employees.length > 0 && (
-            <div className="border border-slate-200 rounded-lg overflow-hidden">
-              <table className="w-full text-xs">
-                <thead className="bg-slate-50 border-b border-slate-200">
-                  <tr>
-                    <th className="px-3 py-2 text-left w-8">
-                      <input
-                        type="checkbox"
-                        checked={selectedEmployeeIds.length === employees.length}
-                        onChange={() => {
-                          if (selectedEmployeeIds.length === employees.length) {
-                            setSelectedEmployeeIds([]);
-                          } else {
-                            setSelectedEmployeeIds(employees.map((e) => e.id));
-                          }
-                        }}
-                      />
-                    </th>
-                    <th className="px-3 py-2 text-left font-semibold text-slate-600">Nume</th>
-                    <th className="px-3 py-2 text-left font-semibold text-slate-600">CNP</th>
-                    <th className="px-3 py-2 text-left font-semibold text-slate-600">Post</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {employees.map((emp) => (
-                    <tr
-                      key={emp.id}
-                      className={`border-b border-slate-100 cursor-pointer hover:bg-blue-50 ${selectedEmployeeIds.includes(emp.id) ? 'bg-blue-50/50' : ''}`}
-                      onClick={() => toggleEmployeeSelection(emp.id)}
-                    >
-                      <td className="px-3 py-2">
-                        <input
-                          type="checkbox"
-                          checked={selectedEmployeeIds.includes(emp.id)}
-                          onChange={() => toggleEmployeeSelection(emp.id)}
-                        />
-                      </td>
-                      <td className="px-3 py-2 font-medium text-slate-800">{emp.lastName} {emp.firstName}</td>
-                      <td className="px-3 py-2 text-slate-500 font-mono">{emp.cnp}</td>
-                      <td className="px-3 py-2 text-slate-600">{emp.currentJob?.title || '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
+              <input
+                type="text"
+                value={addSearchTerm}
+                onChange={(e) => setAddSearchTerm(e.target.value)}
+                placeholder="Caută în portofoliu..."
+                className="text-xs pl-8 pr-3 py-1.5 border border-slate-300 rounded-lg w-52 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
-          )}
+            <select
+              value={addCompanyFilter}
+              onChange={(e) => setAddCompanyFilter(e.target.value)}
+              className="text-xs border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Toate companiile</option>
+              {clients.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="max-h-56 overflow-y-auto border border-slate-200 rounded-lg">
+            <table className="w-full text-xs">
+              <thead className="bg-slate-50 border-b border-slate-200 sticky top-0">
+                <tr>
+                  <th className="px-3 py-2 w-8"></th>
+                  <th className="px-3 py-2 text-left font-semibold text-slate-700">Nume</th>
+                  <th className="px-3 py-2 text-left font-semibold text-slate-700">Companie</th>
+                  <th className="px-3 py-2 text-left font-semibold text-slate-700">CNP</th>
+                  <th className="px-3 py-2 text-left font-semibold text-slate-700">Post</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {portfolioEmployees
+                  .filter((emp) => {
+                    if (addCompanyFilter && emp.clientId !== addCompanyFilter) return false;
+                    if (!addSearchTerm.trim()) return true;
+                    const term = addSearchTerm.toLowerCase();
+                    const full = `${emp.lastName || ''} ${emp.firstName || ''}`.toLowerCase();
+                    return full.includes(term) || (emp.cnp || '').includes(term) || (emp.client?.name || '').toLowerCase().includes(term);
+                  })
+                  .map((emp) => {
+                    const isChecked = addSelectedEmpIds.includes(emp.id);
+                    return (
+                      <tr
+                        key={emp.id}
+                        onClick={() => {
+                          setAddSelectedEmpIds((prev) =>
+                            prev.includes(emp.id) ? prev.filter((id) => id !== emp.id) : [...prev, emp.id]
+                          );
+                        }}
+                        className={`hover:bg-blue-50/60 cursor-pointer ${isChecked ? 'bg-blue-50/40' : ''}`}
+                      >
+                        <td className="px-3 py-2">
+                          <input type="checkbox" checked={isChecked} onChange={() => {}} />
+                        </td>
+                        <td className="px-3 py-2 font-medium text-slate-900">{emp.lastName} {emp.firstName}</td>
+                        <td className="px-3 py-2 text-slate-600">{emp.client?.name || '—'}</td>
+                        <td className="px-3 py-2 font-mono text-slate-500">{emp.cnp}</td>
+                        <td className="px-3 py-2 text-slate-600">{emp.currentJob?.title || '—'}</td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
 
           <div className="flex items-center gap-3">
             <button
-              onClick={handleAddParticipants}
-              disabled={selectedEmployeeIds.length === 0 || actionLoading === addParticipantsSessionId}
+              onClick={handleAddParticipantsToSession}
+              disabled={addSelectedEmpIds.length === 0 || actionLoading === addParticipantsSessionId}
               className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-semibold px-4 py-2 rounded-lg transition"
             >
               {actionLoading === addParticipantsSessionId ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-              <span>Adaugă {selectedEmployeeIds.length} cursant(i)</span>
+              <span>Adaugă {addSelectedEmpIds.length} cursant(i)</span>
             </button>
             <button
-              onClick={() => { setAddParticipantsSessionId(null); setSelectedClientId(''); setSelectedEmployeeIds([]); }}
+              onClick={() => { setAddParticipantsSessionId(null); setAddSelectedEmpIds([]); }}
               className="text-xs text-slate-500 hover:text-slate-700"
             >
               Anulează
@@ -743,7 +947,7 @@ export default function HygienePage() {
           <Award className="w-12 h-12 text-slate-300 mx-auto mb-3" />
           <h3 className="text-sm font-semibold text-slate-800">Nu există sesiuni de igienă</h3>
           <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            Creează o sesiune nouă folosind butonul de mai sus sau importă angajați cu solicitare de curs igienă.
+            Creează o sesiune nouă folosind butonul de mai sus cu angajați selectați din portofoliu.
           </p>
         </div>
       ) : (
@@ -752,6 +956,7 @@ export default function HygienePage() {
             const isExpanded = expandedSessionId === session.id;
             const admisiCount = session.participants.filter((p) => p.examResult.toLowerCase() === 'admis').length;
             const respinsiCount = session.participants.filter((p) => p.examResult.toLowerCase() === 'respins').length;
+            const companiesCount = new Set(session.participants.map((p) => p.clientName)).size;
 
             return (
               <div key={session.id} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -767,18 +972,18 @@ export default function HygienePage() {
                       </div>
                       <div className="text-xs text-slate-500 flex flex-wrap gap-x-4 gap-y-1 mt-1">
                         <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
+                          <Clock className="w-3 h-3 text-slate-400" />
                           Curs: {new Date(session.sessionDate).toLocaleDateString('ro-RO')}
                         </span>
                         <span className="flex items-center gap-1">
-                          <FileText className="w-3 h-3" />
+                          <FileText className="w-3 h-3 text-slate-400" />
                           Examen: {new Date(session.examDate).toLocaleDateString('ro-RO')}
                         </span>
                         <span>📍 {session.location}</span>
-                        <span className="flex items-center gap-1">
-                          <Users className="w-3 h-3" />
-                          {session.participants.length} cursanți
-                          {admisiCount > 0 && <span className="text-emerald-600">({admisiCount} admiși</span>}
+                        <span className="flex items-center gap-1 font-medium text-slate-700">
+                          <Users className="w-3.5 h-3.5 text-blue-600" />
+                          {session.participants.length} cursanți ({companiesCount} {companiesCount === 1 ? 'companie' : 'companii'})
+                          {admisiCount > 0 && <span className="text-emerald-600 ml-1">({admisiCount} admiși</span>}
                           {respinsiCount > 0 && <span className="text-rose-600">, {respinsiCount} respinși</span>}
                           {admisiCount > 0 && <span className="text-emerald-600">)</span>}
                         </span>
@@ -786,27 +991,21 @@ export default function HygienePage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {/* Generate docs link */}
-                      <Link
-                        href={`/documents/generate?templateCode=hygiene-tabel-cursanti&hygieneSessionId=${session.id}${resolveSessionClientId(session) ? `&clientId=${resolveSessionClientId(session)}` : ''}`}
-                        className="inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition"
-                      >
-                        <FileSpreadsheet className="w-3 h-3 text-emerald-600" />
-                        Generează
-                      </Link>
-
-                      {/* Add participants */}
+                      {/* Add participants from portfolio */}
                       {session.status === 'programata' && (
                         <button
-                          onClick={() => setAddParticipantsSessionId(session.id === addParticipantsSessionId ? null : session.id)}
+                          onClick={() => {
+                            setAddParticipantsSessionId(session.id === addParticipantsSessionId ? null : session.id);
+                            loadPortfolioEmployees();
+                          }}
                           className="inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition border border-blue-200"
                         >
                           <Plus className="w-3 h-3" />
-                          Cursanți
+                          + Cursanți
                         </button>
                       )}
 
-                      {/* Status advance */}
+                      {/* Advance status */}
                       {NEXT_STATUS[session.status] && (
                         <button
                           onClick={() => handleAdvanceStatus(session.id)}
@@ -829,7 +1028,7 @@ export default function HygienePage() {
                       {/* Expand */}
                       <button
                         onClick={() => setExpandedSessionId(isExpanded ? null : session.id)}
-                        className="text-slate-400 hover:text-slate-600"
+                        className="text-slate-400 hover:text-slate-600 p-1"
                       >
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </button>
@@ -842,7 +1041,7 @@ export default function HygienePage() {
                   <div className="border-t border-slate-200 bg-slate-50/50">
                     {session.participants.length === 0 ? (
                       <div className="p-6 text-center text-xs text-slate-500">
-                        Nu sunt cursanți înscriși. Adaugă cursanți din registrul de angajați.
+                        Nu sunt cursanți înscriși. Adaugă cursanți din portofoliul de angajați.
                       </div>
                     ) : (
                       <div className="overflow-x-auto">
@@ -853,80 +1052,84 @@ export default function HygienePage() {
                               <th className="px-3 py-2 text-left font-semibold text-slate-600">Nume Complet</th>
                               <th className="px-3 py-2 text-left font-semibold text-slate-600">Angajator</th>
                               <th className="px-3 py-2 text-left font-semibold text-slate-600">Funcție</th>
-                              <th className="px-3 py-2 text-left font-semibold text-slate-600">CNP</th>
+                              <th className="px-3 py-2 text-left font-semibold text-slate-600">CNP (în clar)</th>
                               <th className="px-3 py-2 text-left font-semibold text-slate-600">Prezență</th>
                               <th className="px-3 py-2 text-left font-semibold text-slate-600">Notă</th>
                               <th className="px-3 py-2 text-left font-semibold text-slate-600">Rezultat</th>
-                              <th className="px-3 py-2 text-left font-semibold text-slate-600">Certificat</th>
+                              <th className="px-3 py-2 text-left font-semibold text-slate-600">Nr. Adeverință DSP</th>
                               <th className="px-3 py-2 text-right font-semibold text-slate-600">Acțiuni</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {session.participants.map((p, idx) => (
-                              <tr key={p.id} className="border-b border-slate-100 hover:bg-white">
-                                <td className="px-3 py-2 text-slate-400">{idx + 1}</td>
-                                <td className="px-3 py-2 font-medium text-slate-800">
-                                  {p.lastName} {p.firstName}
-                                  {p.employeeId && (
-                                    <span className="ml-1 text-[9px] bg-blue-50 text-blue-600 px-1 py-0.5 rounded">linked</span>
-                                  )}
-                                </td>
-                                <td className="px-3 py-2 text-slate-600">{p.clientName}</td>
-                                <td className="px-3 py-2 text-slate-600">{p.jobTitle || '—'}</td>
-                                <td className="px-3 py-2 text-slate-500 font-mono">{p.cnp}</td>
-                                <td className="px-3 py-2">
-                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.attendance === 'prezent' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
-                                    {p.attendance}
-                                  </span>
-                                </td>
-                                <td className="px-3 py-2 font-semibold text-slate-700">{p.examGrade ?? '—'}</td>
-                                <td className="px-3 py-2">
-                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.examResult.toLowerCase() === 'admis' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
-                                    {p.examResult}
-                                  </span>
-                                </td>
-                                <td className="px-3 py-2 text-slate-600">
-                                  {p.certificateSeries && p.certificateNumber
-                                    ? `${p.certificateSeries} ${p.certificateNumber}`
-                                    : '—'}
-                                </td>
-                                <td className="px-3 py-2 text-right space-x-1.5 whitespace-nowrap">
-                                  <button
-                                    type="button"
-                                    title="Editează note, prezență sau certificat"
-                                    onClick={() => openEditParticipant(session, p)}
-                                    className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded transition"
-                                  >
-                                    <Edit className="w-3 h-3 text-blue-600" />
-                                    Editează
-                                  </button>
-                                  <button
-                                    type="button"
-                                    title="Descarcă adeverință cursant"
-                                    onClick={() => handleDirectDownload(session, 'hygiene-adeverinta', p.id)}
-                                    disabled={downloadingDoc === `${session.id}_hygiene-adeverinta_${p.id}`}
-                                    className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 rounded transition disabled:opacity-50"
-                                  >
-                                    {downloadingDoc === `${session.id}_hygiene-adeverinta_${p.id}` ? (
-                                      <RefreshCw className="w-3 h-3 animate-spin" />
+                            {session.participants.map((p, idx) => {
+                              const isBisNumber = p.certificateNumber?.toUpperCase().includes('BIS');
+                              return (
+                                <tr key={p.id} className="border-b border-slate-100 hover:bg-white">
+                                  <td className="px-3 py-2 text-slate-400">{idx + 1}</td>
+                                  <td className="px-3 py-2 font-bold text-slate-900">
+                                    {p.lastName} {p.firstName}
+                                  </td>
+                                  <td className="px-3 py-2 text-slate-700">{p.clientName}</td>
+                                  <td className="px-3 py-2 text-slate-600 font-mono">{p.cnp}</td>
+                                  <td className="px-3 py-2 text-slate-600">{p.jobTitle || '—'}</td>
+                                  <td className="px-3 py-2">
+                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.attendance === 'prezent' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                                      {p.attendance}
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2 font-semibold text-slate-700">{p.examGrade ?? '—'}</td>
+                                  <td className="px-3 py-2">
+                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.examResult.toLowerCase() === 'admis' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                                      {p.examResult}
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    {p.certificateNumber ? (
+                                      <span className={`font-mono text-xs px-2 py-0.5 rounded font-bold ${isBisNumber ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-slate-100 text-slate-800'}`}>
+                                        Nr. {p.certificateNumber}
+                                      </span>
                                     ) : (
-                                      <Download className="w-3 h-3 text-purple-600" />
+                                      <span className="text-slate-400">—</span>
                                     )}
-                                    Adeverință
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
+                                  </td>
+                                  <td className="px-3 py-2 text-right space-x-1.5 whitespace-nowrap">
+                                    <button
+                                      type="button"
+                                      title="Editează note, prezență sau adeverință BIS"
+                                      onClick={() => openEditParticipant(session, p)}
+                                      className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded transition"
+                                    >
+                                      <Edit className="w-3 h-3 text-blue-600" />
+                                      Editează
+                                    </button>
+                                    <button
+                                      type="button"
+                                      title="Descarcă adeverință individuală fără serie DSP"
+                                      onClick={() => handleDirectDownload(session, 'hygiene-adeverinta', p.id)}
+                                      disabled={downloadingDoc === `${session.id}_hygiene-adeverinta_${p.id}`}
+                                      className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 rounded transition disabled:opacity-50"
+                                    >
+                                      {downloadingDoc === `${session.id}_hygiene-adeverinta_${p.id}` ? (
+                                        <RefreshCw className="w-3 h-3 animate-spin" />
+                                      ) : (
+                                        <Download className="w-3 h-3 text-purple-600" />
+                                      )}
+                                      Adeverință
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>
                     )}
 
-                    {/* Direct 1-Click Download actions and generator links */}
+                    {/* Quick Download Actions */}
                     <div className="p-3 bg-white border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mr-1">
-                          Descărcare Rapidă (1-Click):
+                          Documente Sesiune:
                         </span>
                         <button
                           type="button"
@@ -953,24 +1156,8 @@ export default function HygienePage() {
                           ) : (
                             <Download className="w-3 h-3 text-blue-600" />
                           )}
-                          Anexe Catalog (XLSX)
+                          Cataloage & Anexe Curs (XLSX)
                         </button>
-
-                        {session.participants.length > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => handleDirectDownload(session, 'hygiene-adeverinta', session.participants[0].id)}
-                            disabled={downloadingDoc === `${session.id}_hygiene-adeverinta_${session.participants[0].id}`}
-                            className="text-[10px] font-semibold px-2.5 py-1.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-100 flex items-center gap-1 transition disabled:opacity-50"
-                          >
-                            {downloadingDoc === `${session.id}_hygiene-adeverinta_${session.participants[0].id}` ? (
-                              <RefreshCw className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <Download className="w-3 h-3 text-purple-600" />
-                            )}
-                            Adeverință ({session.participants[0].lastName})
-                          </button>
-                        )}
                       </div>
 
                       <div className="flex items-center gap-3">
@@ -978,7 +1165,7 @@ export default function HygienePage() {
                           href={`/documents/generate?templateCode=hygiene-tabel-cursanti&hygieneSessionId=${session.id}${resolveSessionClientId(session) ? `&clientId=${resolveSessionClientId(session)}` : ''}`}
                           className="text-[10px] text-blue-600 hover:text-blue-800 font-medium underline flex items-center gap-1"
                         >
-                          Deschide în Generator &rarr;
+                          Deschide în Generator Avansat &rarr;
                         </Link>
                       </div>
                     </div>
@@ -990,7 +1177,7 @@ export default function HygienePage() {
         </div>
       )}
 
-      {/* Modal Editare Participant & Emitere Certificat */}
+      {/* Modal Editare Cursant & Emitere Retroactivă BIS */}
       {editingParticipant && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 space-y-4 border border-slate-200">
@@ -998,7 +1185,7 @@ export default function HygienePage() {
               <div className="flex items-center gap-2">
                 <Award className="w-5 h-5 text-blue-600" />
                 <h3 className="text-sm font-bold text-slate-900">
-                  Evaluare Cursant & Serie Certificat Igienă
+                  Evaluare Cursant & Adeverință DSP
                 </h3>
               </div>
               <button
@@ -1012,8 +1199,8 @@ export default function HygienePage() {
 
             <div className="bg-slate-50 p-3 rounded-lg text-xs space-y-1 text-slate-700">
               <p><span className="font-semibold">Cursant:</span> {editingParticipant.participant.lastName} {editingParticipant.participant.firstName}</p>
-              <p><span className="font-semibold">Companie:</span> {editingParticipant.participant.clientName}</p>
-              <p><span className="font-semibold">Funcție:</span> {editingParticipant.participant.jobTitle || 'Nespecificată'}</p>
+              <p><span className="font-semibold">Angajator:</span> {editingParticipant.participant.clientName}</p>
+              <p><span className="font-semibold">CNP:</span> <span className="font-mono">{editingParticipant.participant.cnp}</span></p>
               <p><span className="font-semibold">Sesiune:</span> {new Date(editingParticipant.session.sessionDate).toLocaleDateString('ro-RO')} (Examen: {new Date(editingParticipant.session.examDate).toLocaleDateString('ro-RO')})</p>
             </div>
 
@@ -1036,7 +1223,7 @@ export default function HygienePage() {
                       setEditFormData((prev) => ({
                         ...prev,
                         attendance: att,
-                        ...(att === 'absent' ? { examResult: 'respins', examGrade: '' } : {}),
+                        ...(att === 'absent' ? { examResult: 'respins', examGrade: '', certificateNumber: '' } : {}),
                       }));
                     }}
                     className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
@@ -1058,6 +1245,7 @@ export default function HygienePage() {
                       setEditFormData((prev) => ({
                         ...prev,
                         examResult: res,
+                        ...(res === 'respins' ? { certificateNumber: '' } : {}),
                       }));
                     }}
                     className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400"
@@ -1086,7 +1274,7 @@ export default function HygienePage() {
 
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                    Data Emiterii Certificatului
+                    Data Emiterii Adeverinței
                   </label>
                   <input
                     type="date"
@@ -1098,51 +1286,110 @@ export default function HygienePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+              {/* Număr Adeverință DSP (Fără Serie!) */}
+              <div className="pt-2 border-t border-slate-100 space-y-3">
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                    Serie Certificat
-                  </label>
-                  <input
-                    type="text"
-                    disabled={editFormData.attendance === 'absent' || editFormData.examResult === 'respins'}
-                    value={editFormData.certificateSeries}
-                    onChange={(e) => setEditFormData((prev) => ({ ...prev, certificateSeries: e.target.value }))}
-                    placeholder="Ex: IG"
-                    className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400 uppercase"
-                  />
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                      Număr Adeverință DSP (Fără Serie)
+                    </label>
+                    <span className="text-[10px] text-slate-500">
+                      Următorul secvențial: <strong>Nr. {nextYearNumber}</strong>
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <Hash className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                    <input
+                      type="text"
+                      disabled={editFormData.attendance === 'absent' || editFormData.examResult === 'respins'}
+                      value={editFormData.certificateNumber}
+                      onChange={(e) => setEditFormData((prev) => ({ ...prev, certificateNumber: e.target.value }))}
+                      placeholder={String(nextYearNumber)}
+                      className="w-full pl-9 pr-3 py-2 font-mono font-bold text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400"
+                    />
+                  </div>
+                  <span className="text-[10px] text-slate-400 block mt-0.5">
+                    Numerotarea este globală (1 la X per an calendaristic).
+                  </span>
                 </div>
 
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                    Număr Certificat
-                  </label>
-                  <input
-                    type="text"
-                    disabled={editFormData.attendance === 'absent' || editFormData.examResult === 'respins'}
-                    value={editFormData.certificateNumber}
-                    onChange={(e) => setEditFormData((prev) => ({ ...prev, certificateNumber: e.target.value }))}
-                    placeholder="Ex: 004128"
-                    className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400"
-                  />
+                {/* Opțiune Remediere Control: Adeverință Retroactivă BIS */}
+                <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-lg space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                      <History className="w-3.5 h-3.5 text-amber-700" />
+                      Remediere Control DSP / ITM (Număr BIS în trecut)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsBisMode(!isBisMode)}
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded border transition ${isBisMode ? 'bg-amber-600 text-white border-amber-700' : 'bg-white text-amber-800 border-amber-300 hover:bg-amber-100'}`}
+                    >
+                      {isBisMode ? 'Activată' : 'Activează opțiune BIS'}
+                    </button>
+                  </div>
+
+                  {isBisMode && (
+                    <div className="space-y-2 pt-1 border-t border-amber-200/60">
+                      <p className="text-[11px] text-amber-800 leading-relaxed">
+                        Alegeți un număr deja utilizat din acel an pentru a adăuga sufixul <strong>BIS</strong> (ex: <strong>12BIS</strong>), permițând remedierea dosarelor la control fără decalarea numerotării curente.
+                      </p>
+
+                      {loadingNumbering ? (
+                        <div className="text-[10px] text-slate-500 flex items-center gap-1">
+                          <RefreshCw className="w-3 h-3 animate-spin" /> Se încarcă numerele folosite...
+                        </div>
+                      ) : usedNumbersInYear.length > 0 ? (
+                        <div>
+                          <label className="block text-[10px] font-semibold text-amber-900 mb-1">
+                            Alege numărul folosit pentru a genera BIS:
+                          </label>
+                          <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto p-1 bg-white rounded border border-amber-200">
+                            {usedNumbersInYear.map((num) => {
+                              const bisCandidate = `${num.replace(/bis.*$/i, '')}BIS`;
+                              return (
+                                <button
+                                  key={num}
+                                  type="button"
+                                  onClick={() => {
+                                    setEditFormData((prev) => ({
+                                      ...prev,
+                                      certificateNumber: bisCandidate,
+                                    }));
+                                  }}
+                                  className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 hover:bg-amber-100 border border-slate-200 hover:border-amber-400 text-slate-800 font-semibold transition"
+                                >
+                                  {num} &rarr; {bisCandidate}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-[10px] text-amber-800">
+                          Nu există încă numere emise în acest an. Puteți tasta direct numărul (ex: 1BIS).
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setEditingParticipant(null)}
-                  className="text-xs text-slate-600 hover:text-slate-800 px-3 py-2 rounded-lg"
+                  className="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-800"
                 >
                   Anulează
                 </button>
                 <button
                   type="submit"
                   disabled={editLoading}
-                  className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition"
+                  className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-semibold px-4 py-2 rounded-lg transition"
                 >
-                  {editLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Award className="w-3.5 h-3.5" />}
-                  <span>Salvează Evaluarea</span>
+                  {editLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                  <span>Salvează Datele Cursantului</span>
                 </button>
               </div>
             </form>

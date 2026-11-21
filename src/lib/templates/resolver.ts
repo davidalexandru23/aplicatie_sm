@@ -2473,9 +2473,10 @@ export async function resolveTemplateData(
     // 5. Sesiune Igienă
     ...(hygieneSession ? {
       ...(template.family === 'hygiene' || template.contextLevel === 'hygiene_session' ? {
-        PLACEHOLDER_PRESTATOR_SSM: hygieneSession.providerName,
-        PLACEHOLDER_FURNIZOR_SSM: hygieneSession.providerName,
-        PLACEHOLDER_MEMBRU_COMISIE: hygieneSession.commissionMember1,
+        PLACEHOLDER_PRESTATOR_SSM: hygieneSession.providerName || client?.provider?.hygieneProviderName || ssmProviderName,
+        PLACEHOLDER_FURNIZOR_SSM: hygieneSession.providerName || client?.provider?.hygieneProviderName || ssmProviderName,
+        PLACEHOLDER_REPREZENTANT_PRESTATOR: client?.provider?.hygieneRepresentative || client?.provider?.legalRepresentative || legalRepresentativeName || '',
+        PLACEHOLDER_MEMBRU_COMISIE: hygieneSession.commissionMember1 || client?.provider?.hygieneCommissionMember1 || '',
       } : {}),
       PLACEHOLDER_AVIZ_MS: sanitizeAuthorizationNumber(hygieneSession.msAuthorization),
       PLACEHOLDER_AVIZ_ME: sanitizeAuthorizationNumber(hygieneSession.meAuthorization),
@@ -2599,10 +2600,10 @@ export async function resolveTemplateData(
       PLACEHOLDER_SERIE_ACT: participant.docSeries || '',
       PLACEHOLDER_NUMAR_ACT: participant.docNumber || '',
       PLACEHOLDER_NR_ACT: participant.docNumber || '',
-      PLACEHOLDER_SERIE_ADEVERINTA: participant.certificateSeries || '',
+      PLACEHOLDER_SERIE_ADEVERINTA: '',
       PLACEHOLDER_NUMAR_ADEVERINTA: participant.certificateNumber || '',
-      PLACEHOLDER_DATA_ELIBERARE: participant.certificateIssueDate ? formatDateRo(participant.certificateIssueDate) : (hygieneSession?.examDate ? formatDateRo(hygieneSession.examDate) : ''),
-      PLACEHOLDER_SERIE_NUMAR_CERTIFICAT: participant.certificateSeries || participant.certificateNumber ? `${participant.certificateSeries || ''} ${participant.certificateNumber || ''}`.trim() : '',
+      PLACEHOLDER_DATA_ELIBERARE: participant.certificateIssueDate ? formatDateRo(participant.certificateIssueDate) : (participant.certificateDate ? formatDateRo(participant.certificateDate) : (hygieneSession?.examDate ? formatDateRo(hygieneSession.examDate) : '')),
+      PLACEHOLDER_SERIE_NUMAR_CERTIFICAT: participant.certificateNumber || '',
       PLACEHOLDER_REZULTAT_EXAMEN: participant.examResult || '',
       PLACEHOLDER_MODUL_IGIENA: participant.employee?.hygieneModule || employee?.hygieneModule || '',
       PLACEHOLDER_NIVEL_IGIENA: resolveHygieneLevel({
@@ -2621,7 +2622,7 @@ export async function resolveTemplateData(
       PLACEHOLDER_SERIE_ACT: identity?.series || '',
       PLACEHOLDER_NUMAR_ACT: identity?.number || '',
       PLACEHOLDER_NR_ACT: identity?.number || '',
-      PLACEHOLDER_SERIE_ADEVERINTA: employee.hygieneCertificateNumber ? (employee.hygieneCertificateNumber.split(/[-\s]/)[0] || '') : '',
+      PLACEHOLDER_SERIE_ADEVERINTA: '',
       PLACEHOLDER_NUMAR_ADEVERINTA: employee.hygieneCertificateNumber || '',
       PLACEHOLDER_DATA_ELIBERARE: employee.hygieneCertificateIssueDate ? formatDateRo(employee.hygieneCertificateIssueDate) : (employee.hygieneLastExamDate ? formatDateRo(employee.hygieneLastExamDate) : ''),
       PLACEHOLDER_SERIE_NUMAR_CERTIFICAT: employee.hygieneCertificateNumber || '',

@@ -250,9 +250,9 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
       },
       {
         key: 'PLACEHOLDER_SERIE_ADEVERINTA',
-        label: 'Serie adeverință cursant',
+        label: 'Serie adeverință cursant (opțional / eliminat)',
         source: 'participant.certificateSeries',
-        required: true,
+        required: false,
         type: 'string',
       }
     ],

@@ -87,6 +87,59 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     include: { participants: true },
   });
 
+  // When transitioning to "certificate_emise", automatically allocate sequential certificate numbers (1..X per calendar year)
+  if (newStatus === 'certificate_emise') {
+    const sessionYear = updated.examDate ? updated.examDate.getFullYear() : new Date().getFullYear();
+    const yearStart = new Date(sessionYear, 0, 1);
+    const yearEnd = new Date(sessionYear, 11, 31, 23, 59, 59, 999);
+
+    const existingInYear = await prisma.hygieneParticipant.findMany({
+      where: {
+        certificateNumber: { not: null },
+        OR: [
+          { certificateDate: { gte: yearStart, lte: yearEnd } },
+          { certificateDate: null, session: { examDate: { gte: yearStart, lte: yearEnd } } },
+        ],
+      },
+      select: { certificateNumber: true },
+    });
+
+    let maxNum = 0;
+    for (const item of existingInYear) {
+      if (item.certificateNumber && /^\d+$/.test(item.certificateNumber.trim())) {
+        const val = parseInt(item.certificateNumber.trim(), 10);
+        if (val > maxNum) maxNum = val;
+      }
+    }
+
+    for (const participant of updated.participants) {
+      if (participant.examResult.toLowerCase() === 'admis' && participant.attendance !== 'absent') {
+        let certNum = participant.certificateNumber;
+        if (!certNum) {
+          maxNum++;
+          certNum = String(maxNum);
+          await prisma.hygieneParticipant.update({
+            where: { id: participant.id },
+            data: {
+              certificateNumber: certNum,
+              certificateDate: updated.examDate,
+            },
+          });
+        }
+        if (participant.employeeId) {
+          await prisma.employee.update({
+            where: { id: participant.employeeId },
+            data: {
+              hygieneLastExamDate: updated.examDate,
+              hygieneCertificateNumber: certNum,
+              hygieneCertificateIssueDate: updated.examDate,
+            },
+          });
+        }
+      }
+    }
+  }
+
   // When transitioning to "finalizata", update linked employee hygiene records
   if (newStatus === 'finalizata') {
     for (const participant of updated.participants) {
@@ -104,7 +157,12 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
   }
 
-  return NextResponse.json(updated);
+  const finalUpdated = await prisma.hygieneSession.findUnique({
+    where: { id },
+    include: { participants: true },
+  });
+
+  return NextResponse.json(finalUpdated || updated);
 }
 
 export async function DELETE(_request: NextRequest, { params }: RouteParams) {
