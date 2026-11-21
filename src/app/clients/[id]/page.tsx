@@ -58,7 +58,8 @@ export default async function ClientDetailPage({
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get('ssm_session')?.value;
   const session = sessionCookie ? parseSessionFromCookieHeader(`ssm_session=${sessionCookie}`) : null;
-  const isSsmRole = session?.role === 'SSM';
+  const userRole = session?.role || 'ADMIN';
+  const isSsmRole = userRole === 'SSM';
 
   const [client, eipCatalog] = await Promise.all([
     prisma.client.findUnique({
@@ -461,7 +462,7 @@ export default async function ClientDetailPage({
             <div className="text-xs text-slate-500 hidden md:block">
               {isSsmRole ? 'Modul SSM • Monitorizare Conformitate Salariați' : 'CNP mascat conform GDPR • Verificare automată HG 355/2007, Legea 319/2006'}
             </div>
-            <AddEmployeeModal clientId={client.id} jobs={client.jobs} worksites={client.worksites} isSsmRole={isSsmRole} />
+            <AddEmployeeModal clientId={client.id} jobs={client.jobs} worksites={client.worksites} userRole={userRole} isSsmRole={isSsmRole} />
           </div>
         </div>
 
@@ -586,12 +587,12 @@ export default async function ClientDetailPage({
                         <div className="flex items-center justify-end gap-1.5">
                           {emp.status === 'ACTIV' ? (
                             <>
-                              <ManageEipModal clientId={client.id} employee={emp as any} eipCatalog={eipCatalog} />
-                              <RecordMedicalExamModal employee={emp} />
+                              {userRole !== 'IGIENA' && <ManageEipModal clientId={client.id} employee={emp as any} eipCatalog={eipCatalog} />}
+                              {userRole !== 'IGIENA' && <RecordMedicalExamModal employee={emp} />}
                               <ManageHygieneModulesModal employee={emp as any} />
-                              <EditEmployeeModal employeeId={emp.id} employeeName={`${emp.lastName} ${emp.firstName}`} jobs={client.jobs} worksites={client.worksites} isSsmRole={isSsmRole} />
-                              {!isSsmRole && <TerminateEmployeeModal employee={emp} />}
-                              {!isSsmRole && (
+                              <EditEmployeeModal employeeId={emp.id} employeeName={`${emp.lastName} ${emp.firstName}`} jobs={client.jobs} worksites={client.worksites} userRole={userRole} isSsmRole={isSsmRole} />
+                              {!isSsmRole && userRole !== 'IGIENA' && <TerminateEmployeeModal employee={emp} />}
+                              {!isSsmRole && userRole !== 'IGIENA' && (
                                 <>
                                   <Link
                                     href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-cerere-angajare`}
@@ -631,13 +632,15 @@ export default async function ClientDetailPage({
                               <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-1 rounded border border-rose-200">
                                 PLECAT: {formatRoDate(emp.leaveDate)}
                               </span>
-                              <EditEmployeeModal employeeId={emp.id} employeeName={`${emp.lastName} ${emp.firstName}`} jobs={client.jobs} worksites={client.worksites} isSsmRole={isSsmRole} />
-                              <span
-                                className="text-[11px] text-slate-400 bg-slate-100 px-2 py-1 rounded border border-slate-200 cursor-not-allowed"
-                                title="Generarea documentelor este interzisă pentru salariați plecați"
-                              >
-                                Generare Blocată
-                              </span>
+                              <EditEmployeeModal employeeId={emp.id} employeeName={`${emp.lastName} ${emp.firstName}`} jobs={client.jobs} worksites={client.worksites} userRole={userRole} isSsmRole={isSsmRole} />
+                              {!isSsmRole && userRole !== 'IGIENA' && (
+                                <span
+                                  className="text-[11px] text-slate-400 bg-slate-100 px-2 py-1 rounded border border-slate-200 cursor-not-allowed"
+                                  title="Generarea documentelor este interzisă pentru salariați plecați"
+                                >
+                                  Generare Blocată
+                                </span>
+                              )}
                             </>
                           )}
                         </div>

@@ -92,8 +92,8 @@ async function main() {
   assert(isRouteAllowedForRole('/hygiene', 'IGIENA'), 'IGIENA are acces la /hygiene');
   assert(isRouteAllowedForRole('/documents', 'IGIENA'), 'IGIENA are acces la /documents');
   assert(isRouteAllowedForRole('/settings', 'IGIENA'), 'IGIENA are acces la /settings');
-  assert(!isRouteAllowedForRole('/employees', 'IGIENA'), 'IGIENA NU are acces la /employees');
-  assert(!isRouteAllowedForRole('/clients', 'IGIENA'), 'IGIENA NU are acces la /clients');
+  assert(isRouteAllowedForRole('/employees', 'IGIENA'), 'IGIENA are acces la /employees');
+  assert(isRouteAllowedForRole('/clients', 'IGIENA'), 'IGIENA are acces la /clients');
   assert(!isRouteAllowedForRole('/imports/new', 'IGIENA'), 'IGIENA NU are acces la /imports/new');
   assert(!isRouteAllowedForRole('/risk-assessments', 'IGIENA'), 'IGIENA NU are acces la /risk-assessments');
   assert(!isRouteAllowedForRole('/trainings', 'IGIENA'), 'IGIENA NU are acces la /trainings');
@@ -159,6 +159,8 @@ async function main() {
   const igienaView = sanitizeEmployeeForRole(mockEmployee, 'IGIENA');
   assert(igienaView.grossSalary === null, 'IGIENA: Salariul este ascuns');
   assert(igienaView.cimNumber === null, 'IGIENA: CIM este ascuns');
+  assert(igienaView.cnp === '1850412123456', 'IGIENA: CNP este accesibil pentru adeverințe DSP');
+  assert(igienaView.identityDocument?.number === '123456', 'IGIENA: Actul de identitate este accesibil pentru diplome');
 
   console.log('\n====================================================');
   console.log(`🎯 REZULTAT FINAL: ${passedTests}/${totalTests} teste au trecut cu succes!`);

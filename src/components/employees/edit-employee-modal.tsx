@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Edit3, X, AlertCircle, RefreshCw, CheckCircle2, User, FileText, MapPin, Shield } from 'lucide-react';
+import { UserRole } from '@/lib/rbac';
 
 export interface EditEmployeeModalProps {
   employeeId: string;
@@ -14,6 +15,7 @@ export interface EditEmployeeModalProps {
   triggerIcon?: boolean;
   onSuccess?: () => void;
   isSsmRole?: boolean;
+  userRole?: UserRole;
 }
 
 type TabKey = 'identity' | 'contract' | 'address' | 'ssm';
@@ -28,8 +30,13 @@ export function EditEmployeeModal({
   triggerIcon = false,
   onSuccess,
   isSsmRole = false,
+  userRole,
 }: EditEmployeeModalProps) {
   const router = useRouter();
+  const effectiveRole = userRole || (isSsmRole ? 'SSM' : 'ADMIN');
+  const isSsm = effectiveRole === 'SSM';
+  const isIgiena = effectiveRole === 'IGIENA';
+  const hideCim = isSsm || isIgiena;
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -295,8 +302,8 @@ export function EditEmployeeModal({
             <div className="flex border-b border-slate-200 bg-slate-50 px-6 shrink-0">
               {[
                 { id: 'identity', label: '1. Identitate', icon: User },
-                { id: 'contract', label: isSsmRole ? '2. Încadrare & Post' : '2. CIM & Încadrare', icon: FileText },
-                { id: 'address', label: isSsmRole ? '3. Domiciliu & Traseu' : '3. CI & Domiciliu', icon: MapPin },
+                { id: 'contract', label: hideCim ? '2. Încadrare & Post' : '2. CIM & Încadrare', icon: FileText },
+                { id: 'address', label: isSsm ? '3. Domiciliu & Traseu' : '3. CI & Domiciliu', icon: MapPin },
                 { id: 'ssm', label: '4. SSM & EIP', icon: Shield },
               ].map((t) => {
                 const Icon = t.icon;
@@ -368,7 +375,7 @@ export function EditEmployeeModal({
                       </div>
                     </div>
 
-                    {isSsmRole ? (
+                    {isSsm ? (
                       <>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
@@ -596,7 +603,7 @@ export function EditEmployeeModal({
                       </div>
                     </div>
 
-                    {isSsmRole ? (
+                    {hideCim ? (
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">Data Angajării</label>
@@ -731,7 +738,7 @@ export function EditEmployeeModal({
                 {/* TAB 3: CI & Domiciliu / Domiciliu & Traseu */}
                 {activeTab === 'address' && (
                   <div className="space-y-4">
-                    {!isSsmRole && (
+                    {!isSsm && (
                       <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
                         <span className="text-xs font-bold text-slate-800">Act de Identitate</span>
                         <div className="grid grid-cols-3 gap-3">

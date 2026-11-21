@@ -235,8 +235,8 @@ function EmployeeRegistryInner({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <AddEmployeeModal clients={clients} isSsmRole={userRole === 'SSM'} />
-          {userRole !== 'SSM' && (
+          <AddEmployeeModal clients={clients} userRole={userRole} isSsmRole={userRole === 'SSM'} />
+          {(userRole === 'ADMIN' || userRole === 'HR') && (
             <Link
               href="/imports/new"
               className="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition"
@@ -577,39 +577,45 @@ function EmployeeRegistryInner({
                         <div className="flex items-center justify-end gap-1.5">
                           {emp.status === 'ACTIV' ? (
                             <>
-                              <RecordMedicalExamModal employee={emp} />
+                              {userRole !== 'IGIENA' && <RecordMedicalExamModal employee={emp} />}
                               <ManageHygieneModulesModal employee={emp as any} />
-                              <EditEmployeeModal employeeId={emp.id} employeeName={emp.fullName} isSsmRole={userRole === 'SSM'} />
-                              <TerminateEmployeeModal employee={emp} />
-                              <a
-                                href={`/api/clients/${emp.client.id}/packages/onboarding?employeeId=${emp.id}`}
-                                download
-                                className="inline-flex items-center gap-1 text-[11px] text-emerald-700 bg-emerald-50 hover:bg-emerald-100 font-semibold px-2 py-1.5 rounded border border-emerald-200 shadow-2xs transition"
-                                title="Descarcă dosarul complet de angajare (11 DOCX ZIP)"
-                              >
-                                <Download className="w-3 h-3 text-emerald-600" />
-                                Onboarding ZIP
-                              </a>
-                              <Link
-                                href={`/documents/generate?clientId=${emp.client.id}&employeeId=${emp.id}&templateCode=hr-cim-2026`}
-                                className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1.5 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
-                                title="Generează CIM individual"
-                              >
-                                CIM
-                              </Link>
+                              <EditEmployeeModal employeeId={emp.id} employeeName={emp.fullName} userRole={userRole} isSsmRole={userRole === 'SSM'} />
+                              {userRole !== 'IGIENA' && userRole !== 'SSM' && <TerminateEmployeeModal employee={emp} />}
+                              {userRole !== 'IGIENA' && userRole !== 'SSM' && (
+                                <>
+                                  <a
+                                    href={`/api/clients/${emp.client.id}/packages/onboarding?employeeId=${emp.id}`}
+                                    download
+                                    className="inline-flex items-center gap-1 text-[11px] text-emerald-700 bg-emerald-50 hover:bg-emerald-100 font-semibold px-2 py-1.5 rounded border border-emerald-200 shadow-2xs transition"
+                                    title="Descarcă dosarul complet de angajare (11 DOCX ZIP)"
+                                  >
+                                    <Download className="w-3 h-3 text-emerald-600" />
+                                    Onboarding ZIP
+                                  </a>
+                                  <Link
+                                    href={`/documents/generate?clientId=${emp.client.id}&employeeId=${emp.id}&templateCode=hr-cim-2026`}
+                                    className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1.5 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
+                                    title="Generează CIM individual"
+                                  >
+                                    CIM
+                                  </Link>
+                                </>
+                              )}
                             </>
                           ) : (
                             <>
                               <span className="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200">
                                 PLECAT: {formatRoDate(emp.leaveDate)}
                               </span>
-                              <EditEmployeeModal employeeId={emp.id} employeeName={emp.fullName} isSsmRole={userRole === 'SSM'} />
-                              <span
-                                className="inline-flex items-center gap-1 text-[11px] text-slate-400 bg-slate-100 font-medium px-2 py-1.5 rounded border border-slate-200 cursor-not-allowed"
-                                title="Generarea este blocată pentru salariați cu contract încetat"
-                              >
-                                Generare Blocată
-                              </span>
+                              <EditEmployeeModal employeeId={emp.id} employeeName={emp.fullName} userRole={userRole} isSsmRole={userRole === 'SSM'} />
+                              {userRole !== 'IGIENA' && userRole !== 'SSM' && (
+                                <span
+                                  className="inline-flex items-center gap-1 text-[11px] text-slate-400 bg-slate-100 font-medium px-2 py-1.5 rounded border border-slate-200 cursor-not-allowed"
+                                  title="Generarea este blocată pentru salariați cu contract încetat"
+                                >
+                                  Generare Blocată
+                                </span>
+                              )}
                             </>
                           )}
                         </div>

@@ -95,27 +95,23 @@ export function Navbar({ currentUser }: NavbarProps) {
 
           {/* Dynamic Navigation Links based on Role */}
           <nav className="hidden md:flex space-x-1 text-sm font-medium">
-            {/* Rute pentru ADMIN & SSM & HR */}
-            {(role === 'ADMIN' || role === 'SSM' || role === 'HR') && (
-              <>
-                <Link
-                  href="/clients"
-                  className={`px-3 py-2 rounded-md transition ${
-                    pathname.startsWith('/clients') ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                  }`}
-                >
-                  Clienți
-                </Link>
-                <Link
-                  href="/employees"
-                  className={`px-3 py-2 rounded-md transition ${
-                    pathname.startsWith('/employees') ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                  }`}
-                >
-                  {role === 'SSM' ? 'Angajați (SSM)' : role === 'HR' ? 'Angajați (HR)' : 'Angajați'}
-                </Link>
-              </>
-            )}
+            {/* Rute pentru ADMIN, SSM, HR & IGIENA */}
+            <Link
+              href="/clients"
+              className={`px-3 py-2 rounded-md transition ${
+                pathname.startsWith('/clients') ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+              }`}
+            >
+              Clienți
+            </Link>
+            <Link
+              href="/employees"
+              className={`px-3 py-2 rounded-md transition ${
+                pathname.startsWith('/employees') ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+              }`}
+            >
+              {role === 'SSM' ? 'Angajați (SSM)' : role === 'HR' ? 'Angajați (HR)' : role === 'IGIENA' ? 'Angajați (Igienă)' : 'Angajați'}
+            </Link>
 
             {/* Rute specifice SSM & ADMIN */}
             {(role === 'ADMIN' || role === 'SSM') && (

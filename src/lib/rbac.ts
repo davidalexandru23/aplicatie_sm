@@ -46,7 +46,7 @@ export const ROLE_CONFIG: Record<UserRole, RoleMeta> = {
     color: 'text-emerald-800',
     bgColor: 'bg-emerald-100',
     borderColor: 'border-emerald-300',
-    description: 'Acces dedicat cursurilor de igienă, sesiunilor, adeverințelor DSP și avizelor.',
+    description: 'Acces dedicat cursurilor de igienă, sesiunilor, adeverințelor DSP și registrului de salariați.',
   },
 };
 
@@ -76,6 +76,8 @@ export const ROLE_ALLOWED_PREFIXES: Record<UserRole, string[]> = {
   ],
   IGIENA: [
     '/hygiene',
+    '/employees',
+    '/clients',
     '/settings',
     '/documents',
   ],
@@ -99,10 +101,10 @@ export function isRouteAllowedForRole(pathname: string, role: UserRole): boolean
 
   // Reguli specifice IGIENA
   if (role === 'IGIENA') {
-    if (pathname.startsWith('/hygiene')) return true;
-    if (pathname.startsWith('/api/hygiene')) return true;
-    if (pathname === '/settings') return true;
-    if (pathname.startsWith('/api/settings')) return true;
+    if (pathname.startsWith('/hygiene') || pathname.startsWith('/api/hygiene')) return true;
+    if (pathname.startsWith('/employees') || pathname.startsWith('/api/employees')) return true;
+    if (pathname.startsWith('/clients') || pathname.startsWith('/api/clients')) return true;
+    if (pathname === '/settings' || pathname.startsWith('/api/settings')) return true;
     if (pathname.startsWith('/documents') || pathname.startsWith('/api/documents')) return true;
     return false;
   }

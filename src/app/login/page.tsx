@@ -58,7 +58,7 @@ const ROLES: RoleCard[] = [
     title: 'Formator Igienă',
     badge: 'Igienă',
     subtitle: 'Cursuri, sesiuni examen DSP & adeverințe',
-    desc: 'Evidență sesiuni de instruire, cataloage examen, emitere adeverințe DSP (numere anuale & BIS) și predare diplome.',
+    desc: 'Evidență sesiuni de instruire, cataloage examen, registru salariați, emitere adeverințe DSP (numere anuale & BIS) și predare diplome.',
     icon: Award,
     badgeColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
   },
