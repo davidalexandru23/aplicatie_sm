@@ -471,25 +471,19 @@ function EmployeeRegistryInner({
                         <div className="font-bold text-slate-900">
                           {emp.lastName} {emp.firstName}
                         </div>
-                        <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
-                          {userRole === 'SSM' ? (
-                            <span className="text-[10px] text-slate-400 italic bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
-                              Date protejate (SSM)
-                            </span>
-                          ) : (
-                            <>
-                              <span className="font-mono">{emp.cnp || '—'}</span>
-                              {emp.identityDocument && (
-                                <>
-                                  <span>•</span>
-                                  <span>
-                                    {emp.identityDocument.docType} {emp.identityDocument.series || ''} {emp.identityDocument.number}
-                                  </span>
-                                </>
-                              )}
-                            </>
-                          )}
-                        </div>
+                        {userRole !== 'SSM' && (
+                          <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+                            <span className="font-mono">{emp.cnp || '—'}</span>
+                            {emp.identityDocument && (
+                              <>
+                                <span>•</span>
+                                <span>
+                                  {emp.identityDocument.docType} {emp.identityDocument.series || ''} {emp.identityDocument.number}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        )}
                         <div className="mt-1">
                           <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
                             emp.status === 'ACTIV'

@@ -40,7 +40,7 @@ const ROLES: RoleCard[] = [
     title: 'Specialist SSM',
     badge: 'SSM',
     subtitle: 'Protecția muncii, riscuri & instruiri',
-    desc: 'Gestionare evaluări de risc, instruiri periodice, mărimi EIP și decizii SSM. Fără acces la date salariale sau CNP.',
+    desc: 'Gestionare evaluări de risc profesional, instruiri periodice SSM/PSI, mărimi echipamente EIP și decizii interne.',
     icon: ShieldCheck,
     badgeColor: 'bg-blue-50 text-blue-800 border-blue-200',
   },
