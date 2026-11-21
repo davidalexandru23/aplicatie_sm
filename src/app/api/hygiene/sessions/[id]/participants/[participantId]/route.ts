@@ -59,6 +59,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       certificateSeries,
       certificateNumber,
       certificateDate,
+      diplomaDelivered,
+      diplomaDeliveredDate,
     } = body;
 
     // Validare prezență
@@ -102,6 +104,23 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       ? (certificateDate ? new Date(certificateDate) : null)
       : participant.certificateDate;
 
+    let effectiveDiplomaDelivered = participant.diplomaDelivered;
+    let effectiveDiplomaDeliveredDate = participant.diplomaDeliveredDate;
+
+    if (diplomaDelivered !== undefined) {
+      effectiveDiplomaDelivered = Boolean(diplomaDelivered);
+      if (effectiveDiplomaDelivered) {
+        effectiveDiplomaDeliveredDate = diplomaDeliveredDate
+          ? new Date(diplomaDeliveredDate)
+          : (participant.diplomaDeliveredDate || new Date());
+      } else {
+        effectiveDiplomaDeliveredDate = null;
+      }
+    } else if (diplomaDeliveredDate !== undefined) {
+      effectiveDiplomaDeliveredDate = diplomaDeliveredDate ? new Date(diplomaDeliveredDate) : null;
+      effectiveDiplomaDelivered = Boolean(effectiveDiplomaDeliveredDate);
+    }
+
     if (effectiveAttendance === 'absent') {
       // Un cursant absent nu poate avea notă de trecere și este respins automat; certificatele sunt anulate
       effectiveGrade = null;
@@ -109,11 +128,15 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       effectiveSeries = null;
       effectiveNumber = null;
       effectiveDate = null;
+      effectiveDiplomaDelivered = false;
+      effectiveDiplomaDeliveredDate = null;
     } else if (effectiveResult === 'respins') {
       // Un cursant respins nu primește certificat
       effectiveSeries = null;
       effectiveNumber = null;
       effectiveDate = null;
+      effectiveDiplomaDelivered = false;
+      effectiveDiplomaDeliveredDate = null;
     }
 
     // Actualizare participant
@@ -126,6 +149,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         certificateSeries: effectiveSeries,
         certificateNumber: effectiveNumber,
         certificateDate: effectiveDate,
+        diplomaDelivered: effectiveDiplomaDelivered,
+        diplomaDeliveredDate: effectiveDiplomaDeliveredDate,
       },
       include: {
         session: true,

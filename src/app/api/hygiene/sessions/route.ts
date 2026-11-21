@@ -48,6 +48,8 @@ export async function GET(request?: NextRequest) {
           certificateSeries: true,
           certificateNumber: true,
           certificateDate: true,
+          diplomaDelivered: true,
+          diplomaDeliveredDate: true,
           employeeId: true,
           employee: {
             select: {

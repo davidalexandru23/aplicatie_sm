@@ -536,6 +536,8 @@ model HygieneParticipant {
   certificateSeries String?
   certificateNumber String?
   certificateDate   DateTime?
+  diplomaDelivered  Boolean         @default(false) // Bifat dacă diploma DSP a fost predată angajatului
+  diplomaDeliveredDate DateTime?   // Data la care a fost înmânată/predată diploma angajatului
 
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt

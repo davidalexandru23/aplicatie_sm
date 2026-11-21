@@ -25,6 +25,8 @@ import {
   Hash,
   History,
   Building2,
+  CheckSquare,
+  Square,
 } from 'lucide-react';
 
 interface Participant {
@@ -40,6 +42,8 @@ interface Participant {
   certificateSeries?: string;
   certificateNumber?: string;
   certificateDate?: string;
+  diplomaDelivered?: boolean;
+  diplomaDeliveredDate?: string | null;
   employeeId?: string;
   employee?: {
     clientId: string;
@@ -170,12 +174,16 @@ export default function HygienePage() {
     examResult: string;
     certificateNumber: string;
     certificateDate: string;
+    diplomaDelivered: boolean;
+    diplomaDeliveredDate: string;
   }>({
     attendance: 'prezent',
     examGrade: '',
     examResult: 'admis',
     certificateNumber: '',
     certificateDate: '',
+    diplomaDelivered: false,
+    diplomaDeliveredDate: '',
   });
   const [isBisMode, setIsBisMode] = useState(false);
   const [usedNumbersInYear, setUsedNumbersInYear] = useState<string[]>([]);
@@ -356,6 +364,10 @@ export default function HygienePage() {
       examResult: participant.examResult || 'admis',
       certificateNumber: participant.certificateNumber || '',
       certificateDate: initialDate,
+      diplomaDelivered: Boolean(participant.diplomaDelivered),
+      diplomaDeliveredDate: participant.diplomaDeliveredDate
+        ? new Date(participant.diplomaDeliveredDate).toISOString().slice(0, 10)
+        : (participant.diplomaDelivered ? new Date().toISOString().slice(0, 10) : ''),
     });
 
     // Fetch numbering info for that year
@@ -389,6 +401,8 @@ export default function HygienePage() {
         certificateSeries: null;
         certificateNumber: string | null;
         certificateDate: string | null;
+        diplomaDelivered: boolean;
+        diplomaDeliveredDate: string | null;
       } = {
         attendance: editFormData.attendance,
         examResult: editFormData.examResult,
@@ -396,6 +410,8 @@ export default function HygienePage() {
         certificateSeries: null, // Serie DSP complet eliminată
         certificateNumber: null,
         certificateDate: null,
+        diplomaDelivered: editFormData.diplomaDelivered,
+        diplomaDeliveredDate: editFormData.diplomaDelivered && editFormData.diplomaDeliveredDate ? editFormData.diplomaDeliveredDate : null,
       };
 
       if (editFormData.examGrade !== '') {
@@ -434,6 +450,34 @@ export default function HygienePage() {
       setEditError(err instanceof Error ? err.message : 'Eroare la salvare.');
     } finally {
       setEditLoading(false);
+    }
+  };
+
+  const handleToggleDiploma = async (sessionId: string, participant: Participant) => {
+    const nextDelivered = !participant.diplomaDelivered;
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const nextDate = nextDelivered ? todayStr : null;
+
+    setActionLoading(`diploma_${participant.id}`);
+    try {
+      const res = await fetch(`/api/hygiene/sessions/${sessionId}/participants/${participant.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          diplomaDelivered: nextDelivered,
+          diplomaDeliveredDate: nextDate,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        setError(err.error || 'Eroare la actualizarea predării diplomei.');
+        return;
+      }
+      await fetchSessions();
+    } catch {
+      setError('Eroare la actualizarea predării diplomei.');
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -1133,9 +1177,17 @@ export default function HygienePage() {
                                   </td>
                                   <td className="px-3 py-2">
                                     {p.certificateNumber ? (
-                                      <span className={`font-mono text-xs px-2 py-0.5 rounded font-bold ${isBisNumber ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-slate-100 text-slate-800'}`}>
-                                        Nr. {p.certificateNumber}
-                                      </span>
+                                      <div>
+                                        <span className={`font-mono text-xs px-2 py-0.5 rounded font-bold ${isBisNumber ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-slate-100 text-slate-800'}`}>
+                                          Nr. {p.certificateNumber}
+                                        </span>
+                                        {p.diplomaDelivered && (
+                                          <div className="text-[10px] text-emerald-700 font-medium flex items-center gap-1 mt-0.5">
+                                            <CheckCircle2 className="w-3 h-3 text-emerald-600 inline shrink-0" />
+                                            <span>Predată: {p.diplomaDeliveredDate ? new Date(p.diplomaDeliveredDate).toLocaleDateString('ro-RO') : 'Azi'}</span>
+                                          </div>
+                                        )}
+                                      </div>
                                     ) : (
                                       <span className="text-slate-400">—</span>
                                     )}
@@ -1143,13 +1195,48 @@ export default function HygienePage() {
                                   <td className="px-3 py-2 text-right space-x-1.5 whitespace-nowrap">
                                     <button
                                       type="button"
-                                      title="Editează note, prezență sau adeverință BIS"
+                                      title="Editează note, prezență, adeverință BIS sau data predării diplomei"
                                       onClick={() => openEditParticipant(session, p)}
                                       className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded transition"
                                     >
                                       <Edit className="w-3 h-3 text-blue-600" />
                                       Editează
                                     </button>
+
+                                    {/* Checkmark în stânga la adeverință pentru diplomă DSP */}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleToggleDiploma(session.id, p)}
+                                      disabled={p.attendance === 'absent' || p.examResult.toLowerCase() === 'respins' || actionLoading === `diploma_${p.id}`}
+                                      title={
+                                        p.attendance === 'absent' || p.examResult.toLowerCase() === 'respins'
+                                          ? 'Cursantul nu este admis'
+                                          : p.diplomaDelivered
+                                          ? `Diplomă DSP predată la data de ${p.diplomaDeliveredDate ? new Date(p.diplomaDeliveredDate).toLocaleDateString('ro-RO') : '—'}. Apasă pentru debifare sau folosește butonul Editează pentru a schimba data.`
+                                          : 'Bifează dacă ai predat diploma DSP către angajat (se va seta automat data de azi)'
+                                      }
+                                      className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded border transition disabled:opacity-40 disabled:cursor-not-allowed ${
+                                        p.diplomaDelivered
+                                          ? 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200'
+                                          : 'bg-white text-slate-600 border-slate-300 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300'
+                                      }`}
+                                    >
+                                      {actionLoading === `diploma_${p.id}` ? (
+                                        <RefreshCw className="w-3 h-3 animate-spin text-emerald-600" />
+                                      ) : p.diplomaDelivered ? (
+                                        <CheckSquare className="w-3 h-3 text-emerald-600" />
+                                      ) : (
+                                        <Square className="w-3 h-3 text-slate-400" />
+                                      )}
+                                      <span>
+                                        {p.diplomaDelivered ? (
+                                          <>Diplomă predată {p.diplomaDeliveredDate ? `(${new Date(p.diplomaDeliveredDate).toLocaleDateString('ro-RO')})` : ''}</>
+                                        ) : (
+                                          <>Predă diplomă</>
+                                        )}
+                                      </span>
+                                    </button>
+
                                     <button
                                       type="button"
                                       title="Descarcă adeverință individuală fără serie DSP"
@@ -1421,6 +1508,58 @@ export default function HygienePage() {
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* Predare Diplomă DSP către Angajat */}
+              <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-lg space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-emerald-950">
+                    <input
+                      type="checkbox"
+                      checked={editFormData.diplomaDelivered}
+                      disabled={editFormData.attendance === 'absent' || editFormData.examResult.toLowerCase() === 'respins'}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setEditFormData((prev) => ({
+                          ...prev,
+                          diplomaDelivered: checked,
+                          diplomaDeliveredDate: checked
+                            ? (prev.diplomaDeliveredDate || new Date().toISOString().slice(0, 10))
+                            : '',
+                        }));
+                      }}
+                      className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
+                    />
+                    <span>Diplomă DSP Predată către Angajat</span>
+                  </label>
+                  {editFormData.diplomaDelivered && (
+                    <span className="text-[10px] font-semibold text-emerald-800 bg-white px-2 py-0.5 rounded border border-emerald-300">
+                      Diplomă Înregistrată ca Predată
+                    </span>
+                  )}
+                </div>
+
+                {editFormData.diplomaDelivered && (
+                  <div className="pt-2 border-t border-emerald-200/60">
+                    <label className="block text-[11px] font-semibold text-emerald-900 mb-1">
+                      Data predării diplomei DSP către angajat:
+                    </label>
+                    <input
+                      type="date"
+                      value={editFormData.diplomaDeliveredDate}
+                      onChange={(e) =>
+                        setEditFormData((prev) => ({
+                          ...prev,
+                          diplomaDeliveredDate: e.target.value,
+                        }))
+                      }
+                      className="w-full text-xs border border-emerald-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none font-medium"
+                    />
+                    <span className="text-[10px] text-emerald-700 block mt-1">
+                      Puteți schimba data oricând pentru a consemna ziua exactă la care cursantul a primit diploma.
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
