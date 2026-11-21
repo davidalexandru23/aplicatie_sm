@@ -955,7 +955,7 @@ export default function SettingsProviderPage() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Medic Igienist / CLM Coordonator Curs
+                  Medic Igienist / Formator Coordonator Curs
                 </label>
                 <input
                   type="text"

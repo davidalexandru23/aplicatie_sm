@@ -110,7 +110,7 @@ export function Navbar({ currentUser }: NavbarProps) {
                 pathname.startsWith('/employees') ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
               }`}
             >
-              {role === 'SSM' ? 'Angajați (SSM)' : role === 'HR' ? 'Angajați (HR)' : role === 'IGIENA' ? 'Angajați (CLM)' : 'Angajați'}
+              {role === 'SSM' ? 'Angajați (SSM)' : role === 'HR' ? 'Angajați (HR)' : role === 'IGIENA' ? 'Angajați (Igienă)' : 'Angajați'}
             </Link>
 
             {/* Rute specifice SSM & ADMIN */}
@@ -144,7 +144,7 @@ export function Navbar({ currentUser }: NavbarProps) {
                 }`}
               >
                 <Award className="w-3.5 h-3.5" />
-                <span>Cursuri & Adeverințe CLM</span>
+                <span>Cursuri Igienă</span>
               </Link>
             )}
 

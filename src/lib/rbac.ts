@@ -41,12 +41,12 @@ export const ROLE_CONFIG: Record<UserRole, RoleMeta> = {
   },
   IGIENA: {
     role: 'IGIENA',
-    label: 'CLM',
-    badge: 'CLM',
+    label: 'Inspector Igienă',
+    badge: 'Igienă',
     color: 'text-emerald-800',
     bgColor: 'bg-emerald-100',
     borderColor: 'border-emerald-300',
-    description: 'Acces dedicat CLM: cursuri, sesiuni, adeverințe DSP și registrul de salariați.',
+    description: 'Acces dedicat cursurilor de igienă, sesiunilor, adeverințelor DSP și registrului de salariați.',
   },
 };
 

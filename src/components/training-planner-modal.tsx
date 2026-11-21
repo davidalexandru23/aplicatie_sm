@@ -184,7 +184,7 @@ export function TrainingPlannerModal({
     }
 
     if (!instructorName.trim()) {
-      setErrorMessage('Numele instructorului este obligatoriu.');
+      setErrorMessage('Numele CLM este obligatoriu.');
       setIsSubmitting(false);
       return;
     }
@@ -421,12 +421,12 @@ export function TrainingPlannerModal({
                   </div>
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                      Instructor / CLM *
+                      CLM *
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="Nume instructor / CLM..."
+                      placeholder="Nume CLM..."
                       value={instructorName}
                       onChange={(e) => setInstructorName(e.target.value)}
                       className="w-full text-xs px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
