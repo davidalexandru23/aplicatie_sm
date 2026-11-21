@@ -46,7 +46,7 @@ interface EmployeeOption {
   id: string;
   firstName: string;
   lastName: string;
-  cnp: string;
+  cnp: string | null;
   status?: string;
   medicalFitnessVerdict?: string | null;
   currentJobId?: string | null;

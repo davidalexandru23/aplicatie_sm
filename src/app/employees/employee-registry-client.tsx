@@ -34,6 +34,7 @@ import {
   RecordMedicalExamModal,
   EditEmployeeModal,
   TerminateEmployeeModal,
+  ManageHygieneModulesModal,
 } from '@/components/employees';
 
 export interface EmployeeWithCompliance {
@@ -41,7 +42,7 @@ export interface EmployeeWithCompliance {
   firstName: string;
   lastName: string;
   fullName: string;
-  cnp: string;
+  cnp: string | null;
   status: string; // ACTIV / PLECAT
   hireDate: string | null;
   leaveDate?: string | null;
@@ -52,7 +53,7 @@ export interface EmployeeWithCompliance {
   client: { id: string; name: string };
   currentJob: { id: string; title: string } | null;
   currentWorksite: { id: string; name: string } | null;
-  identityDocument: { docType: string; series: string | null; number: string } | null;
+  identityDocument: { docType: string; series: string | null; number: string | null } | null;
   compliance: EmployeeComplianceSummary;
 }
 
@@ -569,6 +570,7 @@ function EmployeeRegistryInner({
                           {emp.status === 'ACTIV' ? (
                             <>
                               <RecordMedicalExamModal employee={emp} />
+                              <ManageHygieneModulesModal employee={emp as any} />
                               <EditEmployeeModal employeeId={emp.id} employeeName={emp.fullName} />
                               <TerminateEmployeeModal employee={emp} />
                               <a

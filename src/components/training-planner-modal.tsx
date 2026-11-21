@@ -23,7 +23,7 @@ export interface TrainingPlannerEmployee {
   id: string;
   firstName: string;
   lastName: string;
-  cnp: string;
+  cnp: string | null;
   status: string;
   currentJob?: { title: string } | null;
   ssmLastTrainingDate?: Date | string | null;

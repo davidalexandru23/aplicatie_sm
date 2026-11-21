@@ -33,7 +33,7 @@ interface Participant {
   id: string;
   firstName: string;
   lastName: string;
-  cnp: string;
+  cnp: string | null;
   clientName: string;
   jobTitle?: string;
   attendance: string;
@@ -42,6 +42,7 @@ interface Participant {
   certificateSeries?: string;
   certificateNumber?: string;
   certificateDate?: string;
+  hygieneModule?: string | null;
   diplomaDelivered?: boolean;
   diplomaDeliveredDate?: string | null;
   employeeId?: string;
@@ -69,6 +70,7 @@ interface HygieneSession {
   commissionMember2?: string;
   commissionSecretary?: string;
   pvSeriesNumber?: string;
+  hygieneModule?: string | null;
   status: string;
   participants: Participant[];
 }
@@ -83,7 +85,7 @@ interface PortfolioEmployee {
   id: string;
   firstName: string;
   lastName: string;
-  cnp: string;
+  cnp: string | null;
   clientId: string;
   client?: {
     id: string;
@@ -174,6 +176,7 @@ export default function HygienePage() {
     examResult: string;
     certificateNumber: string;
     certificateDate: string;
+    hygieneModule: string;
     diplomaDelivered: boolean;
     diplomaDeliveredDate: string;
   }>({
@@ -182,6 +185,7 @@ export default function HygienePage() {
     examResult: 'admis',
     certificateNumber: '',
     certificateDate: '',
+    hygieneModule: 'Modulul 1 - Servicii de alimentație publică și colectivă',
     diplomaDelivered: false,
     diplomaDeliveredDate: '',
   });
@@ -407,6 +411,7 @@ export default function HygienePage() {
       examResult: participant.examResult || 'admis',
       certificateNumber: participant.certificateNumber || '',
       certificateDate: initialDate,
+      hygieneModule: participant.hygieneModule || session.hygieneModule || 'Modulul 1 - Servicii de alimentație publică și colectivă',
       diplomaDelivered: Boolean(participant.diplomaDelivered),
       diplomaDeliveredDate: participant.diplomaDeliveredDate
         ? new Date(participant.diplomaDeliveredDate).toISOString().slice(0, 10)
@@ -432,6 +437,7 @@ export default function HygienePage() {
         certificateSeries: null;
         certificateNumber: string | null;
         certificateDate: string | null;
+        hygieneModule: string | null;
         diplomaDelivered: boolean;
         diplomaDeliveredDate: string | null;
       } = {
@@ -441,6 +447,7 @@ export default function HygienePage() {
         certificateSeries: null, // Serie DSP complet eliminată
         certificateNumber: null,
         certificateDate: null,
+        hygieneModule: editFormData.hygieneModule ? editFormData.hygieneModule.trim() : null,
         diplomaDelivered: editFormData.diplomaDelivered,
         diplomaDeliveredDate: editFormData.diplomaDelivered && editFormData.diplomaDeliveredDate ? editFormData.diplomaDeliveredDate : null,
       };
@@ -607,6 +614,7 @@ export default function HygienePage() {
         commissionMember2: (fd.get('commissionMember2') as string) || providerDefaults.commissionMember2 || undefined,
         commissionSecretary: (fd.get('commissionSecretary') as string) || providerDefaults.commissionSecretary || undefined,
         pvSeriesNumber: (fd.get('pvSeriesNumber') as string) || undefined,
+        hygieneModule: (fd.get('hygieneModule') as string) || undefined,
         employeeIds: createSelectedEmpIds,
       };
 
@@ -728,7 +736,7 @@ export default function HygienePage() {
           </div>
 
           {/* Date generale sesiune (pre-populate din Setări SEPP) */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
             <div>
               <label className="block text-[11px] font-bold text-slate-700 mb-1">Data Cursului *</label>
               <input type="date" name="sessionDate" required className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
@@ -736,6 +744,20 @@ export default function HygienePage() {
             <div>
               <label className="block text-[11px] font-bold text-slate-700 mb-1">Data Examenului DSP *</label>
               <input type="date" name="examDate" required className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">Modul Curs Igienă (3 ani) *</label>
+              <select
+                name="hygieneModule"
+                defaultValue="Modulul 1 - Servicii de alimentație publică și colectivă"
+                className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none font-medium"
+              >
+                <option value="Modulul 1 - Servicii de alimentație publică și colectivă">Modulul 1 - Alimentație Publică & Colectivă</option>
+                <option value="Modulul 2 - Servicii de curățenie în unități sanitare, colectivități copii, cazare">Modulul 2 - Curățenie (Sanitar, Cazare, Copii)</option>
+                <option value="Modulul 3 - Producția și distribuția apei potabile și a apei de îmbăiere">Modulul 3 - Apă Potabilă & Bazine Îmbăiere</option>
+                <option value="Modulul 4 - Servicii de îngrijire corporală (cosmetică, frizerie, coafură etc.)">Modulul 4 - Îngrijire Corporală (Coafură, Frizerie)</option>
+                <option value="Modulul 5 - Servicii de dezinfecție, dezinsecție și deratizare (DDD)">Modulul 5 - Servicii DDD (Deratizare, Dezinfecție)</option>
+              </select>
             </div>
             <div>
               <label className="block text-[11px] font-bold text-slate-700 mb-1">Locație Sală Examen</label>
@@ -1093,6 +1115,11 @@ export default function HygienePage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <h2 className="text-sm font-bold text-slate-900">{session.providerName}</h2>
+                        {session.hygieneModule && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            {session.hygieneModule}
+                          </span>
+                        )}
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase ${STATUS_COLORS[session.status] || 'bg-slate-50 text-slate-600 border-slate-200'}`}>
                           {STATUS_LABELS[session.status] || session.status}
                         </span>
@@ -1460,6 +1487,23 @@ export default function HygienePage() {
                     }}
                     className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400"
                   />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                    Modul Curs Igienă (Valabilitate: 3 ani / 36 luni per Ordin 2209/2022)
+                  </label>
+                  <select
+                    value={editFormData.hygieneModule}
+                    onChange={(e) => setEditFormData((prev) => ({ ...prev, hygieneModule: e.target.value }))}
+                    className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  >
+                    <option value="Modulul 1 - Servicii de alimentație publică și colectivă">Modulul 1 - Alimentație Publică & Colectivități (Producție, Vânzare)</option>
+                    <option value="Modulul 2 - Servicii de curățenie în unități sanitare, colectivități copii, cazare">Modulul 2 - Curățenie (Sanitar, Cazare, Copii)</option>
+                    <option value="Modulul 3 - Producția și distribuția apei potabile și a apei de îmbăiere">Modulul 3 - Apă Potabilă & Bazine Îmbăiere</option>
+                    <option value="Modulul 4 - Servicii de îngrijire corporală (cosmetică, frizerie, coafură etc.)">Modulul 4 - Îngrijire Corporală (Coafură, Frizerie, Cosmetică)</option>
+                    <option value="Modulul 5 - Servicii de dezinfecție, dezinsecție și deratizare (DDD)">Modulul 5 - Servicii DDD (Deratizare, Dezinfecție)</option>
+                  </select>
                 </div>
               </div>
 

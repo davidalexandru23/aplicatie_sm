@@ -128,12 +128,18 @@ export function ComplianceItemBadge({
 
   const isSmall = size === 'sm';
 
+  // Subtext opțional cu data scadenței și numărul de module
+  const hasMultipleModules = Boolean(item?.modules && item.modules.length > 1);
+  const subtextContent = hasMultipleModules
+    ? `${item!.modules!.length} module • ${dueDate ? formatRoDate(dueDate) : 'Fără dată'}`
+    : dueDate ? `Scadent: ${formatRoDate(dueDate)}` : 'Fără dată';
+
   return (
     <div className={`inline-flex flex-col items-start ${className}`}>
       {/* Container cu tooltip CSS hover fără JavaScript pe client */}
       <div 
         className="group relative inline-flex items-center"
-        title={tooltipText}
+        title={hasMultipleModules ? undefined : tooltipText}
       >
         <span
           className={`inline-flex items-center gap-1 rounded border transition-colors cursor-help select-none ${
@@ -142,22 +148,60 @@ export function ComplianceItemBadge({
         >
           {showIcon && <Icon className={isSmall ? 'w-3 h-3 flex-shrink-0' : 'w-3.5 h-3.5 flex-shrink-0'} />}
           <span>{badgeText}</span>
+          {hasMultipleModules && (
+            <span className="ml-0.5 px-1 py-0.2 bg-black/10 rounded-full text-[9px] font-bold">
+              {item!.modules!.length}
+            </span>
+          )}
         </span>
 
         {/* Pure CSS Tooltip (SSR friendly, zero bundle JS) */}
         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:block z-30 pointer-events-none">
-          <div className="bg-slate-900 text-white text-[11px] rounded px-2.5 py-1.5 shadow-lg whitespace-nowrap max-w-xs leading-tight">
-            <div className="font-semibold">{label}</div>
-            <div className="text-slate-300 mt-0.5">{tooltipText.replace(`${label}: `, '')}</div>
+          <div className="bg-slate-900 text-white text-[11px] rounded px-3 py-2 shadow-xl whitespace-normal min-w-[220px] max-w-sm leading-tight border border-slate-700">
+            {item?.modules && item.modules.length > 0 ? (
+              <div>
+                <div className="font-semibold flex items-center justify-between gap-2 border-b border-slate-700 pb-1 mb-1.5">
+                  <span className="text-white">{label}</span>
+                  <span className="text-[10px] text-slate-400 font-normal">Valabilitate: 3 ani (36 luni)</span>
+                </div>
+                <div className="space-y-1.5 mt-1">
+                  {item.modules.map((m, idx) => (
+                    <div key={idx} className="flex items-start gap-1.5 text-[10px]">
+                      <span className={m.status === 'VALID' ? 'text-emerald-400 font-bold' : m.status === 'UPCOMING' ? 'text-amber-400 font-bold' : 'text-rose-400 font-bold'}>
+                        {m.status === 'VALID' ? '✓' : m.status === 'UPCOMING' ? '⏱' : '✕'}
+                      </span>
+                      <div className="flex-1">
+                        <div className="font-medium text-slate-100">{m.moduleName}</div>
+                        <div className="text-slate-300 text-[10px]">
+                          {m.examDate ? `Examen: ${formatRoDate(m.examDate)}` : 'Fără examen'}
+                          {m.dueDate ? ` → ${m.status === 'OVERDUE' ? 'Expirat la' : 'Scadent'}: ${formatRoDate(m.dueDate)}` : ''}
+                          {m.daysRemaining !== null ? ` (${m.daysRemaining < 0 ? `expirat de ${Math.abs(m.daysRemaining)}z` : `${m.daysRemaining}z rămase`})` : ''}
+                        </div>
+                        {m.certificateNumber && (
+                          <div className="text-slate-400 text-[9px]">
+                            Adeverință / Certificat DSP: #{m.certificateNumber}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="font-semibold">{label}</div>
+                <div className="text-slate-300 mt-0.5">{tooltipText.replace(`${label}: `, '')}</div>
+              </div>
+            )}
           </div>
-          <div className="w-2 h-2 bg-slate-900 rotate-45 mx-auto -mt-1" />
+          <div className="w-2 h-2 bg-slate-900 rotate-45 mx-auto -mt-1 border-r border-b border-slate-700" />
         </div>
       </div>
 
       {/* Subtext opțional cu data scadenței */}
       {showSubtext && (
-        <span className="text-[10px] text-slate-500 mt-0.5 block truncate max-w-[120px]">
-          {dueDate ? `Scadent: ${formatRoDate(dueDate)}` : 'Fără dată'}
+        <span className="text-[10px] text-slate-500 mt-0.5 block truncate max-w-[150px]">
+          {subtextContent}
         </span>
       )}
     </div>

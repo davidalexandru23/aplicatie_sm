@@ -220,7 +220,7 @@ model Employee {
   firstName       String   // Prenume
   lastName        String   // Nume
   sex             String?  // F / M / Altă mențiune
-  cnp             String   // Mascat în interfață, protejat
+  cnp             String?  // Opțional
   birthDate       DateTime?
   birthPlace      String?  // Localitate naștere
   birthCounty     String?  // Județ / sector naștere
@@ -310,6 +310,7 @@ model Employee {
   employmentHistory  EmploymentHistory[]
   trainingParticipants TrainingParticipant[]
   hygieneParticipants  HygieneParticipant[]
+  hygieneModules       EmployeeHygieneModule[]
   generatedDocuments   GeneratedDocument[]
   eipAssignments       EmployeeEipAssignment[]
 
@@ -323,7 +324,7 @@ model IdentityDocument {
   employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   docType     String    @default("CI") // CI / CEI / Pașaport / Alt act
   series      String?
-  number      String
+  number      String?
   issuedBy    String?
   issueDate   DateTime?
   expiryDate  DateTime?
@@ -503,6 +504,7 @@ model HygieneSession {
   commissionMember2   String?
   commissionSecretary String?
   pvSeriesNumber      String?  // Serie și număr proces-verbal examen
+  hygieneModule       String?  // Modulul cursului de igienă (ex: "Modulul 1 - Sector Alimentar")
   status              String   @default("programata") // programata, in_desfasurare, finalizata, certificate_emise
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
@@ -523,7 +525,7 @@ model HygieneParticipant {
   clientName        String          // Angajator
   lastName          String
   firstName         String
-  cnp               String
+  cnp               String?
   birthDate         DateTime?
   birthPlace        String?
   docType           String?         @default("CI")
@@ -536,6 +538,7 @@ model HygieneParticipant {
   certificateSeries String?
   certificateNumber String?
   certificateDate   DateTime?
+  hygieneModule     String?         // Modul urmat în sesiune (ex: "Modulul 1", "Modulul 2")
   diplomaDelivered  Boolean         @default(false) // Bifat dacă diploma DSP a fost predată angajatului
   diplomaDeliveredDate DateTime?   // Data la care a fost înmânată/predată diploma angajatului
 
@@ -543,6 +546,23 @@ model HygieneParticipant {
   updatedAt         DateTime        @updatedAt
 
   @@index([sessionId])
+}
+
+model EmployeeHygieneModule {
+  id                String    @id @default(uuid())
+  employeeId        String
+  employee          Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  moduleName        String    // Ex: "Modulul 1 - Sector Alimentar", "Modulul 2 - Curățenie și Cazare", etc.
+  certificateNumber String?   // Ex: "881124", "10442", "881124BIS"
+  examDate          DateTime  // Data examenului
+  issueDate         DateTime? // Data emiterii diplomei/adeverinței
+  intervalMonths    Int       @default(36) // 36 luni (3 ani) conform Ordin 2209/2022
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([employeeId, moduleName])
+  @@index([employeeId])
 }
 
 // ==========================================

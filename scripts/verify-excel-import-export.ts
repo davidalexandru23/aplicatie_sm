@@ -91,7 +91,7 @@ async function main() {
       assert(emp.rowNumber >= 13, `Indexul de rând Excel trebuie să fie >= 13 (primit ${emp.rowNumber})`);
       assert(emp.hireDate instanceof Date, `Data angajării trebuie să fie un Date valid`);
       assert(emp.birthDate instanceof Date, `Data nașterii trebuie să fie un Date valid`);
-      assert(emp.cnp.length === 13, `CNP-ul trebuie să aibă 13 caractere`);
+      assert(emp.cnp?.length === 13, `CNP-ul trebuie să aibă 13 caractere`);
     });
   });
 

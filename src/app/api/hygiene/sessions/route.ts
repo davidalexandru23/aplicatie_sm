@@ -68,7 +68,7 @@ interface ParticipantPayload {
   clientName: string;
   lastName: string;
   firstName: string;
-  cnp: string;
+  cnp?: string | null;
   birthDate?: string;
   birthPlace?: string;
   docType?: string;
@@ -80,6 +80,7 @@ interface ParticipantPayload {
   examResult?: string;
   certificateSeries?: string;
   certificateNumber?: string;
+  hygieneModule?: string;
   employeeId?: string;
 }
 
@@ -99,6 +100,7 @@ export async function POST(request: NextRequest) {
       commissionMember2,
       commissionSecretary,
       pvSeriesNumber,
+      hygieneModule,
       participants: rawParticipants,
       employeeIds,
     } = body;
@@ -160,6 +162,7 @@ export async function POST(request: NextRequest) {
         jobTitle: emp.currentJob?.title || undefined,
         attendance: 'prezent',
         examResult: 'admis',
+        hygieneModule: emp.hygieneModule || hygieneModule || undefined,
         employeeId: emp.id,
       }));
     } else if (Array.isArray(rawParticipants) && rawParticipants.length > 0) {
@@ -176,9 +179,9 @@ export async function POST(request: NextRequest) {
     // Validate each participant has minimal data
     for (let i = 0; i < participants.length; i++) {
       const p = participants[i] as ParticipantPayload;
-      if (!p.firstName || !p.lastName || !p.cnp || !p.clientName) {
+      if (!p.firstName || !p.lastName || !p.clientName) {
         return NextResponse.json(
-          { error: `Participantul ${i + 1} necesită: firstName, lastName, cnp, clientName.` },
+          { error: `Participantul ${i + 1} necesită: firstName, lastName, clientName.` },
           { status: 400 }
         );
       }
@@ -216,6 +219,7 @@ export async function POST(request: NextRequest) {
         commissionMember2: effMember2,
         commissionSecretary: effSecretary,
         pvSeriesNumber: pvSeriesNumber || null,
+        hygieneModule: hygieneModule || null,
         status: 'programata',
         participants: {
           create: (participants as ParticipantPayload[]).map((p, idx) => ({
@@ -234,6 +238,7 @@ export async function POST(request: NextRequest) {
             examResult: p.examResult || 'admis',
             certificateSeries: p.certificateSeries || null,
             certificateNumber: p.certificateNumber || null,
+            hygieneModule: p.hygieneModule || hygieneModule || null,
             employeeId: p.employeeId || null,
           })),
         },

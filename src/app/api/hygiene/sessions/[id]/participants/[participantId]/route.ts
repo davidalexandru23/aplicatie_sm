@@ -59,6 +59,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       certificateSeries,
       certificateNumber,
       certificateDate,
+      hygieneModule,
       diplomaDelivered,
       diplomaDeliveredDate,
     } = body;
@@ -149,6 +150,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         certificateSeries: effectiveSeries,
         certificateNumber: effectiveNumber,
         certificateDate: effectiveDate,
+        ...(hygieneModule !== undefined ? { hygieneModule: hygieneModule ? String(hygieneModule).trim() : null } : {}),
         diplomaDelivered: effectiveDiplomaDelivered,
         diplomaDeliveredDate: effectiveDiplomaDeliveredDate,
       },
@@ -161,11 +163,38 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (updated.employeeId && updated.examResult === 'admis') {
       const fullCertNumber = updated.certificateNumber || null;
       const certIssueDate = updated.certificateDate || updated.session.examDate || updated.session.sessionDate;
+      const examDate = updated.session.examDate || certIssueDate;
+      const moduleName = updated.hygieneModule || updated.session.hygieneModule || 'Modulul 1 - Servicii de alimentație publică și colectivă';
+
+      if (examDate) {
+        await prisma.employeeHygieneModule.upsert({
+          where: {
+            employeeId_moduleName: {
+              employeeId: updated.employeeId,
+              moduleName: moduleName.trim(),
+            },
+          },
+          update: {
+            certificateNumber: fullCertNumber || undefined,
+            examDate: examDate,
+            issueDate: certIssueDate || undefined,
+            intervalMonths: 36,
+          },
+          create: {
+            employeeId: updated.employeeId,
+            moduleName: moduleName.trim(),
+            certificateNumber: fullCertNumber || null,
+            examDate: examDate,
+            issueDate: certIssueDate || null,
+            intervalMonths: 36,
+          },
+        });
+      }
 
       await prisma.employee.update({
         where: { id: updated.employeeId },
         data: {
-          hygieneLastExamDate: updated.session.examDate || certIssueDate,
+          hygieneLastExamDate: examDate,
           ...(fullCertNumber ? { hygieneCertificateNumber: fullCertNumber } : {}),
           ...(certIssueDate ? { hygieneCertificateIssueDate: certIssueDate } : {}),
         },

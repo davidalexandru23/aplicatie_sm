@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import { prisma } from './prisma';
 import { maskCNP, logAuditEvent } from './security';
+import { getBirthDateFromCNP } from './exporter';
 
 export interface ParsedCompany {
   name?: string;
@@ -19,7 +20,7 @@ export interface ParsedEmployee {
   lastName: string;
   firstName: string;
   sex?: string;
-  cnp: string;
+  cnp?: string;
   birthDate?: Date;
   birthPlace?: string;
   birthCounty?: string;
@@ -27,7 +28,7 @@ export interface ParsedEmployee {
   // Act identitate
   docType: string;
   docSeries?: string;
-  docNumber: string;
+  docNumber?: string;
   docIssuedBy?: string;
   docIssueDate?: Date;
   docExpiryDate?: Date;
@@ -453,10 +454,9 @@ export function parseClientWorkbook(buffer: Buffer): ParsedWorkbook {
     const isRomanian = !citizenship || normCitizenship === 'romana' || normCitizenship === 'ro';
     const isPassport = normalizeHeader(docType).includes('pasaport');
 
-    if (!cnpRaw) {
-      errors.push('CNP-ul sau numărul de identificare este obligatoriu.');
-    } else {
-      const cnpClean = cnpRaw.trim();
+    // CNP este opțional conform cerințelor
+    const cnpClean = cnpRaw ? cnpRaw.trim() : '';
+    if (cnpClean) {
       if (seenCnpMap.has(cnpClean)) {
         errors.push(`CNP duplicat în fișier (apare deja la rândul ${seenCnpMap.get(cnpClean)}).`);
       } else {
@@ -474,11 +474,14 @@ export function parseClientWorkbook(buffer: Buffer): ParsedWorkbook {
       }
     }
 
-    const birthDate = parseExcelDate(sFirm[XLSX.utils.encode_cell({ r, c: colIndex('birthDate') })]?.v);
-    if (!birthDate) errors.push('Data nașterii este obligatorie sau invalidă.');
+    // Data nașterii este opțională; dacă lipsește dar există CNP românesc valid, o putem deduce
+    let birthDate = parseExcelDate(sFirm[XLSX.utils.encode_cell({ r, c: colIndex('birthDate') })]?.v);
+    if (!birthDate && cnpClean) {
+      birthDate = getBirthDateFromCNP(cnpClean);
+    }
 
+    // Numărul actului de identitate este opțional
     const docNumber = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('docNumber') }));
-    if (!docNumber) errors.push('Numărul actului de identitate este obligatoriu.');
 
     const county = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('county') }));
     const locality = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('locality') }));
@@ -639,9 +642,8 @@ export function revalidateParsedWorkbook(
     const isRomanian = !citizenship || normCitizenship === 'romana' || normCitizenship === 'ro';
     const isPassport = normalizeHeader(docType).includes('pasaport');
 
-    if (!cnpRaw) {
-      errors.push('CNP-ul sau numărul de identificare este obligatoriu.');
-    } else {
+    // CNP este opțional conform cerințelor
+    if (cnpRaw) {
       if (seenCnpMap.has(cnpRaw)) {
         errors.push(`CNP duplicat în fișier (apare deja la rândul ${seenCnpMap.get(cnpRaw)}).`);
       } else {
@@ -659,11 +661,14 @@ export function revalidateParsedWorkbook(
       }
     }
 
-    const birthDate = parseDateSafe(raw.birthDate);
-    if (!birthDate) errors.push('Data nașterii este obligatorie sau invalidă.');
+    // Data nașterii este opțională; dacă lipsește dar există CNP românesc valid, o putem deduce
+    let birthDate = parseDateSafe(raw.birthDate);
+    if (!birthDate && cnpRaw) {
+      birthDate = getBirthDateFromCNP(cnpRaw);
+    }
 
+    // Numărul actului de identitate este opțional
     const docNumber = raw.docNumber ? String(raw.docNumber).trim() : '';
-    if (!docNumber) errors.push('Numărul actului de identitate este obligatoriu.');
 
     const county = raw.county?.trim() || '';
     const locality = raw.locality?.trim() || '';
@@ -703,9 +708,9 @@ export function revalidateParsedWorkbook(
       rowNumber: rowNum,
       lastName,
       firstName,
-      cnp: cnpRaw,
-      birthDate: birthDate!,
-      docNumber,
+      cnp: cnpRaw || undefined,
+      birthDate: birthDate || undefined,
+      docNumber: docNumber || undefined,
       county,
       locality,
       street,
@@ -795,8 +800,10 @@ export async function compareWithDatabase(
   const existingJobsSet = new Set(existingJobs.map((j) => j.title.toLowerCase()));
 
   const empByCNP = new Map<string, (typeof existingEmployees)[0]>();
+  const empByName = new Map<string, (typeof existingEmployees)[0]>();
   for (const emp of existingEmployees) {
-    empByCNP.set(emp.cnp, emp);
+    if (emp.cnp) empByCNP.set(emp.cnp, emp);
+    empByName.set(`${emp.lastName.toLowerCase()}_${emp.firstName.toLowerCase()}`, emp);
   }
 
   const items: ImportPreviewItem[] = [];
@@ -833,7 +840,7 @@ export async function compareWithDatabase(
       continue;
     }
 
-    const existing = empByCNP.get(emp.cnp);
+    const existing = (emp.cnp ? empByCNP.get(emp.cnp) : null) || empByName.get(`${emp.lastName.toLowerCase()}_${emp.firstName.toLowerCase()}`);
     if (!existing) {
       // Persoană nouă
       newCount++;
@@ -889,8 +896,8 @@ export async function compareWithDatabase(
         if (doc.number !== emp.docNumber) {
           changes.push({
             field: 'Număr act identitate',
-            oldVal: doc.number,
-            newVal: emp.docNumber,
+            oldVal: doc.number || '—',
+            newVal: emp.docNumber || '—',
           });
         }
       } else if (emp.docNumber) {
@@ -1073,18 +1080,30 @@ export async function commitImport(
       const worksiteId = worksiteMap.get(emp.worksiteName.toLowerCase());
       const jobId = jobMap.get(emp.jobTitle.toLowerCase());
 
-      const existing = await tx.employee.findUnique({
-        where: {
-          clientId_cnp: {
-            clientId,
-            cnp: emp.cnp,
-          },
-        },
-        include: {
-          identityDocument: true,
-          residenceAddress: true,
-        },
-      });
+      const existing = emp.cnp
+        ? await tx.employee.findUnique({
+            where: {
+              clientId_cnp: {
+                clientId,
+                cnp: emp.cnp,
+              },
+            },
+            include: {
+              identityDocument: true,
+              residenceAddress: true,
+            },
+          })
+        : await tx.employee.findFirst({
+            where: {
+              clientId,
+              lastName: { equals: emp.lastName, mode: 'insensitive' },
+              firstName: { equals: emp.firstName, mode: 'insensitive' },
+            },
+            include: {
+              identityDocument: true,
+              residenceAddress: true,
+            },
+          });
 
       if (!existing) {
         // Angajat nou
@@ -1094,8 +1113,8 @@ export async function commitImport(
             firstName: emp.firstName,
             lastName: emp.lastName,
             sex: emp.sex,
-            cnp: emp.cnp,
-            birthDate: emp.birthDate,
+            cnp: emp.cnp ? emp.cnp.trim() : null,
+            birthDate: emp.birthDate || null,
             birthPlace: emp.birthPlace,
             birthCounty: emp.birthCounty,
             citizenship: emp.citizenship,
@@ -1124,7 +1143,7 @@ export async function commitImport(
             employeeId: newEmp.id,
             docType: emp.docType,
             series: emp.docSeries,
-            number: emp.docNumber,
+            number: emp.docNumber ? emp.docNumber.trim() : null,
             issuedBy: emp.docIssuedBy,
             issueDate: emp.docIssueDate,
             expiryDate: emp.docExpiryDate,
@@ -1197,7 +1216,7 @@ export async function commitImport(
             data: {
               docType: emp.docType,
               series: emp.docSeries,
-              number: emp.docNumber,
+              number: emp.docNumber ? emp.docNumber.trim() : null,
               issuedBy: emp.docIssuedBy,
               issueDate: emp.docIssueDate,
               expiryDate: emp.docExpiryDate,
@@ -1209,7 +1228,7 @@ export async function commitImport(
               employeeId: existing.id,
               docType: emp.docType,
               series: emp.docSeries,
-              number: emp.docNumber,
+              number: emp.docNumber ? emp.docNumber.trim() : null,
               issuedBy: emp.docIssuedBy,
               issueDate: emp.docIssueDate,
               expiryDate: emp.docExpiryDate,

@@ -113,11 +113,9 @@ export async function POST(request: NextRequest) {
     if (!firstName?.trim() || !lastName?.trim()) {
       return NextResponse.json({ error: 'Numele și prenumele sunt obligatorii.' }, { status: 400 });
     }
-    if (!cnp?.trim()) {
-      return NextResponse.json({ error: 'CNP-ul este obligatoriu.' }, { status: 400 });
-    }
 
-    const cleanCnp = cnp.trim();
+    // CNP este opțional
+    const cleanCnp = cnp && String(cnp).trim() ? String(cnp).trim() : null;
 
     // Verify client exists
     const client = await prisma.client.findUnique({ where: { id: clientId } });
@@ -125,24 +123,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Compania specificată nu a fost găsită.' }, { status: 404 });
     }
 
-    // 2. CNP Validation
-    if (!isForeignWorker && !validateCNP(cleanCnp)) {
-      return NextResponse.json({ error: 'CNP invalid conform algoritmului de control' }, { status: 400 });
+    // 2. CNP Validation (dacă a fost completat)
+    if (cleanCnp) {
+      if (!isForeignWorker && !validateCNP(cleanCnp)) {
+        return NextResponse.json({ error: 'CNP invalid conform algoritmului de control' }, { status: 400 });
+      }
+
+      // 3. Duplicate check within company
+      const existing = await prisma.employee.findFirst({
+        where: { clientId, cnp: cleanCnp },
+      });
+      if (existing) {
+        return NextResponse.json({ error: 'Salariatul cu acest CNP există deja' }, { status: 409 });
+      }
     }
 
-    // 3. Duplicate check within company
-    const existing = await prisma.employee.findFirst({
-      where: { clientId, cnp: cleanCnp },
-    });
-    if (existing) {
-      return NextResponse.json({ error: 'Salariatul cu acest CNP există deja' }, { status: 409 });
-    }
-
-    // 4. Age and Sex Extraction from CNP
+    // 4. Age and Sex Extraction from CNP (dacă există)
     let derivedBirthDate: Date | null = null;
     let derivedSex: string | null = null;
 
-    if (/^[1-8]\d{12}$/.test(cleanCnp)) {
+    if (cleanCnp && /^[1-8]\d{12}$/.test(cleanCnp)) {
       const sDigit = Number(cleanCnp[0]);
       derivedSex = sDigit % 2 === 1 ? 'M' : 'F';
 
@@ -235,14 +235,15 @@ export async function POST(request: NextRequest) {
       });
 
       // Identity document
-      const docNum = identityDocument?.number || idNumber;
-      if (docNum) {
+      const docNum = (identityDocument?.number || idNumber)?.trim() || null;
+      const docSeries = (identityDocument?.series || idSeries)?.trim() || null;
+      if (docNum || docSeries || identityDocument?.issuedBy || idIssuedBy) {
         await tx.identityDocument.create({
           data: {
             employeeId: newEmp.id,
             docType: identityDocument?.docType || idDocType || 'CI',
-            series: identityDocument?.series || idSeries || null,
-            number: docNum.trim(),
+            series: docSeries,
+            number: docNum,
             issuedBy: identityDocument?.issuedBy || idIssuedBy || null,
             issueDate: (identityDocument?.issueDate || idIssueDate) ? new Date(identityDocument?.issueDate || idIssueDate) : null,
             expiryDate: (identityDocument?.expiryDate || idExpiryDate) ? new Date(identityDocument?.expiryDate || idExpiryDate) : null,

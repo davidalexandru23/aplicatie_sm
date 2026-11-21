@@ -136,7 +136,7 @@ export async function exportClientToExcel(clientId: string): Promise<ClientExpor
   // Scrie angajații curenți începând de la rândul 13 (r = 12)
   client.employees.forEach((emp, i) => {
     const r = 12 + i;
-    const birthDate = emp.birthDate || getBirthDateFromCNP(emp.cnp);
+    const birthDate = emp.birthDate || (emp.cnp ? getBirthDateFromCNP(emp.cnp) : undefined);
     const hireDate = emp.hireDate || emp.startDateOnJob || emp.createdAt;
     const startDateOnJob = emp.startDateOnJob || hireDate;
     const jobTitle = emp.currentJob?.title || client.jobs[0]?.title || 'Lucrător';
@@ -145,14 +145,14 @@ export async function exportClientToExcel(clientId: string): Promise<ClientExpor
     setCell(sFirm, r, 0, emp.lastName);
     setCell(sFirm, r, 1, emp.firstName);
     setCell(sFirm, r, 2, emp.sex || '');
-    setCell(sFirm, r, 3, emp.cnp);
+    setCell(sFirm, r, 3, emp.cnp || '');
     setCell(sFirm, r, 4, formatDmy(birthDate));
     setCell(sFirm, r, 5, emp.birthPlace || '');
     setCell(sFirm, r, 6, emp.birthCounty || '');
     setCell(sFirm, r, 7, emp.citizenship || 'Română');
     setCell(sFirm, r, 8, emp.identityDocument?.docType || 'CI');
     setCell(sFirm, r, 9, emp.identityDocument?.series || '');
-    setCell(sFirm, r, 10, emp.identityDocument?.number || (emp.cnp ? `CI${emp.cnp.slice(-6)}` : '123456'));
+    setCell(sFirm, r, 10, emp.identityDocument?.number || '');
     setCell(sFirm, r, 11, emp.identityDocument?.issuedBy || '');
     setCell(sFirm, r, 12, formatDmy(emp.identityDocument?.issueDate));
     setCell(sFirm, r, 13, formatDmy(emp.identityDocument?.expiryDate));

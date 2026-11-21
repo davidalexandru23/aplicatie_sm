@@ -166,26 +166,28 @@ export async function PUT(
 
     // CNP Mutation Guard
     let finalCnp = existing.cnp;
-    if (cnp && cnp.trim() !== existing.cnp) {
-      const cleanCnp = cnp.trim();
-      if (!validateCNP(cleanCnp)) {
-        return NextResponse.json(
-          { error: 'CNP invalid conform algoritmului de control.' },
-          { status: 400 }
-        );
-      }
-      const duplicate = await prisma.employee.findFirst({
-        where: {
-          clientId: existing.clientId,
-          cnp: cleanCnp,
-          NOT: { id },
-        },
-      });
-      if (duplicate) {
-        return NextResponse.json(
-          { error: 'Un alt salariat din această companie folosește deja acest CNP.' },
-          { status: 409 }
-        );
+    if (cnp !== undefined) {
+      const cleanCnp = cnp ? cnp.trim() : null;
+      if (cleanCnp && cleanCnp !== existing.cnp) {
+        if (!validateCNP(cleanCnp)) {
+          return NextResponse.json(
+            { error: 'CNP invalid conform algoritmului de control.' },
+            { status: 400 }
+          );
+        }
+        const duplicate = await prisma.employee.findFirst({
+          where: {
+            clientId: existing.clientId,
+            cnp: cleanCnp,
+            NOT: { id },
+          },
+        });
+        if (duplicate) {
+          return NextResponse.json(
+            { error: 'Un alt salariat din această companie folosește deja acest CNP.' },
+            { status: 409 }
+          );
+        }
       }
       finalCnp = cleanCnp;
     }
@@ -291,27 +293,28 @@ export async function PUT(
       }
 
       // 3. Upsert Identity Document
-      const docNum = identityDocument?.number || idNumber;
-      if (docNum !== undefined) {
+      const hasIdDocInput = identityDocument !== undefined || idNumber !== undefined || idSeries !== undefined || idDocType !== undefined;
+      if (hasIdDocInput) {
+        const docNum = (identityDocument?.number !== undefined ? identityDocument.number : idNumber)?.trim() || null;
         if (existing.identityDocument) {
           await tx.identityDocument.update({
             where: { employeeId: id },
             data: {
               docType: identityDocument?.docType || idDocType || existing.identityDocument.docType,
-              series: identityDocument?.series !== undefined ? identityDocument.series : (idSeries !== undefined ? idSeries : existing.identityDocument.series),
-              number: docNum.trim(),
+              series: identityDocument?.series !== undefined ? (identityDocument.series?.trim() || null) : (idSeries !== undefined ? (idSeries?.trim() || null) : existing.identityDocument.series),
+              number: docNum,
               issuedBy: identityDocument?.issuedBy !== undefined ? identityDocument.issuedBy : (idIssuedBy !== undefined ? idIssuedBy : existing.identityDocument.issuedBy),
               issueDate: (identityDocument?.issueDate || idIssueDate) ? new Date(identityDocument?.issueDate || idIssueDate) : undefined,
               expiryDate: (identityDocument?.expiryDate || idExpiryDate) ? new Date(identityDocument?.expiryDate || idExpiryDate) : undefined,
             },
           });
-        } else if (docNum) {
+        } else if (docNum || identityDocument?.series || idSeries) {
           await tx.identityDocument.create({
             data: {
               employeeId: id,
               docType: identityDocument?.docType || idDocType || 'CI',
               series: identityDocument?.series || idSeries || null,
-              number: docNum.trim(),
+              number: docNum,
               issuedBy: identityDocument?.issuedBy || idIssuedBy || null,
               issueDate: (identityDocument?.issueDate || idIssueDate) ? new Date(identityDocument?.issueDate || idIssueDate) : null,
               expiryDate: (identityDocument?.expiryDate || idExpiryDate) ? new Date(identityDocument?.expiryDate || idExpiryDate) : null,

@@ -10,6 +10,17 @@
 
 export type ComplianceStatus = 'VALID' | 'UPCOMING' | 'OVERDUE' | 'MISSING';
 
+export interface HygieneModuleResult {
+  id?: string;
+  moduleName: string;
+  certificateNumber?: string | null;
+  examDate: Date | null;
+  dueDate: Date | null;
+  daysRemaining: number | null;
+  intervalMonths: number;
+  status: ComplianceStatus;
+}
+
 export interface ComplianceItemResult {
   lastDate: Date | null;
   intervalMonths: number;
@@ -17,6 +28,7 @@ export interface ComplianceItemResult {
   daysRemaining: number | null;
   status: ComplianceStatus;
   label: string;
+  modules?: HygieneModuleResult[];
 }
 
 export interface EmployeeComplianceSummary {
@@ -81,6 +93,14 @@ export const COMPLIANCE_CONSTANTS = {
   DEFAULT_HYGIENE_INTERVAL: 36,
   UPCOMING_THRESHOLD_DAYS: 30,
 } as const;
+
+export const HYGIENE_MODULES = [
+  { id: 'modul-1', name: 'Modulul 1 - Servicii de producție, depozitare, transport și alimentație publică' },
+  { id: 'modul-2', name: 'Modulul 2 - Servicii de curățenie (unități sanitare, colectivități copii, cazare)' },
+  { id: 'modul-3', name: 'Modulul 3 - Producția și distribuția apei potabile și a apei de îmbăiere' },
+  { id: 'modul-4', name: 'Modulul 4 - Servicii de îngrijire corporală (cosmetică, frizerie, coafură etc.)' },
+  { id: 'modul-5', name: 'Modulul 5 - Servicii de dezinfecție, dezinsecție și deratizare (DDD)' },
+] as const;
 
 /**
  * Adds months to a date with calendar month clamping (e.g., Jan 31 + 1 month -> Feb 28/29).
@@ -232,7 +252,7 @@ export function calculateEmployeeCompliance(
     referenceDate
   );
 
-  // 4. Hygiene Course (Ordinul 2209/4469/2022) - statutory compliance on CAEN 5610 & food-handling jobs
+  // 4. Hygiene Course (Ordinul 2209/4469/2022) - statutory compliance (36-month validity per module)
   const rawCaen = (employee as any)?.client?.caenCode ?? (employee as any)?.caenCode;
   const caenCode = rawCaen ? String(rawCaen).trim() : '';
   const isFoodCaen = ['5610', '5621', '5630', '1071', '4711'].includes(caenCode);
@@ -242,26 +262,176 @@ export function calculateEmployeeCompliance(
     (employee as any)?.isFoodHandling
   );
 
+  const rawModules = Array.isArray((employee as any)?.hygieneModules)
+    ? (employee as any).hygieneModules
+    : [];
+  const rawParticipants = Array.isArray((employee as any)?.hygieneParticipants)
+    ? (employee as any).hygieneParticipants
+    : [];
+
   const isHygieneApplicable = Boolean(
     employee?.hygieneRequested ||
     employee?.hygieneLastExamDate ||
+    rawModules.length > 0 ||
+    rawParticipants.length > 0 ||
     isFoodCaen ||
     isFoodHandlingJob
   );
 
-  const hygieneLastExam = (employee?.hygieneLastExamDate as Date | string | null | undefined) ?? null;
-  const hygieneInterval = typeof employee?.hygieneIntervalMonths === 'number'
-    ? employee.hygieneIntervalMonths
-    : COMPLIANCE_CONSTANTS.DEFAULT_HYGIENE_INTERVAL;
+  let hygieneCertificate: ComplianceItemResult | null = null;
 
-  const hygieneCertificate = isHygieneApplicable
-    ? calculateItemCompliance(
-        hygieneLastExam,
-        hygieneInterval,
-        'Cursuri de Igienă',
-        referenceDate
-      )
-    : null;
+  if (isHygieneApplicable) {
+    // Collect unique modules by name
+    const moduleMap = new Map<string, {
+      id?: string;
+      moduleName: string;
+      certificateNumber?: string | null;
+      examDate: Date | null;
+      intervalMonths: number;
+    }>();
+
+    // 1. Ingest explicit EmployeeHygieneModule records
+    for (const mod of rawModules) {
+      if (mod && mod.moduleName) {
+        const d = mod.examDate ? (mod.examDate instanceof Date ? mod.examDate : new Date(mod.examDate)) : null;
+        const validDate = d && !isNaN(d.getTime()) ? d : null;
+        moduleMap.set(mod.moduleName.trim(), {
+          id: mod.id,
+          moduleName: mod.moduleName.trim(),
+          certificateNumber: mod.certificateNumber || null,
+          examDate: validDate,
+          intervalMonths: typeof mod.intervalMonths === 'number' && mod.intervalMonths > 0
+            ? mod.intervalMonths
+            : COMPLIANCE_CONSTANTS.DEFAULT_HYGIENE_INTERVAL,
+        });
+      }
+    }
+
+    // 2. Ingest completed HygieneParticipant sessions
+    for (const part of rawParticipants) {
+      const isAdmis = part.examResult && String(part.examResult).trim().toLowerCase() === 'admis';
+      const isNotAbsent = part.attendance !== 'absent';
+      if (isAdmis && isNotAbsent) {
+        const modName = (part.hygieneModule || part.session?.hygieneModule || (employee as any).hygieneModule || 'Modulul 1 - Servicii de alimentație publică și colectivă').trim();
+        const d = part.certificateDate || part.session?.examDate;
+        const parsedD = d ? (d instanceof Date ? d : new Date(d)) : null;
+        const validDate = parsedD && !isNaN(parsedD.getTime()) ? parsedD : null;
+        
+        const existing = moduleMap.get(modName);
+        if (!existing || (validDate && (!existing.examDate || validDate.getTime() > existing.examDate.getTime()))) {
+          moduleMap.set(modName, {
+            id: part.id,
+            moduleName: modName,
+            certificateNumber: part.certificateNumber || existing?.certificateNumber || null,
+            examDate: validDate || existing?.examDate || null,
+            intervalMonths: COMPLIANCE_CONSTANTS.DEFAULT_HYGIENE_INTERVAL,
+          });
+        }
+      }
+    }
+
+    // 3. Fallback to legacy scalar fields if no modules found in tables
+    const legacyExamDate = (employee as any)?.hygieneLastExamDate;
+    if (moduleMap.size === 0 && legacyExamDate) {
+      const d = legacyExamDate instanceof Date ? legacyExamDate : new Date(legacyExamDate);
+      const validDate = !isNaN(d.getTime()) ? d : null;
+      const modName = String((employee as any)?.hygieneModule || 'Modulul 1 - Servicii de alimentație publică și colectivă').trim();
+      const rawInterval = (employee as any)?.hygieneIntervalMonths;
+      const interval = typeof rawInterval === 'number' && rawInterval > 0
+        ? rawInterval
+        : COMPLIANCE_CONSTANTS.DEFAULT_HYGIENE_INTERVAL;
+      const rawCertNum = (employee as any)?.hygieneCertificateNumber;
+      moduleMap.set(modName, {
+        moduleName: modName,
+        certificateNumber: typeof rawCertNum === 'string' && rawCertNum ? rawCertNum : null,
+        examDate: validDate,
+        intervalMonths: interval,
+      });
+    }
+
+    if (moduleMap.size === 0) {
+      hygieneCertificate = {
+        lastDate: null,
+        intervalMonths: COMPLIANCE_CONSTANTS.DEFAULT_HYGIENE_INTERVAL,
+        dueDate: null,
+        daysRemaining: null,
+        status: 'MISSING',
+        label: 'Cursuri de Igienă',
+        modules: [],
+      };
+    } else {
+      const evaluatedModules: HygieneModuleResult[] = [];
+      for (const m of moduleMap.values()) {
+        if (!m.examDate) {
+          evaluatedModules.push({
+            id: m.id,
+            moduleName: m.moduleName,
+            certificateNumber: m.certificateNumber,
+            examDate: null,
+            dueDate: null,
+            daysRemaining: null,
+            intervalMonths: m.intervalMonths,
+            status: 'MISSING',
+          });
+          continue;
+        }
+
+        const dueDate = addMonthsSafe(m.examDate, m.intervalMonths);
+        const daysRemaining = getDaysRemaining(dueDate, referenceDate);
+        let modStatus: ComplianceStatus;
+        if (daysRemaining < 0) {
+          modStatus = 'OVERDUE';
+        } else if (daysRemaining <= COMPLIANCE_CONSTANTS.UPCOMING_THRESHOLD_DAYS) {
+          modStatus = 'UPCOMING';
+        } else {
+          modStatus = 'VALID';
+        }
+
+        evaluatedModules.push({
+          id: m.id,
+          moduleName: m.moduleName,
+          certificateNumber: m.certificateNumber,
+          examDate: m.examDate,
+          dueDate,
+          daysRemaining,
+          intervalMonths: m.intervalMonths,
+          status: modStatus,
+        });
+      }
+
+      // Rollup across modules: OVERDUE > MISSING > UPCOMING > VALID
+      let overallHygieneStatus: ComplianceStatus;
+      if (evaluatedModules.some((m) => m.status === 'OVERDUE')) {
+        overallHygieneStatus = 'OVERDUE';
+      } else if (evaluatedModules.some((m) => m.status === 'MISSING')) {
+        overallHygieneStatus = 'MISSING';
+      } else if (evaluatedModules.some((m) => m.status === 'UPCOMING')) {
+        overallHygieneStatus = 'UPCOMING';
+      } else {
+        overallHygieneStatus = 'VALID';
+      }
+
+      // Find critical module (lowest daysRemaining)
+      const modulesWithDates = evaluatedModules.filter((m) => m.daysRemaining !== null && m.dueDate !== null);
+      modulesWithDates.sort((a, b) => (a.daysRemaining ?? 0) - (b.daysRemaining ?? 0));
+
+      const criticalModule = modulesWithDates[0] || evaluatedModules[0];
+      const mostRecentExamDate = evaluatedModules
+        .map((m) => m.examDate)
+        .filter((d): d is Date => d !== null)
+        .sort((a, b) => b.getTime() - a.getTime())[0] || null;
+
+      hygieneCertificate = {
+        lastDate: mostRecentExamDate || criticalModule?.examDate || null,
+        intervalMonths: criticalModule?.intervalMonths || COMPLIANCE_CONSTANTS.DEFAULT_HYGIENE_INTERVAL,
+        dueDate: criticalModule?.dueDate || null,
+        daysRemaining: criticalModule?.daysRemaining ?? null,
+        status: overallHygieneStatus,
+        label: evaluatedModules.length > 1 ? `Cursuri de Igienă (${evaluatedModules.length} module)` : 'Cursuri de Igienă',
+        modules: evaluatedModules,
+      };
+    }
+  }
 
   // Active items to consider for rollup
   const activeItems: ComplianceItemResult[] = [

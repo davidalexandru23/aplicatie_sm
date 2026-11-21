@@ -127,6 +127,30 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
           });
         }
         if (participant.employeeId) {
+          const moduleName = participant.hygieneModule || updated.hygieneModule || 'Modulul 1 - Servicii de alimentație publică și colectivă';
+          await prisma.employeeHygieneModule.upsert({
+            where: {
+              employeeId_moduleName: {
+                employeeId: participant.employeeId,
+                moduleName: moduleName.trim(),
+              },
+            },
+            update: {
+              certificateNumber: certNum,
+              examDate: updated.examDate,
+              issueDate: updated.examDate,
+              intervalMonths: 36,
+            },
+            create: {
+              employeeId: participant.employeeId,
+              moduleName: moduleName.trim(),
+              certificateNumber: certNum,
+              examDate: updated.examDate,
+              issueDate: updated.examDate,
+              intervalMonths: 36,
+            },
+          });
+
           await prisma.employee.update({
             where: { id: participant.employeeId },
             data: {
@@ -144,6 +168,30 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   if (newStatus === 'finalizata') {
     for (const participant of updated.participants) {
       if (participant.employeeId && participant.examResult.toLowerCase() === 'admis') {
+        const moduleName = participant.hygieneModule || updated.hygieneModule || 'Modulul 1 - Servicii de alimentație publică și colectivă';
+        await prisma.employeeHygieneModule.upsert({
+          where: {
+            employeeId_moduleName: {
+              employeeId: participant.employeeId,
+              moduleName: moduleName.trim(),
+            },
+          },
+          update: {
+            certificateNumber: participant.certificateNumber || null,
+            examDate: updated.examDate,
+            issueDate: updated.examDate,
+            intervalMonths: 36,
+          },
+          create: {
+            employeeId: participant.employeeId,
+            moduleName: moduleName.trim(),
+            certificateNumber: participant.certificateNumber || null,
+            examDate: updated.examDate,
+            issueDate: updated.examDate,
+            intervalMonths: 36,
+          },
+        });
+
         await prisma.employee.update({
           where: { id: participant.employeeId },
           data: {

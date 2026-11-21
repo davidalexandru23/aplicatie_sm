@@ -599,7 +599,7 @@ export async function runAllTests() {
       const text = extractDocxText(docxBuf);
       trackAssert(text.includes(freshEmp.lastName), `Text contains employee lastName ${freshEmp.lastName}`);
       trackAssert(text.includes(freshEmp.firstName), `Text contains employee firstName ${freshEmp.firstName}`);
-      trackAssert(text.includes(freshEmp.cnp), `Text contains employee CNP ${freshEmp.cnp}`);
+      if (freshEmp.cnp) trackAssert(text.includes(freshEmp.cnp), `Text contains employee CNP ${freshEmp.cnp}`);
       trackAssert(
         text.includes('2 . 209/4 . 469/2022') || text.includes('2209') || text.includes('Ordinului Ministrului Sanatatii'),
         'Text references Order 2209/2022'
@@ -638,7 +638,7 @@ export async function runAllTests() {
 
       const text = extractDocxText(docxBuf);
       trackAssert(text.includes(freshEmp.lastName), `Text contains employee lastName ${freshEmp.lastName}`);
-      trackAssert(text.includes(freshEmp.cnp), `Text contains employee CNP ${freshEmp.cnp}`);
+      if (freshEmp.cnp) trackAssert(text.includes(freshEmp.cnp), `Text contains employee CNP ${freshEmp.cnp}`);
       return `Adeverinta generated & verified: 0 XML leaks.`;
     });
   }
@@ -690,7 +690,7 @@ export async function runAllTests() {
 
         const text = extractDocxText(docxBuf);
         trackAssert(text.includes(freshPart.lastName), `Text contains participant lastName ${freshPart.lastName}`);
-        trackAssert(text.includes(freshPart.cnp), `Text contains participant CNP ${freshPart.cnp}`);
+        if (freshPart.cnp) trackAssert(text.includes(freshPart.cnp), `Text contains participant CNP ${freshPart.cnp}`);
         if (freshPart.certificateNumber) {
           trackAssert(text.includes(freshPart.certificateNumber), `Text contains cert number ${freshPart.certificateNumber}`);
         }

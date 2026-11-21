@@ -22,6 +22,7 @@ import {
   RecordMedicalExamModal,
   EditEmployeeModal,
   TerminateEmployeeModal,
+  ManageHygieneModulesModal,
 } from '@/components/employees';
 import { AddJobModal } from '@/components/jobs/add-job-modal';
 import { EditJobModal } from '@/components/jobs/edit-job-modal';
@@ -80,6 +81,13 @@ export default async function ClientDetailPage({
             eipAssignments: {
               include: { eipItem: true },
               orderBy: { assignedDate: 'desc' },
+            },
+            hygieneModules: {
+              orderBy: { examDate: 'desc' },
+            },
+            hygieneParticipants: {
+              include: { session: true },
+              orderBy: { createdAt: 'desc' },
             },
           },
         },
@@ -568,6 +576,7 @@ export default async function ClientDetailPage({
                             <>
                               <ManageEipModal clientId={client.id} employee={emp as any} eipCatalog={eipCatalog} />
                               <RecordMedicalExamModal employee={emp} />
+                              <ManageHygieneModulesModal employee={emp as any} />
                               <EditEmployeeModal employeeId={emp.id} employeeName={`${emp.lastName} ${emp.firstName}`} jobs={client.jobs} worksites={client.worksites} />
                               <TerminateEmployeeModal employee={emp} />
                               <Link

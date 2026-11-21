@@ -124,6 +124,35 @@ export async function GET(
             postalCode: true,
           },
         },
+        hygieneModules: {
+          select: {
+            id: true,
+            moduleName: true,
+            certificateNumber: true,
+            examDate: true,
+            issueDate: true,
+            intervalMonths: true,
+            notes: true,
+          },
+          orderBy: { examDate: 'desc' },
+        },
+        hygieneParticipants: {
+          select: {
+            id: true,
+            examResult: true,
+            attendance: true,
+            certificateNumber: true,
+            certificateDate: true,
+            hygieneModule: true,
+            session: {
+              select: {
+                id: true,
+                examDate: true,
+                hygieneModule: true,
+              },
+            },
+          },
+        },
       },
     });
 

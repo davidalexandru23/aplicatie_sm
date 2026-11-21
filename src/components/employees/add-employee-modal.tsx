@@ -123,7 +123,7 @@ export function AddEmployeeModal({
         clientId: targetClientId,
         lastName: formData.lastName.trim(),
         firstName: formData.firstName.trim(),
-        cnp: formData.cnp.trim(),
+        cnp: formData.cnp.trim() || undefined,
         sex: formData.sex || undefined,
         birthDate: formData.birthDate || undefined,
         birthPlace: formData.birthPlace.trim() || undefined,
@@ -327,12 +327,11 @@ export function AddEmployeeModal({
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        CNP (Cod Numeric Personal) *
+                        CNP (Cod Numeric Personal) <span className="text-slate-400 font-normal">(opțional)</span>
                       </label>
                       <input
                         type="text"
                         name="cnp"
-                        required
                         maxLength={13}
                         value={formData.cnp}
                         onChange={handleChange}
@@ -358,7 +357,9 @@ export function AddEmployeeModal({
 
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">Data Nașterii</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        Data Nașterii <span className="text-slate-400 font-normal">(opțional)</span>
+                      </label>
                       <input
                         type="date"
                         name="birthDate"
@@ -606,7 +607,9 @@ export function AddEmployeeModal({
                         />
                       </div>
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">Număr</label>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                          Număr <span className="text-slate-400 font-normal">(opțional)</span>
+                        </label>
                         <input
                           type="text"
                           name="idNumber"
@@ -691,7 +694,9 @@ export function AddEmployeeModal({
                         />
                       </div>
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">Număr</label>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                          Număr <span className="text-slate-400 font-normal">(opțional)</span>
+                        </label>
                         <input
                           type="text"
                           name="addressNumber"

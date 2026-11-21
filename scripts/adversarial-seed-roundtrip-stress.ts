@@ -161,7 +161,7 @@ async function main() {
 
         // CNP check
         assert(!!emp.cnp, `${empLabel} missing CNP`);
-        assert(validateCNP(emp.cnp), `${empLabel} has invalid CNP checksum: ${emp.cnp}`);
+        assert(validateCNP(emp.cnp!), `${empLabel} has invalid CNP checksum: ${emp.cnp}`);
 
         // Identity Document check
         assert(emp.identityDocument !== null, `${empLabel} is missing IdentityDocument relation`);
@@ -229,7 +229,7 @@ async function main() {
     for (const emp of parsed.employees) {
       assert(emp.isValid, `Employee ${emp.lastName} ${emp.firstName} invalid: ${emp.errors.join(', ')}`);
       assertEquals(emp.errors.length, 0, `Employee ${emp.lastName} has errors`);
-      assert(validateCNP(emp.cnp), `Employee CNP invalid: ${emp.cnp}`);
+      assert(validateCNP(emp.cnp!), `Employee CNP invalid: ${emp.cnp}`);
     }
 
     const diff = await compareWithDatabase(bistro.id, parsed);

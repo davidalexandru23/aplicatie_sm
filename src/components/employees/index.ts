@@ -11,4 +11,6 @@ export { TerminateEmployeeModal } from './terminate-employee-modal';
 export type { TerminateEmployeeModalProps } from './terminate-employee-modal';
 
 export { ManageEipModal } from './manage-eip-modal';
+export { ManageHygieneModulesModal } from './manage-hygiene-modules-modal';
+export type { ManageHygieneModulesModalProps } from './manage-hygiene-modules-modal';
 
