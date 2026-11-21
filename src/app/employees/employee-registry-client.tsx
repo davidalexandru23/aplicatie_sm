@@ -474,7 +474,7 @@ function EmployeeRegistryInner({
                         <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
                           {userRole === 'SSM' ? (
                             <span className="text-[10px] text-slate-400 italic bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
-                              🔒 Date identitate protejate (SSM)
+                              Date protejate (SSM)
                             </span>
                           ) : (
                             <>

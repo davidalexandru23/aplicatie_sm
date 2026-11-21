@@ -15,7 +15,7 @@ export const ROLE_CONFIG: Record<UserRole, RoleMeta> = {
   ADMIN: {
     role: 'ADMIN',
     label: 'Admin Master',
-    badge: '👑 Admin Master',
+    badge: 'Admin Master',
     color: 'text-amber-800',
     bgColor: 'bg-amber-100',
     borderColor: 'border-amber-300',
@@ -24,7 +24,7 @@ export const ROLE_CONFIG: Record<UserRole, RoleMeta> = {
   SSM: {
     role: 'SSM',
     label: 'Specialist SSM',
-    badge: '🛡️ Specialist SSM',
+    badge: 'Specialist SSM',
     color: 'text-blue-800',
     bgColor: 'bg-blue-100',
     borderColor: 'border-blue-300',
@@ -33,7 +33,7 @@ export const ROLE_CONFIG: Record<UserRole, RoleMeta> = {
   HR: {
     role: 'HR',
     label: 'Resurse Umane (HR)',
-    badge: '📋 Resurse Umane',
+    badge: 'Resurse Umane',
     color: 'text-indigo-800',
     bgColor: 'bg-indigo-100',
     borderColor: 'border-indigo-300',
@@ -42,7 +42,7 @@ export const ROLE_CONFIG: Record<UserRole, RoleMeta> = {
   IGIENA: {
     role: 'IGIENA',
     label: 'Inspector / Formator Igienă',
-    badge: '🧼 Cursuri Igienă',
+    badge: 'Cursuri Igienă',
     color: 'text-emerald-800',
     bgColor: 'bg-emerald-100',
     borderColor: 'border-emerald-300',

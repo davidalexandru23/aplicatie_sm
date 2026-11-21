@@ -27,6 +27,7 @@ import {
   Building2,
   CheckSquare,
   Square,
+  MapPin,
 } from 'lucide-react';
 
 interface Participant {
@@ -1133,7 +1134,10 @@ export default function HygienePage() {
                           <FileText className="w-3 h-3 text-slate-400" />
                           Examen: {new Date(session.examDate).toLocaleDateString('ro-RO')}
                         </span>
-                        <span>📍 {session.location}</span>
+                        <span className="flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-slate-400" />
+                          <span>{session.location}</span>
+                        </span>
                         <span className="flex items-center gap-1 font-medium text-slate-700">
                           <Users className="w-3.5 h-3.5 text-blue-600" />
                           {session.participants.length} cursanți ({companiesCount} {companiesCount === 1 ? 'companie' : 'companii'})

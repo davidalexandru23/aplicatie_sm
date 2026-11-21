@@ -168,7 +168,7 @@ export function ComplianceItemBadge({
                   {item.modules.map((m, idx) => (
                     <div key={idx} className="flex items-start gap-1.5 text-[10px]">
                       <span className={m.status === 'VALID' ? 'text-emerald-400 font-bold' : m.status === 'UPCOMING' ? 'text-amber-400 font-bold' : 'text-rose-400 font-bold'}>
-                        {m.status === 'VALID' ? '✓' : m.status === 'UPCOMING' ? '⏱' : '✕'}
+                        {m.status === 'VALID' ? 'OK' : m.status === 'UPCOMING' ? 'SCADENT' : 'EXPIRAT'}
                       </span>
                       <div className="flex-1">
                         <div className="font-medium text-slate-100">{m.moduleName}</div>

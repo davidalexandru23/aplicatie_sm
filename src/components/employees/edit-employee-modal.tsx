@@ -375,7 +375,7 @@ export function EditEmployeeModal({
                         </label>
                         {isSsmRole ? (
                           <div className="w-full text-xs px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-500 italic">
-                            🔒 Date de identitate protejate (Fără acces CNP pentru rolul SSM)
+                            Date de identitate protejate (Fără acces CNP pentru rolul SSM)
                           </div>
                         ) : (
                           <input
@@ -551,7 +551,7 @@ export function EditEmployeeModal({
 
                     {isSsmRole ? (
                       <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg text-xs text-blue-800">
-                        🛡️ <strong>Notă rol SSM:</strong> Detaliile financiare și contractuale (salariu brut, cont bancar, număr CIM) sunt confidențiale HR și nu sunt accesibile rolului de Securitate a Muncii.
+                        <strong>Notă rol SSM:</strong> Detaliile financiare și contractuale (salariu brut, cont bancar, număr CIM) sunt confidențiale HR și nu sunt accesibile rolului de Securitate a Muncii.
                       </div>
                     ) : (
                       <>

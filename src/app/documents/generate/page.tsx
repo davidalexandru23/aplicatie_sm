@@ -895,7 +895,7 @@ function DocumentGeneratorContent() {
                         disabled={exp.isExpired}
                         className={exp.isExpired ? 'text-rose-600 font-medium bg-rose-50' : ''}
                       >
-                        {exp.isExpired ? '🚫 [EXPIRAT - BLOCAT] ' : ''}
+                        {exp.isExpired ? '[EXPIRAT - BLOCAT] ' : ''}
                         {emp.lastName} {emp.firstName} — {emp.currentJob?.title || 'Fără post'}
                         {exp.isExpired ? ` (${exp.badgeText})` : ''}
                       </option>
@@ -1078,7 +1078,7 @@ function DocumentGeneratorContent() {
 
                               <div>
                                 <span className={`text-[10px] px-2 py-0.5 rounded-full border ${exp.badgeClass}`}>
-                                  {exp.isExpired ? `🚫 ${exp.badgeText}` : exp.badgeText}
+                                  {exp.badgeText}
                                 </span>
                               </div>
                             </div>

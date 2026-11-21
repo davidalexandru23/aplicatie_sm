@@ -1,35 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyPassword, signSessionToken, SESSION_COOKIE_NAME } from '@/lib/auth';
+import { verifyPassword, signSessionToken, SESSION_COOKIE_NAME, UserRole } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password } = body;
+    const { username, email, password, role } = body;
 
-    if (!email || !password) {
+    const identifier = String(username || email || '').trim();
+    if (!identifier || !password) {
       return NextResponse.json(
-        { error: 'Emailul și parola sunt obligatorii.' },
+        { error: 'Utilizatorul și parola sunt obligatorii.' },
         { status: 400 }
       );
     }
 
-    const cleanEmail = String(email).trim().toLowerCase();
-    const user = await prisma.user.findUnique({
-      where: { email: cleanEmail },
-    });
+    // Găsim utilizatorul după username/email și rol (dacă este specificat)
+    let user = null;
+    if (role) {
+      user = await prisma.user.findFirst({
+        where: {
+          role: role as UserRole,
+          OR: [
+            { username: identifier },
+            { email: identifier.toLowerCase() },
+          ],
+          isActive: true,
+        },
+      });
+    }
+
+    if (!user) {
+      user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { username: identifier },
+            { email: identifier.toLowerCase() },
+          ],
+          isActive: true,
+        },
+        orderBy: { role: 'asc' },
+      });
+    }
 
     if (!user || !user.isActive) {
       return NextResponse.json(
-        { error: 'Credențiale invalide sau cont dezactivat.' },
+        { error: 'Utilizator sau parolă incorectă.' },
         { status: 401 }
       );
     }
 
-    const isValid = verifyPassword(password, user.passwordHash);
+    const isValid = verifyPassword(String(password), user.passwordHash);
     if (!isValid) {
       return NextResponse.json(
-        { error: 'Emailul sau parola introdusă este incorectă.' },
+        { error: 'Utilizatorul sau parola introdusă este incorectă.' },
         { status: 401 }
       );
     }
@@ -51,6 +75,7 @@ export async function POST(request: NextRequest) {
       success: true,
       user: {
         id: user.id,
+        username: user.username,
         email: user.email,
         name: user.name,
         role: user.role,

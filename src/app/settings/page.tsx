@@ -20,6 +20,8 @@ import {
   Star,
   Sparkles,
   X,
+  Lock,
+  KeyRound,
 } from 'lucide-react';
 
 interface Specialist {
@@ -85,6 +87,51 @@ export default function SettingsProviderPage() {
   const [savingProvider, setSavingProvider] = useState(false);
   const [providerSuccessMessage, setProviderSuccessMessage] = useState<string | null>(null);
   const [providerErrorMessage, setProviderErrorMessage] = useState<string | null>(null);
+
+  // Stare Schimbare Parolă
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError(null);
+    setPasswordSuccess(null);
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Noua parolă și confirmarea parolei nu coincid.');
+      return;
+    }
+    if (newPassword.length < 4) {
+      setPasswordError('Noua parolă trebuie să conțină cel puțin 4 caractere.');
+      return;
+    }
+
+    setPasswordLoading(true);
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Eroare la schimbarea parolei.');
+      }
+      setPasswordSuccess('Parola contului a fost modificată cu succes.');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setPasswordSuccess(null), 5000);
+    } catch (err: any) {
+      setPasswordError(err.message);
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
 
   // Provider Form State
   const [providerForm, setProviderForm] = useState<ProviderData>({
@@ -1338,6 +1385,102 @@ export default function SettingsProviderPage() {
       )}
         </>
       )}
+
+      {/* SECȚIUNE: SECURITATE & SCHIMBARE PAROLĂ CONT (UNIVERSALĂ PENTRU TOATE ROLURILE) */}
+      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-5">
+        <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <KeyRound className="w-5 h-5 text-blue-600" />
+              <span>Securitate Cont &amp; Schimbare Parolă</span>
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Actualizați parola contului curent (nume utilizator: <strong className="text-slate-800 font-mono">dev</strong>).
+            </p>
+          </div>
+          <span className="text-xs font-semibold px-2.5 py-1 rounded bg-slate-100 text-slate-700 border border-slate-200">
+            Rol activ: {currentUserRole || 'Utilizator'}
+          </span>
+        </div>
+
+        {passwordSuccess && (
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold p-4 rounded-xl flex items-center gap-2 shadow-sm">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{passwordSuccess}</span>
+          </div>
+        )}
+
+        {passwordError && (
+          <div className="bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold p-4 rounded-xl flex items-center gap-2 shadow-sm">
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <span>{passwordError}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleChangePassword} className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+              Parola Curentă *
+            </label>
+            <input
+              type="password"
+              required
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="Introduceți parola curentă"
+              className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+              Parola Nouă *
+            </label>
+            <input
+              type="password"
+              required
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Minim 4 caractere"
+              className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+              Confirmare Parolă Nouă *
+            </label>
+            <input
+              type="password"
+              required
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Reintroduceți noua parolă"
+              className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <div className="md:col-span-3 pt-2 flex items-center justify-start">
+            <button
+              type="submit"
+              disabled={passwordLoading}
+              className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs px-4 py-2.5 rounded-lg shadow-sm transition disabled:opacity-50 cursor-pointer"
+            >
+              {passwordLoading ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Se actualizează parola...</span>
+                </>
+              ) : (
+                <>
+                  <Lock className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Actualizează Parola</span>
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

@@ -459,7 +459,7 @@ export default async function ClientDetailPage({
           </div>
           <div className="flex items-center gap-3">
             <div className="text-xs text-slate-500 hidden md:block">
-              {isSsmRole ? '🔒 Date de identitate protejate (Modul SSM)' : 'CNP mascat conform GDPR • Verificare automată HG 355/2007, Legea 319/2006'}
+              {isSsmRole ? 'Date de identitate protejate (Modul SSM)' : 'CNP mascat conform GDPR • Verificare automată HG 355/2007, Legea 319/2006'}
             </div>
             <AddEmployeeModal clientId={client.id} jobs={client.jobs} worksites={client.worksites} isSsmRole={isSsmRole} />
           </div>
@@ -516,7 +516,7 @@ export default async function ClientDetailPage({
                         </div>
                         <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
                           {isSsmRole ? (
-                            <span className="font-mono text-slate-400">🔒 Date protejate (SSM)</span>
+                            <span className="font-mono text-slate-400">Date protejate (SSM)</span>
                           ) : (
                             <span className="font-mono">{emp.cnp || '—'}</span>
                           )}

@@ -13,10 +13,12 @@ import {
   ChevronDown, 
   LogOut, 
   RefreshCw,
-  Check
+  Check,
+  KeyRound,
 } from 'lucide-react';
 import { UserRole } from '@/lib/auth';
 import { ROLE_CONFIG, RoleMeta } from '@/lib/rbac';
+import { ChangePasswordModal } from '@/components/change-password-modal';
 
 interface NavbarProps {
   currentUser?: {
@@ -32,6 +34,7 @@ export function Navbar({ currentUser }: NavbarProps) {
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSwitching, setIsSwitching] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   // Dacă utilizatorul este pe pagina de login, ascundem navbar-ul
   if (pathname === '/login') {
@@ -82,7 +85,7 @@ export function Navbar({ currentUser }: NavbarProps) {
 
   return (
     <header className="bg-slate-900 text-white shadow-md sticky top-0 z-50 border-b border-slate-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
         {/* Logo & Platform Name */}
         <div className="flex items-center space-x-6">
           <Link href={role === 'IGIENA' ? '/hygiene' : '/'} className="font-bold text-lg tracking-tight flex items-center gap-2">
@@ -215,13 +218,13 @@ export function Navbar({ currentUser }: NavbarProps) {
               <div className="absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-2 z-50 text-xs">
                 <div className="px-3 py-2 border-b border-slate-800">
                   <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                    Comutare Rapidă Rol (RBAC)
+                    Comutare Rol de Acces
                   </div>
                   <div className="text-xs text-slate-200 font-bold mt-0.5">
                     {currentUser?.name || 'Utilizator Conectat'}
                   </div>
-                  <div className="text-[11px] text-slate-400 truncate">
-                    {currentUser?.email}
+                  <div className="text-[11px] text-slate-400 font-mono">
+                    utilizator: dev
                   </div>
                 </div>
 
@@ -252,13 +255,24 @@ export function Navbar({ currentUser }: NavbarProps) {
                   })}
                 </div>
 
-                <div className="p-1.5 border-t border-slate-800">
+                <div className="p-1.5 border-t border-slate-800 space-y-0.5">
+                  <button
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      setIsPasswordModalOpen(true);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition text-left font-medium"
+                  >
+                    <KeyRound className="w-3.5 h-3.5 text-blue-400" />
+                    <span>Schimbă Parola</span>
+                  </button>
+
                   <button
                     onClick={handleLogout}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-400 hover:bg-red-950/40 hover:text-red-300 transition text-left font-medium"
                   >
                     <LogOut className="w-3.5 h-3.5" />
-                    <span>Deconectare (Logout)</span>
+                    <span>Deconectare</span>
                   </button>
                 </div>
               </div>
@@ -266,6 +280,13 @@ export function Navbar({ currentUser }: NavbarProps) {
           </div>
         </div>
       </div>
+
+      <ChangePasswordModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+        userName={currentUser?.name}
+        userRole={roleMeta.label}
+      />
     </header>
   );
 }

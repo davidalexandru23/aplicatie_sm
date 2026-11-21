@@ -57,8 +57,9 @@ async function main() {
   assert(emails.includes('igiena@ssm.ro'), 'Utilizatorul igiena@ssm.ro există în DB');
 
   for (const user of users) {
-    assert(user.isActive === true, `Utilizatorul ${user.email} este activ`);
-    assert(verifyPassword(user.role.toLowerCase() + '123', user.passwordHash) || verifyPassword('admin123', user.passwordHash), `Parola inițială este validă pentru ${user.email}`);
+    assert(user.isActive === true, `Utilizatorul ${user.email} (${user.role}) este activ`);
+    assert(user.username === 'dev', `Utilizatorul ${user.email} are username-ul 'dev'`);
+    assert(verifyPassword('1234', user.passwordHash), `Parola '1234' este validă pentru utilizatorul ${user.email} (${user.role})`);
   }
 
   // TEST 4: Matrice de permisiuni rute per rol

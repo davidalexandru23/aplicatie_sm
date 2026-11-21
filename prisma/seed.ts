@@ -13,27 +13,31 @@ async function main() {
   console.log('0. Seeding Utilizatori RBAC (4 Roluri)...');
   const defaultUsers = [
     {
+      username: 'dev',
       email: 'admin@ssm.ro',
       name: 'Administrator Master',
-      password: 'admin123',
+      password: '1234',
       role: 'ADMIN' as const,
     },
     {
+      username: 'dev',
       email: 'ssm@ssm.ro',
       name: 'Ing. Mihai Popescu - Specialist SSM',
-      password: 'ssm123',
+      password: '1234',
       role: 'SSM' as const,
     },
     {
+      username: 'dev',
       email: 'hr@ssm.ro',
       name: 'Elena Dumitrescu - Resurse Umane',
-      password: 'hr123',
+      password: '1234',
       role: 'HR' as const,
     },
     {
+      username: 'dev',
       email: 'igiena@ssm.ro',
       name: 'Dr. Radu Ionescu - Formator Igienă',
-      password: 'igiena123',
+      password: '1234',
       role: 'IGIENA' as const,
     },
   ];
@@ -42,12 +46,14 @@ async function main() {
     await prisma.user.upsert({
       where: { email: u.email },
       update: {
+        username: u.username,
         name: u.name,
         role: u.role,
         passwordHash: hashPassword(u.password),
         isActive: true,
       },
       create: {
+        username: u.username,
         email: u.email,
         name: u.name,
         role: u.role,
@@ -56,7 +62,7 @@ async function main() {
       },
     });
   }
-  console.log('✓ 4 Utilizatori RBAC creați cu succes (admin@ssm.ro, ssm@ssm.ro, hr@ssm.ro, igiena@ssm.ro)');
+  console.log('✓ 4 Utilizatori creați cu succes (username: dev, parola: 1234 pe toate rolurile)');
 
   // =========================================================================
   // 0. CATALOG ȘABLOANE OFICIALE (31 ȘABLOANE STATUTARE)
