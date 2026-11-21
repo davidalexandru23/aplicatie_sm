@@ -8,6 +8,7 @@ import * as XLSX from 'xlsx';
 import { prisma } from '../prisma';
 import { logAuditEvent } from '../security';
 import { TEMPLATE_CATALOG, TemplateDefinition, TemplateFieldDef } from './definitions';
+import { buildHygieneCatalogWorkbook, buildHygieneParticipantsTableWorkbook } from './hygiene-excel';
 
 const STORAGE_DOCS_DIR = path.join(process.cwd(), 'storage', 'documents');
 
@@ -532,6 +533,16 @@ export async function renderTemplateBuffer(
 
     return Buffer.from(await pdfDoc.save());
   } else if (templateFormat === 'xlsx') {
+    const filename = templateFilename || path.basename(templateFilePath);
+    if (filename === 'Anexe Curs igiena.xlsx') {
+      const wb = buildHygieneCatalogWorkbook(data);
+      return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    }
+    if (filename === 'Tabel Cursanti exemplu.xlsx') {
+      const wb = buildHygieneParticipantsTableWorkbook(data);
+      return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    }
+
     const fileBuffer = fs.readFileSync(templateFilePath);
     const wb = XLSX.read(fileBuffer, { type: 'buffer', cellDates: false });
     let participants = Array.isArray(data.participants)
