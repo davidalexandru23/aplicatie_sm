@@ -17,7 +17,9 @@
   "dependencies": {
     "@prisma/client": "^6.19.3",
     "@tailwindcss/postcss": "^4.3.3",
+    "@types/exceljs": "^0.5.3",
     "docxtemplater": "^3.71.1",
+    "exceljs": "^4.4.0",
     "lucide-react": "^1.66.0",
     "next": "16.4.6",
     "pdf-lib": "^1.17.1",

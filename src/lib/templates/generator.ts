@@ -536,11 +536,13 @@ export async function renderTemplateBuffer(
     const filename = templateFilename || path.basename(templateFilePath);
     if (filename === 'Anexe Curs igiena.xlsx') {
       const wb = buildHygieneCatalogWorkbook(data);
-      return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+      const arrayBuffer = await wb.xlsx.writeBuffer();
+      return Buffer.from(arrayBuffer);
     }
     if (filename === 'Tabel Cursanti exemplu.xlsx') {
       const wb = buildHygieneParticipantsTableWorkbook(data);
-      return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+      const arrayBuffer = await wb.xlsx.writeBuffer();
+      return Buffer.from(arrayBuffer);
     }
 
     const fileBuffer = fs.readFileSync(templateFilePath);
