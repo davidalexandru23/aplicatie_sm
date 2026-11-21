@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { maskCNP } from '@/lib/security';
+import { parseSessionFromCookieHeader } from '@/lib/auth';
 import { 
   calculateEmployeeCompliance, 
   calculateCompanyMetrics, 
@@ -53,6 +55,10 @@ export default async function ClientDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get('ssm_session')?.value;
+  const session = sessionCookie ? parseSessionFromCookieHeader(`ssm_session=${sessionCookie}`) : null;
+  const isSsmRole = session?.role === 'SSM';
 
   const [client, eipCatalog] = await Promise.all([
     prisma.client.findUnique({
@@ -216,13 +222,15 @@ export default async function ClientDetailPage({
             <Download className="w-4 h-4" />
             <span>Arhivă Inspecție ITM/ISU (ZIP)</span>
           </a>
-          <Link
-            href={`/imports/new?clientId=${client.id}`}
-            className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm transition"
-          >
-            <UploadCloud className="w-4 h-4" />
-            <span>Import / Actualizare Excel</span>
-          </Link>
+          {!isSsmRole && (
+            <Link
+              href={`/imports/new?clientId=${client.id}`}
+              className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm transition"
+            >
+              <UploadCloud className="w-4 h-4" />
+              <span>Import / Actualizare Excel</span>
+            </Link>
+          )}
           <Link
             href={`/documents/generate?clientId=${client.id}`}
             className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold px-4 py-2.5 rounded-lg transition"
@@ -451,9 +459,9 @@ export default async function ClientDetailPage({
           </div>
           <div className="flex items-center gap-3">
             <div className="text-xs text-slate-500 hidden md:block">
-              CNP mascat conform GDPR • Verificare automată HG 355/2007, Legea 319/2006
+              {isSsmRole ? '🔒 Date de identitate protejate (Modul SSM)' : 'CNP mascat conform GDPR • Verificare automată HG 355/2007, Legea 319/2006'}
             </div>
-            <AddEmployeeModal clientId={client.id} jobs={client.jobs} worksites={client.worksites} />
+            <AddEmployeeModal clientId={client.id} jobs={client.jobs} worksites={client.worksites} isSsmRole={isSsmRole} />
           </div>
         </div>
 
@@ -507,7 +515,11 @@ export default async function ClientDetailPage({
                           {emp.lastName} {emp.firstName}
                         </div>
                         <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
-                          <span className="font-mono">{emp.cnp || '—'}</span>
+                          {isSsmRole ? (
+                            <span className="font-mono text-slate-400">🔒 Date protejate (SSM)</span>
+                          ) : (
+                            <span className="font-mono">{emp.cnp || '—'}</span>
+                          )}
                           <span>•</span>
                           <span className="truncate max-w-[140px]">{emp.currentJob?.title || 'Fără post'}</span>
                         </div>
@@ -577,45 +589,49 @@ export default async function ClientDetailPage({
                               <ManageEipModal clientId={client.id} employee={emp as any} eipCatalog={eipCatalog} />
                               <RecordMedicalExamModal employee={emp} />
                               <ManageHygieneModulesModal employee={emp as any} />
-                              <EditEmployeeModal employeeId={emp.id} employeeName={`${emp.lastName} ${emp.firstName}`} jobs={client.jobs} worksites={client.worksites} />
-                              <TerminateEmployeeModal employee={emp} />
-                              <Link
-                                href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-cerere-angajare`}
-                                className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
-                                title="Generează cerere de angajare"
-                              >
-                                Cerere
-                              </Link>
-                              <Link
-                                href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-declaratie-regulament`}
-                                className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
-                                title="Generează declarație regulament intern"
-                              >
-                                Declarație RI
-                              </Link>
-                              <Link
-                                href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-cim-2026`}
-                                className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
-                                title="Generează CIM 2026"
-                              >
-                                CIM
-                              </Link>
-                              <a
-                                href={`/api/clients/${client.id}/packages/onboarding?employeeId=${emp.id}`}
-                                className="text-[11px] text-emerald-700 hover:text-emerald-900 font-semibold px-2 py-1 bg-emerald-50 hover:bg-emerald-100 rounded inline-flex items-center gap-1 border border-emerald-200"
-                                title="Descarcă dosar complet de onboarding salariat (11 documente DOCX în ZIP)"
-                                download
-                              >
-                                <Download className="w-3 h-3" />
-                                <span>Onboarding ZIP</span>
-                              </a>
+                              <EditEmployeeModal employeeId={emp.id} employeeName={`${emp.lastName} ${emp.firstName}`} jobs={client.jobs} worksites={client.worksites} isSsmRole={isSsmRole} />
+                              {!isSsmRole && <TerminateEmployeeModal employee={emp} />}
+                              {!isSsmRole && (
+                                <>
+                                  <Link
+                                    href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-cerere-angajare`}
+                                    className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
+                                    title="Generează cerere de angajare"
+                                  >
+                                    Cerere
+                                  </Link>
+                                  <Link
+                                    href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-declaratie-regulament`}
+                                    className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
+                                    title="Generează declarație regulament intern"
+                                  >
+                                    Declarație RI
+                                  </Link>
+                                  <Link
+                                    href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-cim-2026`}
+                                    className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
+                                    title="Generează CIM 2026"
+                                  >
+                                    CIM
+                                  </Link>
+                                  <a
+                                    href={`/api/clients/${client.id}/packages/onboarding?employeeId=${emp.id}`}
+                                    className="text-[11px] text-emerald-700 hover:text-emerald-900 font-semibold px-2 py-1 bg-emerald-50 hover:bg-emerald-100 rounded inline-flex items-center gap-1 border border-emerald-200"
+                                    title="Descarcă dosar complet de onboarding salariat (11 documente DOCX în ZIP)"
+                                    download
+                                  >
+                                    <Download className="w-3 h-3" />
+                                    <span>Onboarding ZIP</span>
+                                  </a>
+                                </>
+                              )}
                             </>
                           ) : (
                             <>
                               <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-1 rounded border border-rose-200">
                                 PLECAT: {formatRoDate(emp.leaveDate)}
                               </span>
-                              <EditEmployeeModal employeeId={emp.id} employeeName={`${emp.lastName} ${emp.firstName}`} jobs={client.jobs} worksites={client.worksites} />
+                              <EditEmployeeModal employeeId={emp.id} employeeName={`${emp.lastName} ${emp.firstName}`} jobs={client.jobs} worksites={client.worksites} isSsmRole={isSsmRole} />
                               <span
                                 className="text-[11px] text-slate-400 bg-slate-100 px-2 py-1 rounded border border-slate-200 cursor-not-allowed"
                                 title="Generarea documentelor este interzisă pentru salariați plecați"

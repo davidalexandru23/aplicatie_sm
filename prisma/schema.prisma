@@ -703,3 +703,28 @@ model EmployeeEipAssignment {
 
   @@unique([employeeId, eipItemId])
 }
+
+// ==========================================
+// 8. UTILIZATORI & ROLURI RBAC
+// ==========================================
+
+enum UserRole {
+  ADMIN
+  SSM
+  HR
+  IGIENA
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  name         String    // Nume afișat (ex: "Administrator", "Specialist SSM")
+  passwordHash String    // Hash securizat (scrypt)
+  role         UserRole  @default(ADMIN)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([role])
+}

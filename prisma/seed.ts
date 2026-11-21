@@ -1,10 +1,62 @@
 import { PrismaClient } from '@prisma/client';
 import { seedTemplates } from '../src/lib/templates/seed';
+import { hashPassword } from '../src/lib/auth';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('--- Inițializare Seed Bază de Date SSM (Milestone 1) ---');
+
+  // =========================================================================
+  // 0. UTILIZATORI RBAC (ADMIN, SSM, HR, IGIENA)
+  // =========================================================================
+  console.log('0. Seeding Utilizatori RBAC (4 Roluri)...');
+  const defaultUsers = [
+    {
+      email: 'admin@ssm.ro',
+      name: 'Administrator Master',
+      password: 'admin123',
+      role: 'ADMIN' as const,
+    },
+    {
+      email: 'ssm@ssm.ro',
+      name: 'Ing. Mihai Popescu - Specialist SSM',
+      password: 'ssm123',
+      role: 'SSM' as const,
+    },
+    {
+      email: 'hr@ssm.ro',
+      name: 'Elena Dumitrescu - Resurse Umane',
+      password: 'hr123',
+      role: 'HR' as const,
+    },
+    {
+      email: 'igiena@ssm.ro',
+      name: 'Dr. Radu Ionescu - Formator Igienă',
+      password: 'igiena123',
+      role: 'IGIENA' as const,
+    },
+  ];
+
+  for (const u of defaultUsers) {
+    await prisma.user.upsert({
+      where: { email: u.email },
+      update: {
+        name: u.name,
+        role: u.role,
+        passwordHash: hashPassword(u.password),
+        isActive: true,
+      },
+      create: {
+        email: u.email,
+        name: u.name,
+        role: u.role,
+        passwordHash: hashPassword(u.password),
+        isActive: true,
+      },
+    });
+  }
+  console.log('✓ 4 Utilizatori RBAC creați cu succes (admin@ssm.ro, ssm@ssm.ro, hr@ssm.ro, igiena@ssm.ro)');
 
   // =========================================================================
   // 0. CATALOG ȘABLOANE OFICIALE (31 ȘABLOANE STATUTARE)

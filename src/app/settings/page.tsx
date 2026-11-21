@@ -81,6 +81,7 @@ interface ProviderData {
 
 export default function SettingsProviderPage() {
   const [loading, setLoading] = useState(true);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [savingProvider, setSavingProvider] = useState(false);
   const [providerSuccessMessage, setProviderSuccessMessage] = useState<string | null>(null);
   const [providerErrorMessage, setProviderErrorMessage] = useState<string | null>(null);
@@ -148,11 +149,22 @@ export default function SettingsProviderPage() {
   const [deletingSpecialist, setDeletingSpecialist] = useState<Specialist | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Fetch initial provider data
+  // Fetch initial provider data & current user role
   const loadProviderData = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/settings/provider');
+      const [resAuth, res] = await Promise.all([
+        fetch('/api/auth/me'),
+        fetch('/api/settings/provider'),
+      ]);
+
+      if (resAuth.ok) {
+        const authData = await resAuth.json();
+        if (authData.user?.role) {
+          setCurrentUserRole(authData.user.role);
+        }
+      }
+
       if (res.ok) {
         const data = await res.json();
         setProviderForm({
@@ -363,19 +375,38 @@ export default function SettingsProviderPage() {
       <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-              Serviciu Extern de Prevenire și Protecție (SEPP)
+            <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+              currentUserRole === 'IGIENA'
+                ? 'bg-emerald-100 text-emerald-800'
+                : 'bg-blue-100 text-blue-700'
+            }`}>
+              {currentUserRole === 'IGIENA'
+                ? 'Furnizor Formare Igienă (Ord. MS/ME 2209/2022)'
+                : 'Serviciu Extern de Prevenire și Protecție (SEPP)'}
             </span>
             <span className="text-xs text-slate-500 font-medium">
-              Conform Legii nr. 319/2006 & HG nr. 1425/2006
+              {currentUserRole === 'IGIENA'
+                ? 'Avize MS / ME & Înregistrare DSP'
+                : 'Conform Legii nr. 319/2006 & HG nr. 1425/2006'}
             </span>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight mt-2 flex items-center gap-2">
-            <Building2 className="w-6 h-6 text-blue-600" />
-            <span>Setări Profil Prestator SSM & Specialiști Desemnați</span>
+            {currentUserRole === 'IGIENA' ? (
+              <>
+                <Sparkles className="w-6 h-6 text-emerald-600" />
+                <span>Setări Profil Prestator Formare Igienă & Comisie DSP</span>
+              </>
+            ) : (
+              <>
+                <Building2 className="w-6 h-6 text-blue-600" />
+                <span>Setări Profil Prestator SSM & Specialiști Desemnați</span>
+              </>
+            )}
           </h1>
           <p className="text-xs text-slate-500 mt-1 max-w-2xl">
-            Datele de identificare și acreditarea ITM configurate aici sunt utilizate la emiterea automată a documentelor SSM, deciziilor angajatorului și fișelor de instruire pentru toți clienții din sistem.
+            {currentUserRole === 'IGIENA'
+              ? 'Datele furnizorului de pregătire profesională în igienă, avizele ministeriale și membrii comisiei DSP configurate aici sunt utilizate la generarea cataloagelor, proceselor verbale de examen și adeverințelor DSP.'
+              : 'Datele de identificare și acreditarea ITM configurate aici sunt utilizate la emiterea automată a documentelor SSM, deciziilor angajatorului și fișelor de instruire pentru toți clienții din sistem.'}
           </p>
         </div>
 
@@ -415,8 +446,10 @@ export default function SettingsProviderPage() {
 
       {/* Main Two-Column Grid: Corporate Profile & ITM Accreditation */}
       <form onSubmit={handleSaveProvider} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Column 1 & 2: Corporate Profile */}
-        <div className="lg:col-span-2 space-y-6">
+        {currentUserRole !== 'IGIENA' && (
+          <>
+            {/* Column 1 & 2: Corporate Profile */}
+            <div className="lg:col-span-2 space-y-6">
           <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-5">
             <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
               <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
@@ -729,10 +762,13 @@ export default function SettingsProviderPage() {
             </div>
           </div>
         </div>
+        </>
+      )}
 
-        {/* ========================================================= */}
-        {/* SECȚIUNE SEPARATĂ: SETĂRI & GENERARE DOCUMENTE IGIENĂ */}
-        {/* ========================================================= */}
+      {/* ========================================================= */}
+      {/* SECȚIUNE SEPARATĂ: SETĂRI & GENERARE DOCUMENTE IGIENĂ */}
+      {/* ========================================================= */}
+      {(currentUserRole === 'IGIENA' || currentUserRole === 'ADMIN') && (
         <div className="bg-white border-2 border-emerald-200/80 rounded-xl p-6 shadow-sm space-y-6 col-span-full lg:col-span-3 w-full">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-emerald-100 pb-4">
             <div>
@@ -956,10 +992,13 @@ export default function SettingsProviderPage() {
             </p>
           </div>
         </div>
+      )}
       </form>
 
       {/* Specialist Team Management Card (Full Width) */}
-      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-5">
+      {currentUserRole !== 'IGIENA' && (
+        <>
+          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
@@ -1296,6 +1335,8 @@ export default function SettingsProviderPage() {
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

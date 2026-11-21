@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { validateCNP } from '@/lib/importer';
 import { calculateEmployeeCompliance } from '@/lib/compliance';
+import { parseSessionFromCookieHeader } from '@/lib/auth';
+import { sanitizeEmployeeForRole } from '@/lib/rbac';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,7 +40,12 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(employees);
+    const cookieHeader = request.headers.get('cookie');
+    const session = parseSessionFromCookieHeader(cookieHeader);
+    const role = session?.role || 'ADMIN';
+    const sanitized = employees.map((emp) => sanitizeEmployeeForRole(emp, role));
+
+    return NextResponse.json(sanitized);
   } catch (err: unknown) {
     console.error('GET /api/employees error:', err);
     return NextResponse.json(

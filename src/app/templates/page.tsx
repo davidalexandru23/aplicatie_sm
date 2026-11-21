@@ -1,13 +1,24 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
+import { parseSessionFromCookieHeader } from '@/lib/auth';
 import { FileText, CheckCircle2, AlertCircle, FileCheck, Layers } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
 export default async function TemplatesPage() {
-  const templates = await prisma.template.findMany({
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get('ssm_session')?.value;
+  const session = sessionCookie ? parseSessionFromCookieHeader(`ssm_session=${sessionCookie}`) : null;
+  const isSsmRole = session?.role === 'SSM';
+
+  const allTemplates = await prisma.template.findMany({
     orderBy: [{ family: 'asc' }, { code: 'asc' }],
   });
+
+  const templates = isSsmRole
+    ? allTemplates.filter((t) => t.family !== 'hr')
+    : allTemplates;
 
   const familyLabels: Record<string, string> = {
     ipssm: 'Instrucțiuni Proprii SSM (IPSSM)',

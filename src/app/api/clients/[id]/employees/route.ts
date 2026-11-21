@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { calculateEmployeeCompliance } from '@/lib/compliance';
 import { Prisma } from '@prisma/client';
+import { parseSessionFromCookieHeader } from '@/lib/auth';
+import { sanitizeEmployeeForRole } from '@/lib/rbac';
 
 export async function GET(
   request: NextRequest,
@@ -161,7 +163,12 @@ export async function GET(
       compliance: calculateEmployeeCompliance(emp),
     }));
 
-    return NextResponse.json(enriched);
+    const cookieHeader = request.headers.get('cookie');
+    const session = parseSessionFromCookieHeader(cookieHeader);
+    const role = session?.role || 'ADMIN';
+    const sanitized = enriched.map((emp) => sanitizeEmployeeForRole(emp, role));
+
+    return NextResponse.json(sanitized);
   } catch (error) {
     console.error('Error fetching client employees:', error);
     return NextResponse.json(

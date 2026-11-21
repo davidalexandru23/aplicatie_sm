@@ -1,5 +1,8 @@
 import Link from 'next/link';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
+import { parseSessionFromCookieHeader } from '@/lib/auth';
 import { 
   Building2, 
   Users, 
@@ -12,7 +15,9 @@ import {
   Clock, 
   AlertCircle,
   ChevronRight,
-  ArrowRight
+  ArrowRight,
+  ShieldAlert as RiskIcon,
+  GraduationCap
 } from 'lucide-react';
 import { 
   calculateCompanyMetrics, 
@@ -26,6 +31,16 @@ import {
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get('ssm_session')?.value;
+  const session = sessionCookie ? parseSessionFromCookieHeader(`ssm_session=${sessionCookie}`) : null;
+
+  // IGIENA are acces dedicat pe modulul de igienă
+  if (session?.role === 'IGIENA') {
+    redirect('/hygiene');
+  }
+
+  const isSsmRole = session?.role === 'SSM';
   const [
     clientCount,
     employeeCount,
@@ -157,13 +172,23 @@ export default async function DashboardPage() {
             <Users className="w-4 h-4" />
             <span>Registru Salariați</span>
           </Link>
-          <Link
-            href="/imports/new"
-            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-4 py-2.5 rounded-lg shadow-sm transition"
-          >
-            <UploadCloud className="w-4 h-4" />
-            <span>Import Registru Excel</span>
-          </Link>
+          {!isSsmRole ? (
+            <Link
+              href="/imports/new"
+              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-4 py-2.5 rounded-lg shadow-sm transition"
+            >
+              <UploadCloud className="w-4 h-4" />
+              <span>Import Registru Excel</span>
+            </Link>
+          ) : (
+            <Link
+              href="/risk-assessments"
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 py-2.5 rounded-lg shadow-sm transition"
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>Evaluare Riscuri SSM</span>
+            </Link>
+          )}
           <Link
             href="/templates"
             className="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-4 py-2.5 rounded-lg transition"
@@ -486,44 +511,78 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Recent Imports */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
-                <UploadCloud className="w-4 h-4 text-emerald-600" />
-                <span>Istoric Importuri Registru</span>
-              </h2>
-              <Link href="/imports/new" className="text-xs text-blue-600 hover:underline font-medium">
-                Import nou
-              </Link>
-            </div>
+        {/* Recent Imports sau Modul SSM */}
+        {!isSsmRole ? (
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between">
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
+                  <UploadCloud className="w-4 h-4 text-emerald-600" />
+                  <span>Istoric Importuri Registru</span>
+                </h2>
+                <Link href="/imports/new" className="text-xs text-blue-600 hover:underline font-medium">
+                  Import nou
+                </Link>
+              </div>
 
-            {recentImports.length === 0 ? (
-              <div className="py-8 text-center text-slate-400 text-sm">
-                Nu s-a efectuat niciun import până în prezent.
-              </div>
-            ) : (
-              <div className="divide-y divide-slate-100">
-                {recentImports.map((imp) => (
-                  <div key={imp.id} className="py-3 flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-medium text-slate-900">
-                        {imp.filename}
+              {recentImports.length === 0 ? (
+                <div className="py-8 text-center text-slate-400 text-sm">
+                  Nu s-a efectuat niciun import până în prezent.
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {recentImports.map((imp) => (
+                    <div key={imp.id} className="py-3 flex items-center justify-between">
+                      <div>
+                        <div className="text-sm font-medium text-slate-900">
+                          {imp.filename}
+                        </div>
+                        <div className="text-xs text-slate-500 mt-0.5">
+                          {imp.client.name} • {imp.rowCount} rânduri • {imp.newCount} noi, {imp.updatedCount} actualizate
+                        </div>
                       </div>
-                      <div className="text-xs text-slate-500 mt-0.5">
-                        {imp.client.name} • {imp.rowCount} rânduri • {imp.newCount} noi, {imp.updatedCount} actualizate
-                      </div>
+                      <span className="text-xs text-slate-500">
+                        {new Date(imp.createdAt).toLocaleDateString('ro-RO')}
+                      </span>
                     </div>
-                    <span className="text-xs text-slate-500">
-                      {new Date(imp.createdAt).toLocaleDateString('ro-RO')}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between">
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <span>Panou Operațiuni SSM & Prevenire</span>
+                </h2>
+                <span className="text-xs text-slate-400 font-mono">Modul SSM</span>
+              </div>
+              <div className="space-y-3">
+                <div className="p-3.5 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-800">Evaluare Riscuri Profesionale</h3>
+                    <p className="text-[11px] text-slate-500">Fișe de evaluare riscuri pe locuri de muncă conform Legii 319/2006</p>
+                  </div>
+                  <Link href="/risk-assessments" className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded border border-emerald-200 hover:bg-emerald-100">
+                    Deschide
+                  </Link>
+                </div>
+                <div className="p-3.5 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-800">Instruiri & Tematici SSM</h3>
+                    <p className="text-[11px] text-slate-500">Fișe instruire individuală, tematici introductiv-generale și la locul de muncă</p>
+                  </div>
+                  <Link href="/trainings" className="text-xs font-semibold text-blue-700 bg-blue-50 px-3 py-1.5 rounded border border-blue-200 hover:bg-blue-100">
+                    Deschide
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

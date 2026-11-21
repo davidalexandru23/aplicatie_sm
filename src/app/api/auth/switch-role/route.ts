@@ -1,0 +1,65 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { signSessionToken, SESSION_COOKIE_NAME, UserRole } from '@/lib/auth';
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { targetRole } = body as { targetRole: UserRole };
+
+    if (!['ADMIN', 'SSM', 'HR', 'IGIENA'].includes(targetRole)) {
+      return NextResponse.json(
+        { error: 'Rol invalid.' },
+        { status: 400 }
+      );
+    }
+
+    // Găsim utilizatorul asociat rolului respectiv
+    const targetUser = await prisma.user.findFirst({
+      where: { role: targetRole, isActive: true },
+    }) || await prisma.user.findFirst({
+      where: { isActive: true },
+    });
+
+    if (!targetUser) {
+      return NextResponse.json(
+        { error: 'Nu a fost găsit un cont activ pentru acest rol.' },
+        { status: 404 }
+      );
+    }
+
+    const token = signSessionToken({
+      userId: targetUser.id,
+      email: targetUser.email,
+      name: targetUser.name,
+      role: targetRole,
+    });
+
+    const response = NextResponse.json({
+      success: true,
+      user: {
+        id: targetUser.id,
+        email: targetUser.email,
+        name: targetUser.name,
+        role: targetRole,
+      },
+    });
+
+    response.cookies.set({
+      name: SESSION_COOKIE_NAME,
+      value: token,
+      httpOnly: true,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    return response;
+  } catch (error: any) {
+    console.error('Switch role error:', error);
+    return NextResponse.json(
+      { error: 'Eroare la comutarea rolului.' },
+      { status: 500 }
+    );
+  }
+}

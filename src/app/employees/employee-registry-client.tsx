@@ -37,6 +37,8 @@ import {
   ManageHygieneModulesModal,
 } from '@/components/employees';
 
+import { UserRole } from '@/lib/auth';
+
 export interface EmployeeWithCompliance {
   id: string;
   firstName: string;
@@ -67,6 +69,7 @@ export interface EmployeeRegistryClientProps {
   }>;
   metrics: CompanyComplianceMetrics;
   initialStatus?: string;
+  userRole?: UserRole;
 }
 
 type TabType = 'ALL' | 'VALID' | 'UPCOMING' | 'OVERDUE' | 'MISSING' | 'PLECAT';
@@ -76,6 +79,7 @@ function EmployeeRegistryInner({
   clients,
   metrics,
   initialStatus,
+  userRole = 'ADMIN',
 }: EmployeeRegistryClientProps) {
   const searchParams = useSearchParams();
 
@@ -231,13 +235,15 @@ function EmployeeRegistryInner({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <AddEmployeeModal clients={clients} />
-          <Link
-            href="/imports/new"
-            className="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition"
-          >
-            <span>Import Registru Excel</span>
-          </Link>
+          <AddEmployeeModal clients={clients} isSsmRole={userRole === 'SSM'} />
+          {userRole !== 'SSM' && (
+            <Link
+              href="/imports/new"
+              className="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition"
+            >
+              <span>Import Registru Excel</span>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -466,13 +472,21 @@ function EmployeeRegistryInner({
                           {emp.lastName} {emp.firstName}
                         </div>
                         <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
-                          <span className="font-mono">{emp.cnp || '—'}</span>
-                          {emp.identityDocument && (
+                          {userRole === 'SSM' ? (
+                            <span className="text-[10px] text-slate-400 italic bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                              🔒 Date identitate protejate (SSM)
+                            </span>
+                          ) : (
                             <>
-                              <span>•</span>
-                              <span>
-                                {emp.identityDocument.docType} {emp.identityDocument.series || ''} {emp.identityDocument.number}
-                              </span>
+                              <span className="font-mono">{emp.cnp || '—'}</span>
+                              {emp.identityDocument && (
+                                <>
+                                  <span>•</span>
+                                  <span>
+                                    {emp.identityDocument.docType} {emp.identityDocument.series || ''} {emp.identityDocument.number}
+                                  </span>
+                                </>
+                              )}
                             </>
                           )}
                         </div>
@@ -571,7 +585,7 @@ function EmployeeRegistryInner({
                             <>
                               <RecordMedicalExamModal employee={emp} />
                               <ManageHygieneModulesModal employee={emp as any} />
-                              <EditEmployeeModal employeeId={emp.id} employeeName={emp.fullName} />
+                              <EditEmployeeModal employeeId={emp.id} employeeName={emp.fullName} isSsmRole={userRole === 'SSM'} />
                               <TerminateEmployeeModal employee={emp} />
                               <a
                                 href={`/api/clients/${emp.client.id}/packages/onboarding?employeeId=${emp.id}`}
@@ -595,7 +609,7 @@ function EmployeeRegistryInner({
                               <span className="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200">
                                 PLECAT: {formatRoDate(emp.leaveDate)}
                               </span>
-                              <EditEmployeeModal employeeId={emp.id} employeeName={emp.fullName} />
+                              <EditEmployeeModal employeeId={emp.id} employeeName={emp.fullName} isSsmRole={userRole === 'SSM'} />
                               <span
                                 className="inline-flex items-center gap-1 text-[11px] text-slate-400 bg-slate-100 font-medium px-2 py-1.5 rounded border border-slate-200 cursor-not-allowed"
                                 title="Generarea este blocată pentru salariați cu contract încetat"

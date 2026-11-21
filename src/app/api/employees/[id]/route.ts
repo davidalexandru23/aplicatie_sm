@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { validateCNP } from '@/lib/importer';
 import { calculateEmployeeCompliance } from '@/lib/compliance';
+import { parseSessionFromCookieHeader } from '@/lib/auth';
+import { sanitizeEmployeeForRole } from '@/lib/rbac';
 
 export async function GET(
   request: NextRequest,
@@ -72,12 +74,14 @@ export async function GET(
 
     const compliance = calculateEmployeeCompliance(employee);
 
+    const cookieHeader = request.headers.get('cookie');
+    const session = parseSessionFromCookieHeader(cookieHeader);
+    const role = session?.role || 'ADMIN';
+    const sanitized = sanitizeEmployeeForRole({ ...employee, compliance }, role);
+
     return NextResponse.json({
       success: true,
-      employee: {
-        ...employee,
-        compliance,
-      },
+      employee: sanitized,
     });
   } catch (error) {
     console.error('Eroare la citirea profilului salariatului:', error);
@@ -164,9 +168,14 @@ export async function PUT(
       residenceAddress,
     } = body;
 
-    // CNP Mutation Guard
+    const cookieHeader = request.headers.get('cookie');
+    const session = parseSessionFromCookieHeader(cookieHeader);
+    const role = session?.role || 'ADMIN';
+    const isSsm = role === 'SSM';
+
+    // CNP Mutation Guard (SSM cannot mutate or access CNP)
     let finalCnp = existing.cnp;
-    if (cnp !== undefined) {
+    if (!isSsm && cnp !== undefined) {
       const cleanCnp = cnp ? cnp.trim() : null;
       if (cleanCnp && cleanCnp !== existing.cnp) {
         if (!validateCNP(cleanCnp)) {
@@ -250,14 +259,14 @@ export async function PUT(
           hireDate: hireDate !== undefined ? (hireDate ? new Date(hireDate) : null) : undefined,
           currentJobId: currentJobId !== undefined ? currentJobId || null : undefined,
           currentWorksiteId: currentWorksiteId !== undefined ? currentWorksiteId || null : undefined,
-          cimNumber: cimNumber !== undefined ? cimNumber : undefined,
-          cimDate: cimDate !== undefined ? (cimDate ? new Date(cimDate) : null) : undefined,
-          grossSalary: grossSalary !== undefined ? (grossSalary !== null ? Number(grossSalary) : null) : undefined,
+          cimNumber: !isSsm && cimNumber !== undefined ? cimNumber : undefined,
+          cimDate: !isSsm && cimDate !== undefined ? (cimDate ? new Date(cimDate) : null) : undefined,
+          grossSalary: !isSsm && grossSalary !== undefined ? (grossSalary !== null ? Number(grossSalary) : null) : undefined,
           workNorm: workNorm !== undefined ? Number(workNorm) : undefined,
           probationDays: probationDays !== undefined ? Number(probationDays) : undefined,
           annualLeaveDays: annualLeaveDays !== undefined ? Number(annualLeaveDays) : undefined,
-          bankIban: bankIban !== undefined ? bankIban : undefined,
-          bankName: bankName !== undefined ? bankName : undefined,
+          bankIban: !isSsm && bankIban !== undefined ? bankIban : undefined,
+          bankName: !isSsm && bankName !== undefined ? bankName : undefined,
           bloodType: bloodType !== undefined ? bloodType : undefined,
           rhFactor: rhFactor !== undefined ? rhFactor : undefined,
           qualification: qualification !== undefined ? qualification : undefined,
@@ -396,11 +405,12 @@ export async function PUT(
     });
 
     const compliance = calculateEmployeeCompliance(fullEmployee || updatedEmployee);
+    const sanitizedEmployee = sanitizeEmployeeForRole(fullEmployee || updatedEmployee, role);
 
     return NextResponse.json({
       success: true,
-      employee: fullEmployee,
-      data: fullEmployee,
+      employee: sanitizedEmployee,
+      data: sanitizedEmployee,
       compliance,
     });
   } catch (error) {

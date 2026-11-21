@@ -13,6 +13,7 @@ export interface EditEmployeeModalProps {
   triggerClassName?: string;
   triggerIcon?: boolean;
   onSuccess?: () => void;
+  isSsmRole?: boolean;
 }
 
 type TabKey = 'identity' | 'contract' | 'address' | 'ssm';
@@ -26,6 +27,7 @@ export function EditEmployeeModal({
   triggerClassName,
   triggerIcon = false,
   onSuccess,
+  isSsmRole = false,
 }: EditEmployeeModalProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -371,14 +373,20 @@ export function EditEmployeeModal({
                         <label className="block text-xs font-semibold text-slate-700 mb-1">
                           CNP <span className="text-slate-400 font-normal">(opțional)</span>
                         </label>
-                        <input
-                          type="text"
-                          name="cnp"
-                          maxLength={13}
-                          value={formData.cnp}
-                          onChange={handleChange}
-                          className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
-                        />
+                        {isSsmRole ? (
+                          <div className="w-full text-xs px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-500 italic">
+                            🔒 Date de identitate protejate (Fără acces CNP pentru rolul SSM)
+                          </div>
+                        ) : (
+                          <input
+                            type="text"
+                            name="cnp"
+                            maxLength={13}
+                            value={formData.cnp}
+                            onChange={handleChange}
+                            className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                          />
+                        )}
                       </div>
                       <div>
                         <label className="block text-xs font-semibold text-slate-700 mb-1">Sex</label>
@@ -515,95 +523,107 @@ export function EditEmployeeModal({
                           className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">Număr CIM</label>
-                        <input
-                          type="text"
-                          name="cimNumber"
-                          value={formData.cimNumber}
-                          onChange={handleChange}
-                          className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">Data CIM</label>
-                        <input
-                          type="date"
-                          name="cimDate"
-                          value={formData.cimDate}
-                          onChange={handleChange}
-                          className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
+                      {!isSsmRole && (
+                        <>
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Număr CIM</label>
+                            <input
+                              type="text"
+                              name="cimNumber"
+                              value={formData.cimNumber}
+                              onChange={handleChange}
+                              className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Data CIM</label>
+                            <input
+                              type="date"
+                              name="cimDate"
+                              value={formData.cimDate}
+                              onChange={handleChange}
+                              className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                        </>
+                      )}
                     </div>
 
-                    <div className="grid grid-cols-4 gap-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">Salariu Brut (RON)</label>
-                        <input
-                          type="number"
-                          name="grossSalary"
-                          value={formData.grossSalary}
-                          onChange={handleChange}
-                          className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
+                    {isSsmRole ? (
+                      <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg text-xs text-blue-800">
+                        🛡️ <strong>Notă rol SSM:</strong> Detaliile financiare și contractuale (salariu brut, cont bancar, număr CIM) sunt confidențiale HR și nu sunt accesibile rolului de Securitate a Muncii.
                       </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">Normă (ore/zi)</label>
-                        <input
-                          type="number"
-                          name="workNorm"
-                          min={1}
-                          max={12}
-                          value={formData.workNorm}
-                          onChange={handleChange}
-                          className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">Probă (zile)</label>
-                        <input
-                          type="number"
-                          name="probationDays"
-                          value={formData.probationDays}
-                          onChange={handleChange}
-                          className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">Concediu (zile)</label>
-                        <input
-                          type="number"
-                          name="annualLeaveDays"
-                          value={formData.annualLeaveDays}
-                          onChange={handleChange}
-                          className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-4 gap-4">
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Salariu Brut (RON)</label>
+                            <input
+                              type="number"
+                              name="grossSalary"
+                              value={formData.grossSalary}
+                              onChange={handleChange}
+                              className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Normă (ore/zi)</label>
+                            <input
+                              type="number"
+                              name="workNorm"
+                              min={1}
+                              max={12}
+                              value={formData.workNorm}
+                              onChange={handleChange}
+                              className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Probă (zile)</label>
+                            <input
+                              type="number"
+                              name="probationDays"
+                              value={formData.probationDays}
+                              onChange={handleChange}
+                              className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Concediu (zile)</label>
+                            <input
+                              type="number"
+                              name="annualLeaveDays"
+                              value={formData.annualLeaveDays}
+                              onChange={handleChange}
+                              className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                        </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">Cont IBAN</label>
-                        <input
-                          type="text"
-                          name="bankIban"
-                          value={formData.bankIban}
-                          onChange={handleChange}
-                          className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">Bancă</label>
-                        <input
-                          type="text"
-                          name="bankName"
-                          value={formData.bankName}
-                          onChange={handleChange}
-                          className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Cont IBAN</label>
+                            <input
+                              type="text"
+                              name="bankIban"
+                              value={formData.bankIban}
+                              onChange={handleChange}
+                              className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">Bancă</label>
+                            <input
+                              type="text"
+                              name="bankName"
+                              value={formData.bankName}
+                              onChange={handleChange}
+                              className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
 
