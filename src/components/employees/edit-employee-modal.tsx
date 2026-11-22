@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Edit3, X, AlertCircle, RefreshCw, CheckCircle2, User, FileText, MapPin, Shield, Navigation, Download, Compass, Sparkles } from 'lucide-react';
+import { Edit3, X, AlertCircle, RefreshCw, CheckCircle2, User, FileText, MapPin, Shield, Navigation, Download, Compass } from 'lucide-react';
 import { UserRole } from '@/lib/rbac';
 
 export interface EditEmployeeModalProps {
@@ -1008,8 +1008,8 @@ export function EditEmployeeModal({
                     </div>
 
                     {/* Traseu de Deplasare la/de la Serviciu */}
-                    <div className="p-3.5 bg-gradient-to-br from-blue-50/70 to-indigo-50/40 border border-blue-200/90 rounded-lg space-y-3">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-blue-200/60 pb-2">
+                    <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
                         <div className="flex items-center gap-2">
                           <Navigation className="w-4 h-4 text-blue-600 flex-shrink-0" />
                           <div>
@@ -1114,10 +1114,10 @@ export function EditEmployeeModal({
                           <button
                             type="button"
                             onClick={handleSuggestRoute}
-                            className="text-[10px] text-blue-600 hover:text-blue-800 font-medium underline flex items-center gap-1 cursor-pointer"
+                            className="text-[10px] text-slate-600 hover:text-slate-900 font-medium flex items-center gap-1 cursor-pointer"
                           >
-                            <Sparkles className="w-3 h-3 text-amber-500" />
-                            <span>Sugerează traseu automat</span>
+                            <Navigation className="w-3 h-3 text-slate-500" />
+                            <span>Completează traseu recomandat</span>
                           </button>
                         </div>
                         <textarea

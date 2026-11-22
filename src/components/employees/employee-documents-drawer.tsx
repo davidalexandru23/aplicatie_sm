@@ -88,23 +88,23 @@ export function EmployeeDocumentsDrawer({
     : 'ssm-declaratie-traseu';
 
   return (
-    <div className="bg-slate-50 border border-blue-200/80 rounded-xl p-4 sm:p-5 shadow-inner space-y-4 animate-in fade-in duration-200">
+    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 space-y-4 animate-in fade-in duration-150">
       {/* 1. Header Bar: Informații Salariat & Comandă Rapidă */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/90">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0 font-bold text-xs">
+          <div className="w-8 h-8 rounded-md bg-slate-200 text-slate-700 border border-slate-300 flex items-center justify-center flex-shrink-0 font-bold text-xs select-none">
             {employee.lastName?.[0] || 'S'}{employee.firstName?.[0] || ''}
           </div>
           <div>
             <div className="flex items-center gap-2">
               <span className="font-bold text-slate-900 text-sm">{employee.fullName}</span>
               <span
-                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase ${
                   employee.status === 'ACTIV'
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                     : employee.status === 'Suspendat/CM'
-                    ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                    : 'bg-rose-100 text-rose-800 border border-rose-300'
+                    ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                    : 'bg-rose-50 text-rose-800 border border-rose-200'
                 }`}
               >
                 {employee.status}
@@ -119,7 +119,7 @@ export function EmployeeDocumentsDrawer({
                 <span>• Punct lucru: <strong className="text-slate-700">{employee.currentWorksite.name}</strong></span>
               )}
               {employee.cnp && (
-                <span>• CNP: <span className="font-mono">{userRole === 'SSM' ? '•••••••••••••' : employee.cnp}</span></span>
+                <span>• CNP: <span className="font-mono text-slate-700">{userRole === 'SSM' ? '•••••••••••••' : employee.cnp}</span></span>
               )}
             </div>
           </div>
@@ -128,10 +128,10 @@ export function EmployeeDocumentsDrawer({
         <div>
           <Link
             href={`/documents/generate?clientId=${clientId}&employeeId=${employee.id}&templateCode=${defaultTemplateCode}`}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-700 hover:text-blue-900 bg-white hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 shadow-2xs transition"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 px-3 py-1.5 rounded-md border border-slate-300 shadow-2xs transition"
           >
             <span>Deschide în Generator Avansat</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
+            <ArrowUpRight className="w-3.5 h-3.5 text-slate-500" />
           </Link>
         </div>
       </div>

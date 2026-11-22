@@ -289,7 +289,7 @@ function EmployeeRegistryInner({
             <span>Total Salariați</span>
             <Users className="w-4 h-4 text-blue-500" />
           </div>
-          <div className="text-2xl font-bold text-slate-900 mt-1">
+          <div className="text-2xl font-bold text-slate-900 mt-1 tabular-nums">
             {metrics.totalEmployees}
           </div>
           <div className="text-[11px] text-slate-400 mt-0.5">
@@ -303,7 +303,7 @@ function EmployeeRegistryInner({
             <span>Conformitate Globală</span>
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
           </div>
-          <div className="text-2xl font-bold text-slate-900 mt-1">
+          <div className="text-2xl font-bold text-slate-900 mt-1 tabular-nums">
             {metrics.complianceScorePercent}%
           </div>
           <div className="text-[11px] text-slate-400 mt-0.5">
@@ -314,16 +314,16 @@ function EmployeeRegistryInner({
         {/* Termene Depășite */}
         <div 
           onClick={() => handleTabChange('OVERDUE')}
-          className="bg-white p-4 rounded-xl border border-red-200 hover:border-red-300 shadow-sm cursor-pointer transition"
+          className="bg-white p-4 rounded-xl border border-slate-200 hover:border-slate-300 shadow-sm cursor-pointer transition"
         >
-          <div className="flex items-center justify-between text-red-700 text-xs font-semibold">
+          <div className="flex items-center justify-between text-slate-600 text-xs font-semibold">
             <span>Termene Depășite</span>
-            <AlertTriangle className="w-4 h-4 text-red-600" />
+            <AlertTriangle className="w-4 h-4 text-rose-600" />
           </div>
-          <div className="text-2xl font-bold text-red-700 mt-1">
+          <div className="text-2xl font-bold text-rose-700 mt-1 tabular-nums">
             {tabCounts.OVERDUE}
           </div>
-          <div className="text-[11px] text-red-600 font-medium mt-0.5">
+          <div className="text-[11px] text-slate-500 font-medium mt-0.5">
             {metrics.overdueCount} cerințe expirate (Risc ITM)
           </div>
         </div>
@@ -331,16 +331,16 @@ function EmployeeRegistryInner({
         {/* Scadențe Iminente */}
         <div 
           onClick={() => handleTabChange('UPCOMING')}
-          className="bg-white p-4 rounded-xl border border-amber-200 hover:border-amber-300 shadow-sm cursor-pointer transition"
+          className="bg-white p-4 rounded-xl border border-slate-200 hover:border-slate-300 shadow-sm cursor-pointer transition"
         >
-          <div className="flex items-center justify-between text-amber-700 text-xs font-semibold">
+          <div className="flex items-center justify-between text-slate-600 text-xs font-semibold">
             <span>Scadențe Iminente (&le;30z)</span>
-            <Clock className="w-4 h-4 text-amber-500" />
+            <Clock className="w-4 h-4 text-amber-600" />
           </div>
-          <div className="text-2xl font-bold text-amber-700 mt-1">
+          <div className="text-2xl font-bold text-amber-700 mt-1 tabular-nums">
             {tabCounts.UPCOMING}
           </div>
-          <div className="text-[11px] text-amber-600 font-medium mt-0.5">
+          <div className="text-[11px] text-slate-500 font-medium mt-0.5">
             {metrics.upcomingCount} examinări de planificat
           </div>
         </div>

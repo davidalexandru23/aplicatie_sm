@@ -34,29 +34,29 @@ const STATUS_CONFIG: Record<
 > = {
   VALID: {
     label: 'VALID',
-    badgeClasses: 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100',
-    dotClass: 'bg-emerald-500',
+    badgeClasses: 'bg-emerald-50 text-emerald-800 border-emerald-200/80 hover:bg-emerald-100',
+    dotClass: 'bg-emerald-600',
     icon: CheckCircle2,
     overallLabel: 'CONFORM',
   },
   UPCOMING: {
     label: 'SCADENT',
-    badgeClasses: 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 font-medium',
-    dotClass: 'bg-amber-500',
+    badgeClasses: 'bg-amber-50 text-amber-800 border-amber-200/80 hover:bg-amber-100 font-medium',
+    dotClass: 'bg-amber-600',
     icon: Clock,
     overallLabel: 'SCADENȚĂ IMINENTĂ',
   },
   OVERDUE: {
     label: 'EXPIRAT',
-    badgeClasses: 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100 font-semibold',
-    dotClass: 'bg-red-500',
+    badgeClasses: 'bg-rose-50 text-rose-800 border-rose-200/80 hover:bg-rose-100 font-semibold',
+    dotClass: 'bg-rose-600',
     icon: AlertTriangle,
     overallLabel: 'DEPĂȘIT / EXPIRAT',
   },
   MISSING: {
     label: 'NEÎNREGISTRAT',
-    badgeClasses: 'bg-rose-100 text-rose-800 border-rose-300 hover:bg-rose-200 font-bold',
-    dotClass: 'bg-rose-600',
+    badgeClasses: 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200 font-medium',
+    dotClass: 'bg-slate-500',
     icon: AlertCircle,
     overallLabel: 'DATE LIPSĂ',
   },
@@ -241,7 +241,7 @@ export function OverallComplianceBadge({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border tracking-wide uppercase ${sizeClasses} ${config.badgeClasses} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-md border tracking-wider uppercase font-semibold select-none ${sizeClasses} ${config.badgeClasses} ${className}`}
       title={`Statut general conformitate: ${config.overallLabel}`}
     >
       <span className={`w-1.5 h-1.5 rounded-full ${config.dotClass}`} />

@@ -209,12 +209,12 @@ export default async function DashboardPage() {
               <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
             </div>
             <div className="flex items-baseline gap-2 mt-2">
-              <span className={`text-3xl font-extrabold ${
+              <span className={`text-3xl font-bold tabular-nums ${
                 globalCompliance.complianceScorePercent >= 90
                   ? 'text-emerald-700'
                   : globalCompliance.complianceScorePercent >= 70
                   ? 'text-amber-700'
-                  : 'text-red-700'
+                  : 'text-rose-700'
               }`}>
                 {globalCompliance.complianceScorePercent}%
               </span>
@@ -243,84 +243,84 @@ export default async function DashboardPage() {
         {/* Card 2: Termene Depășite (OVERDUE) */}
         <Link
           href="/employees?status=OVERDUE"
-          className="bg-white p-5 rounded-xl border border-red-200 hover:border-red-300 hover:shadow-md transition flex flex-col justify-between group min-w-0"
+          className="bg-white p-5 rounded-xl border border-slate-200 hover:border-slate-300 shadow-sm hover:shadow transition flex flex-col justify-between group min-w-0"
         >
           <div>
-            <div className="flex items-center justify-between text-xs font-bold text-red-700">
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
               <span className="truncate">Termene Depășite</span>
-              <AlertTriangle className="w-5 h-5 text-red-600 group-hover:scale-110 transition-transform shrink-0" />
+              <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
             </div>
             <div className="flex items-baseline gap-2 mt-2">
-              <span className="text-3xl font-extrabold text-red-700">
+              <span className="text-3xl font-bold text-rose-700 tabular-nums">
                 {globalCompliance.overdueCount}
               </span>
-              <span className="text-xs font-bold text-red-600 truncate">
+              <span className="text-xs font-semibold text-rose-600 truncate">
                 cerințe expirate
               </span>
             </div>
-            <p className="text-[11px] text-red-600 font-medium mt-1">
+            <p className="text-[11px] text-slate-500 font-medium mt-1">
               Risc contravențional la control ITM / ISU
             </p>
           </div>
-          <div className="text-[11px] text-red-700 font-semibold mt-3 pt-2 border-t border-red-100 flex items-center justify-between">
+          <div className="text-[11px] text-slate-600 font-semibold mt-3 pt-2 border-t border-slate-100 flex items-center justify-between group-hover:text-slate-900">
             <span>Vezi în Registru</span>
-            <ChevronRight className="w-3.5 h-3.5" />
+            <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
           </div>
         </Link>
 
         {/* Card 3: Scadențe Iminente (UPCOMING <= 30z) */}
         <Link
           href="/employees?status=UPCOMING"
-          className="bg-white p-5 rounded-xl border border-amber-200 hover:border-amber-300 hover:shadow-md transition flex flex-col justify-between group min-w-0"
+          className="bg-white p-5 rounded-xl border border-slate-200 hover:border-slate-300 shadow-sm hover:shadow transition flex flex-col justify-between group min-w-0"
         >
           <div>
-            <div className="flex items-center justify-between text-xs font-bold text-amber-700">
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
               <span className="truncate">Scadențe Iminente (&le;30z)</span>
-              <Clock className="w-5 h-5 text-amber-500 group-hover:scale-110 transition-transform shrink-0" />
+              <Clock className="w-5 h-5 text-amber-600 shrink-0" />
             </div>
             <div className="flex items-baseline gap-2 mt-2">
-              <span className="text-3xl font-extrabold text-amber-700">
+              <span className="text-3xl font-bold text-amber-700 tabular-nums">
                 {globalCompliance.upcomingCount}
               </span>
-              <span className="text-xs font-bold text-amber-600 truncate">
+              <span className="text-xs font-semibold text-amber-600 truncate">
                 în atenție
               </span>
             </div>
-            <p className="text-[11px] text-amber-700 font-medium mt-1">
+            <p className="text-[11px] text-slate-500 font-medium mt-1">
               Necesită programare medicină sau sesiune instruire
             </p>
           </div>
-          <div className="text-[11px] text-amber-800 font-semibold mt-3 pt-2 border-t border-amber-100 flex items-center justify-between">
+          <div className="text-[11px] text-slate-600 font-semibold mt-3 pt-2 border-t border-slate-100 flex items-center justify-between group-hover:text-slate-900">
             <span>Planifică scadențe</span>
-            <ChevronRight className="w-3.5 h-3.5" />
+            <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
           </div>
         </Link>
 
         {/* Card 4: Date Lipsă / Dosare Incomplete (MISSING) */}
         <Link
           href="/employees?status=MISSING"
-          className="bg-white p-5 rounded-xl border border-rose-200 hover:border-rose-300 hover:shadow-md transition flex flex-col justify-between group min-w-0"
+          className="bg-white p-5 rounded-xl border border-slate-200 hover:border-slate-300 shadow-sm hover:shadow transition flex flex-col justify-between group min-w-0"
         >
           <div>
-            <div className="flex items-center justify-between text-xs font-bold text-rose-800">
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
               <span className="truncate">Dosare Incomplete</span>
-              <AlertCircle className="w-5 h-5 text-rose-600 group-hover:scale-110 transition-transform shrink-0" />
+              <AlertCircle className="w-5 h-5 text-slate-500 shrink-0" />
             </div>
             <div className="flex items-baseline gap-2 mt-2">
-              <span className="text-3xl font-extrabold text-rose-800">
+              <span className="text-3xl font-bold text-slate-800 tabular-nums">
                 {globalCompliance.missingCount}
               </span>
-              <span className="text-xs font-bold text-rose-700 truncate">
+              <span className="text-xs font-medium text-slate-500 truncate">
                 date lipsă
               </span>
             </div>
-            <p className="text-[11px] text-rose-700 font-medium mt-1">
+            <p className="text-[11px] text-slate-500 font-medium mt-1">
               Salariați fără examen inițial sau instructaj consemnat
             </p>
           </div>
-          <div className="text-[11px] text-rose-800 font-semibold mt-3 pt-2 border-t border-rose-100 flex items-center justify-between">
+          <div className="text-[11px] text-slate-600 font-semibold mt-3 pt-2 border-t border-slate-100 flex items-center justify-between group-hover:text-slate-900">
             <span>Completează dosare</span>
-            <ChevronRight className="w-3.5 h-3.5" />
+            <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
           </div>
         </Link>
       </div>

@@ -44,7 +44,6 @@ import {
   Award,
   AlertTriangle,
   Clock,
-  Sparkles,
   Shield
 } from 'lucide-react';
 

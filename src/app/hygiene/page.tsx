@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import {
-  Sparkles,
   Award,
   FileSpreadsheet,
   Users,
@@ -656,7 +655,7 @@ export default function HygienePage() {
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-emerald-600" />
+            <Award className="w-5 h-5 text-emerald-600" />
             <span>Cursuri Noțiuni Fundamentale de Igienă</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">

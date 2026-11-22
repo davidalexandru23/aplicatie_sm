@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Edit2, X, ShieldAlert, AlertTriangle, Check, Loader2, Trash2, Sparkles } from 'lucide-react';
+import { Edit2, X, ShieldAlert, AlertTriangle, Check, Loader2, Trash2, Briefcase } from 'lucide-react';
 import { calculatePecePartialRisk } from '@/lib/risk/caen-risk-presets';
 import { findCorRiskProfile } from '@/lib/risk/cor-risk-presets';
 
@@ -325,9 +325,9 @@ export function EditRiskAssessmentModal({ assessment }: EditRiskAssessmentModalP
                     <button
                       type="button"
                       onClick={handleAutoPopulateCor}
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-300 transition"
+                      className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-700 bg-white hover:bg-slate-50 px-2.5 py-1 rounded-md border border-slate-300 transition shadow-2xs"
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                      <Briefcase className="w-3.5 h-3.5 text-slate-600" />
                       <span>Preia Riscuri COR ({assessment.job?.title || 'Post'})</span>
                     </button>
                     <button

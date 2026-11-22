@@ -18,7 +18,6 @@ import {
   Award,
   FileText,
   Star,
-  Sparkles,
   X,
   Lock,
   KeyRound,
@@ -440,7 +439,7 @@ export default function SettingsProviderPage() {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight mt-2 flex items-center gap-2">
             {currentUserRole === 'IGIENA' ? (
               <>
-                <Sparkles className="w-6 h-6 text-emerald-600" />
+                <Award className="w-6 h-6 text-emerald-600" />
                 <span>Setări Profil Prestator Formare Igienă & Comisie DSP</span>
               </>
             ) : (
@@ -821,7 +820,7 @@ export default function SettingsProviderPage() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="p-1.5 bg-emerald-100 text-emerald-800 rounded-lg">
-                  <Sparkles className="w-5 h-5 text-emerald-700" />
+                  <Award className="w-5 h-5 text-emerald-700" />
                 </span>
                 <h2 className="text-base font-bold text-slate-900 tracking-tight">
                   Configurare & Date Generare Cursuri Igienă

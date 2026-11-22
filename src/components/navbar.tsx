@@ -172,9 +172,16 @@ export function Navbar({ currentUser }: NavbarProps) {
           </button>
 
           {/* Logo & Platform Name */}
-          <Link href={role === 'IGIENA' ? '/hygiene' : '/'} className="font-bold text-base sm:text-lg tracking-tight flex items-center gap-2">
-            <span className="bg-blue-600 text-white px-2 py-0.5 rounded text-xs sm:text-sm font-black shadow-sm">SSM</span>
-            <span className="hidden xs:inline truncate">Platformă Internă</span>
+          <Link href={role === 'IGIENA' ? '/hygiene' : '/'} className="flex items-center gap-2.5 group select-none">
+            <div className="flex items-center justify-center h-7 px-2.5 rounded-md bg-blue-700 text-white font-bold text-xs tracking-wider border border-blue-600/50 shadow-2xs group-hover:bg-blue-600 transition">
+              SSM
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-sm text-slate-100 tracking-tight">Platformă Internă</span>
+              <span className="hidden sm:inline text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                SEPP
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Navigation Links (visible on xl and up: >= 1280px) */}
@@ -223,7 +230,7 @@ export function Navbar({ currentUser }: NavbarProps) {
               className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700/80 border border-slate-700 transition text-xs font-semibold text-slate-200"
               title="Click pentru schimbare rapidă rol (RBAC)"
             >
-              <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-bold ${roleMeta.bgColor} ${roleMeta.color}`}>
+              <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-semibold border ${roleMeta.bgColor} ${roleMeta.color} ${roleMeta.borderColor}`}>
                 {roleMeta.badge}
               </span>
               <span className="hidden md:inline font-medium text-slate-300 max-w-[120px] truncate">
@@ -315,10 +322,12 @@ export function Navbar({ currentUser }: NavbarProps) {
               <Link
                 href={role === 'IGIENA' ? '/hygiene' : '/'}
                 onClick={() => setIsMobileDrawerOpen(false)}
-                className="font-bold text-base tracking-tight flex items-center gap-2"
+                className="flex items-center gap-2 select-none"
               >
-                <span className="bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-black shadow-sm">SSM</span>
-                <span>Platformă Internă</span>
+                <div className="flex items-center justify-center h-7 px-2.5 rounded-md bg-blue-700 text-white font-bold text-xs tracking-wider border border-blue-600/50 shadow-2xs">
+                  SSM
+                </div>
+                <span className="font-semibold text-sm text-slate-100">Platformă Internă</span>
               </Link>
               <button
                 type="button"
@@ -339,7 +348,7 @@ export function Navbar({ currentUser }: NavbarProps) {
                   {currentUser?.email || 'admin@ssm.ro'}
                 </div>
               </div>
-              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${roleMeta.bgColor} ${roleMeta.color}`}>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${roleMeta.bgColor} ${roleMeta.color} ${roleMeta.borderColor}`}>
                 {roleMeta.badge}
               </span>
             </div>

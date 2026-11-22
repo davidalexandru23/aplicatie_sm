@@ -5,7 +5,11 @@ import { cookies } from 'next/headers';
 import { Navbar } from '@/components/navbar';
 import { verifySessionToken, SESSION_COOKIE_NAME, UserRole } from '@/lib/auth';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ 
+  subsets: ['latin', 'latin-ext'],
+  display: 'swap',
+  variable: '--font-sans',
+});
 
 export const viewport: Viewport = {
   width: 'device-width',

@@ -16,6 +16,8 @@ body {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   overflow-x: hidden;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'tnum';
+  font-variant-numeric: tabular-nums;
 }
 
 /* Utilitar no-scrollbar pentru carusele și taburi orizontale pe tabletă/mobil */

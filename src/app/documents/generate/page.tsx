@@ -11,7 +11,7 @@ import {
   Download, 
   RefreshCw, 
   CheckCircle2,
-  Sparkles,
+  Package,
   SlidersHorizontal,
   ChevronDown,
   ChevronUp,
@@ -833,8 +833,8 @@ function DocumentGeneratorContent() {
             {generatorConfig.subtitle}
           </p>
         </div>
-        <div className="flex items-center gap-2 text-xs bg-blue-50 text-blue-800 px-3 py-1.5 rounded-lg border border-blue-200">
-          <Sparkles className="w-4 h-4 text-blue-600" />
+        <div className="flex items-center gap-2 text-xs bg-slate-100 text-slate-700 px-3 py-1.5 rounded-md border border-slate-200 font-medium">
+          <FileCheck className="w-4 h-4 text-slate-600" />
           <span>{allowedTemplates.length} Șabloane Normate 100%</span>
         </div>
       </div>
@@ -848,12 +848,12 @@ function DocumentGeneratorContent() {
 
       {/* Quick 1-Click Packages Banner when Client is selected (Filtrat per rol: SSM vede Dosar SSM; HR vede Onboarding) */}
       {selectedClientId && (userRole === 'ADMIN' || userRole === 'SSM' || userRole === 'HR') && (
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50/60 border border-blue-200/80 rounded-xl text-xs shadow-2xs">
-          <div className="flex items-center gap-2 text-slate-800">
-            <Sparkles className="w-4 h-4 text-amber-500 flex-shrink-0" />
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-4 bg-slate-50 border border-slate-200 rounded-lg text-xs">
+          <div className="flex items-center gap-2.5 text-slate-800">
+            <Package className="w-4 h-4 text-slate-700 flex-shrink-0" />
             <div>
-              <span className="font-bold text-slate-900">Vrei pachetul complet dintr-un singur click?</span>
-              <span className="text-slate-600 block sm:inline sm:ml-1.5">Generează direct arhiva ZIP structurată conform cerințelor legale:</span>
+              <span className="font-semibold text-slate-900">Pachete Documentare Integrate:</span>
+              <span className="text-slate-600 block sm:inline sm:ml-1.5">Generare și descărcare arhivă completă conform normelor legale în vigoare:</span>
             </div>
           </div>
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full lg:w-auto">
