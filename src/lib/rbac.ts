@@ -189,8 +189,8 @@ export function isTemplateAllowedForRole(
     code === 'decizii-angajator';
 
   if (role === 'SSM') {
-    // SSM manages SSM, PSI, Med & EIP, IPSSM
-    // Strictly forbidden: HR and Hygiene
+    // SSM manages SSM, PSI, Med & EIP, IPSSM, and Anexa Fisa Post SSM
+    if (code === 'hr-anexa-fisa-post') return true;
     if (isHr || isHygiene) return false;
     return isSsm || isPsi || isMedEip || isIpssm;
   }

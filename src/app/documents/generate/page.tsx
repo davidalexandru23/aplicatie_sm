@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useEffect, useMemo } from 'react';
+import { Suspense, useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { 
   FileCheck, 
@@ -318,6 +318,20 @@ function DocumentGeneratorContent() {
   const [error, setError] = useState<string | null>(null);
   const [generationResult, setGenerationResult] = useState<any | null>(null);
 
+  // Auto-resolve clientId if missing but employeeId is provided
+  useEffect(() => {
+    if (!selectedClientId && initialEmployeeId) {
+      fetch(`/api/employees/${initialEmployeeId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.clientId) {
+            setSelectedClientId(data.clientId);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [selectedClientId, initialEmployeeId]);
+
   // Sync with searchParams on load/update
   useEffect(() => {
     if (initialClientId) setSelectedClientId(initialClientId);
@@ -396,7 +410,7 @@ function DocumentGeneratorContent() {
   // Reset category if not permitted for current role
   useEffect(() => {
     if (!roleCategories.some((c) => c.id === selectedCategory)) {
-      setSelectedCategory('all');
+      setSelectedCategory(roleCategories[0]?.id || 'all');
     }
   }, [roleCategories, selectedCategory]);
 
@@ -408,22 +422,55 @@ function DocumentGeneratorContent() {
       if (selectedCategory === 'med_eip') return t.code.startsWith('med-') || t.code.startsWith('eip-');
       if (selectedCategory === 'psi') return t.code.includes('psi') || t.code.includes('urgenta');
       if (selectedCategory === 'hr') return t.family === 'hr' || t.code.includes('traseu');
-      if (selectedCategory === 'ssm') return t.family === 'risk' || t.family === 'training' || t.family === 'decision' || t.code.includes('traseu') || t.code.startsWith('ssm-');
+      if (selectedCategory === 'ssm') return t.family === 'risk' || t.family === 'training' || t.family === 'decision' || t.code.includes('traseu') || t.code.startsWith('ssm-') || t.code === 'hr-anexa-fisa-post';
       return true;
     });
   }, [allowedTemplates, selectedCategory]);
+
+  // Ensure category selection allows viewing the initialTemplateCode if passed in URL
+  useEffect(() => {
+    if (!initialTemplateCode || templates.length === 0) return;
+    const targetTpl = allowedTemplates.find((t) => t.code === initialTemplateCode);
+    if (!targetTpl) return;
+
+    if (!filteredTemplates.some((t) => t.code === initialTemplateCode)) {
+      if (roleCategories.some((c) => c.id === 'all')) {
+        setSelectedCategory('all');
+      } else {
+        const matchingCat = roleCategories.find((cat) => {
+          if (cat.id === 'all') return true;
+          if (cat.id === 'hr' && (targetTpl.family === 'hr' || targetTpl.code.includes('traseu'))) return true;
+          if (cat.id === 'ssm' && (targetTpl.family === 'risk' || targetTpl.family === 'training' || targetTpl.family === 'decision' || targetTpl.code.startsWith('ssm-') || targetTpl.code === 'hr-anexa-fisa-post')) return true;
+          if (cat.id === 'med_eip' && (targetTpl.code.startsWith('med-') || targetTpl.code.startsWith('eip-'))) return true;
+          if (cat.id === 'hygiene' && (targetTpl.family === 'hygiene' || targetTpl.code.startsWith('hygiene-'))) return true;
+          if (cat.id === 'ipssm' && targetTpl.family === 'ipssm') return true;
+          return false;
+        });
+        if (matchingCat) {
+          setSelectedCategory(matchingCat.id);
+        }
+      }
+    }
+  }, [initialTemplateCode, templates.length, allowedTemplates, filteredTemplates, roleCategories]);
 
   // Keep selectedTemplateCode in sync with filteredTemplates
   useEffect(() => {
     if (templates.length === 0) return;
     if (filteredTemplates.length > 0) {
       if (!filteredTemplates.some((t) => t.code === selectedTemplateCode)) {
-        setSelectedTemplateCode(filteredTemplates[0].code);
+        if (initialTemplateCode && filteredTemplates.some((t) => t.code === initialTemplateCode)) {
+          setSelectedTemplateCode(initialTemplateCode);
+        } else if (initialEmployeeId) {
+          const empTpl = filteredTemplates.find((t) => t.contextLevel === 'employee');
+          setSelectedTemplateCode(empTpl ? empTpl.code : filteredTemplates[0].code);
+        } else {
+          setSelectedTemplateCode(filteredTemplates[0].code);
+        }
       }
     } else {
       setSelectedTemplateCode('');
     }
-  }, [templates.length, filteredTemplates, selectedTemplateCode]);
+  }, [templates.length, filteredTemplates, selectedTemplateCode, initialTemplateCode, initialEmployeeId]);
 
   const generatorConfig = ROLE_GENERATOR_CONFIG[userRole] || ROLE_GENERATOR_CONFIG.ADMIN;
   const currentTemplate = allowedTemplates.find((t) => t.code === selectedTemplateCode);
@@ -452,12 +499,27 @@ function DocumentGeneratorContent() {
       setWorksites([]);
       setSelectedJobId('');
       setSelectedWorksiteId('');
+      setSelectedEmployeeId('');
       return;
     }
     fetch(`/api/clients/${selectedClientId}/employees`)
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data)) setEmployees(data.filter((e: any) => e.status !== 'PLECAT'));
+        if (Array.isArray(data)) {
+          const activeEmployees = data.filter((e: any) => e.status !== 'PLECAT');
+          setEmployees(activeEmployees);
+          setSelectedEmployeeId((prev) => {
+            // Keep current selection if valid in new employees list
+            if (prev && activeEmployees.some((e: any) => e.id === prev)) {
+              return prev;
+            }
+            // If initialEmployeeId from searchParams matches a client employee, select it
+            if (initialEmployeeId && activeEmployees.some((e: any) => e.id === initialEmployeeId)) {
+              return initialEmployeeId;
+            }
+            return '';
+          });
+        }
       });
 
     fetch(`/api/clients/${selectedClientId}`)
@@ -478,7 +540,7 @@ function DocumentGeneratorContent() {
           setSelectedWorksiteId('');
         }
       });
-  }, [selectedClientId]);
+  }, [selectedClientId, initialEmployeeId]);
 
   // When selected employee changes, update job and worksite automatically from employee's assigned job/worksite
   useEffect(() => {
@@ -487,26 +549,38 @@ function DocumentGeneratorContent() {
       const jobId = emp?.currentJobId || (emp?.currentJob as any)?.id || '';
       if (jobId) setSelectedJobId(jobId);
       const worksiteId = (emp as any)?.currentWorksiteId || (emp?.currentWorksite as any)?.id || '';
-      setSelectedWorksiteId(worksiteId || '');
-    } else if (isEmployeeRequired && !selectedEmployeeId) {
-      setSelectedJobId('');
-      setSelectedWorksiteId('');
+      if (worksiteId) setSelectedWorksiteId(worksiteId);
     }
-  }, [selectedEmployeeId, employees, isEmployeeRequired]);
+  }, [selectedEmployeeId, employees]);
 
-  // State reset logic when template changes
+  // Track previous template code to only reset selections when user actively changes template
+  const prevTemplateCodeRef = useRef<string | null>(null);
+
+  // State reset logic when template changes actively
   useEffect(() => {
-    if (!selectedTemplateCode) return;
-    if (isHygieneTemplate || !isJobContext) {
-      setSelectedJobId('');
+    if (templates.length === 0 || !selectedTemplateCode) return;
+
+    // First time templates finish loading: record current template code without wiping selections
+    if (prevTemplateCodeRef.current === null) {
+      prevTemplateCodeRef.current = selectedTemplateCode;
+      return;
     }
-    if (isHygieneTemplate) {
-      setSelectedWorksiteId('');
+
+    // Only reset when template code actually changed
+    if (prevTemplateCodeRef.current !== selectedTemplateCode) {
+      prevTemplateCodeRef.current = selectedTemplateCode;
+
+      if (isHygieneTemplate || !isJobContext) {
+        setSelectedJobId('');
+      }
+      if (isHygieneTemplate) {
+        setSelectedWorksiteId('');
+      }
+      if (!isEmployeeRequired && !isAdeverinta) {
+        setSelectedEmployeeId('');
+      }
     }
-    if (!isEmployeeRequired && !isAdeverinta) {
-      setSelectedEmployeeId('');
-    }
-  }, [selectedTemplateCode, isHygieneTemplate, isEmployeeRequired, isAdeverinta, isJobContext]);
+  }, [templates.length, selectedTemplateCode, isHygieneTemplate, isEmployeeRequired, isAdeverinta, isJobContext]);
 
   const selectedClient = clients.find((c) => c.id === selectedClientId);
   const filteredSessions = hygieneSessions.filter((session) => {
@@ -555,11 +629,22 @@ function DocumentGeneratorContent() {
             (f: PlaceholderFieldItem) => !/_\d{2,3}$/.test(f.key)
           );
           setFields(cleanFields);
-          const initialValues: Record<string, string> = {};
-          cleanFields.forEach((f: PlaceholderFieldItem) => {
-            initialValues[f.key] = f.value !== undefined && f.value !== null ? String(f.value) : '';
+          setFormValues((prev) => {
+            const nextValues: Record<string, string> = {};
+            cleanFields.forEach((f: PlaceholderFieldItem) => {
+              if (f.isAutocompleted) {
+                nextValues[f.key] = f.value !== undefined && f.value !== null ? String(f.value) : '';
+              } else {
+                nextValues[f.key] =
+                  prev[f.key] !== undefined && prev[f.key] !== ''
+                    ? prev[f.key]
+                    : f.value !== undefined && f.value !== null
+                    ? String(f.value)
+                    : '';
+              }
+            });
+            return nextValues;
           });
-          setFormValues(initialValues);
         }
       })
       .catch((err) => {
@@ -902,7 +987,7 @@ function DocumentGeneratorContent() {
         </div>
 
         {/* Employee Selection for employee-level templates (Suport Salariat Individual & Generare Colectivă) */}
-        {(isEmployeeRequired || (isHygieneTemplate && hygieneScope === 'client' && isAdeverinta)) && (
+        {isEmployeeRequired && (
           <div className="pt-3 border-t border-slate-100 space-y-3">
             {/* Mode Switcher Tabs */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100">
@@ -960,7 +1045,12 @@ function DocumentGeneratorContent() {
                   }}
                   className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">-- Alege salariatul din firmă --</option>
+                  <option value="">
+                    {employees.length === 0 && selectedClientId ? 'Se încarcă salariații...' : '-- Alege salariatul din firmă --'}
+                  </option>
+                  {selectedEmployeeId && !employees.some((e) => e.id === selectedEmployeeId) && (
+                    <option value={selectedEmployeeId}>Se încarcă salariatul selectat...</option>
+                  )}
                   {employees.map((emp) => {
                     const exp = getEmployeeExpiryInfo(selectedTemplateCode, emp);
                     return (
@@ -1287,7 +1377,12 @@ function DocumentGeneratorContent() {
                   onChange={(e) => setSelectedEmployeeId(e.target.value)}
                   className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">-- Alege salariatul din firmă --</option>
+                  <option value="">
+                    {employees.length === 0 && selectedClientId ? 'Se încarcă salariații...' : '-- Alege salariatul din firmă --'}
+                  </option>
+                  {selectedEmployeeId && !employees.some((e) => e.id === selectedEmployeeId) && (
+                    <option value={selectedEmployeeId}>Se încarcă salariatul selectat...</option>
+                  )}
                   {employees.map((emp) => (
                     <option key={emp.id} value={emp.id}>
                       {emp.lastName} {emp.firstName} — {emp.currentJob?.title || 'Fără post'}

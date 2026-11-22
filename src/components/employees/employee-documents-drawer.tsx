@@ -81,6 +81,12 @@ export function EmployeeDocumentsDrawer({
         .join(', ')
     : null;
 
+  const defaultTemplateCode = isIgiena
+    ? 'hygiene-adeverinta'
+    : isHr
+    ? 'hr-cim-2026'
+    : 'ssm-declaratie-traseu';
+
   return (
     <div className="bg-slate-50 border border-blue-200/80 rounded-xl p-4 sm:p-5 shadow-inner space-y-4 animate-in fade-in duration-200">
       {/* 1. Header Bar: Informații Salariat & Comandă Rapidă */}
@@ -121,7 +127,7 @@ export function EmployeeDocumentsDrawer({
 
         <div>
           <Link
-            href={`/documents/generate?clientId=${clientId}&employeeId=${employee.id}`}
+            href={`/documents/generate?clientId=${clientId}&employeeId=${employee.id}&templateCode=${defaultTemplateCode}`}
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-700 hover:text-blue-900 bg-white hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 shadow-2xs transition"
           >
             <span>Deschide în Generator Avansat</span>
@@ -219,7 +225,7 @@ export function EmployeeDocumentsDrawer({
             {/* Fișă Post & Anexă SSM (ADMIN, SSM, HR) */}
             {(isAdmin || isSsm || isHr) && (
               <Link
-                href={`/documents/generate?clientId=${clientId}&employeeId=${employee.id}&templateCode=ssm-fisa-post-anexa`}
+                href={`/documents/generate?clientId=${clientId}&employeeId=${employee.id}&templateCode=hr-anexa-fisa-post`}
                 className="flex items-start gap-2.5 p-2.5 bg-white hover:bg-blue-50/60 border border-slate-200 hover:border-blue-300 rounded-lg shadow-2xs transition group"
                 title="Generare Anexă Fișă Post SSM"
               >
@@ -243,7 +249,7 @@ export function EmployeeDocumentsDrawer({
             {/* Fișă Instruire SSM Individuală (ADMIN, SSM) */}
             {(isAdmin || isSsm) && (
               <Link
-                href={`/documents/generate?clientId=${clientId}&employeeId=${employee.id}&templateCode=training-fisa-individuala`}
+                href={`/documents/generate?clientId=${clientId}&employeeId=${employee.id}&templateCode=ssm-fisa-instruire-individuala`}
                 className="flex items-start gap-2.5 p-2.5 bg-white hover:bg-amber-50/60 border border-slate-200 hover:border-amber-300 rounded-lg shadow-2xs transition group"
                 title="Generare Fișă de Instruire Individuală SSM (HG 1425/2006)"
               >
