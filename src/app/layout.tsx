@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { cookies } from 'next/headers';
@@ -6,6 +6,15 @@ import { Navbar } from '@/components/navbar';
 import { verifySessionToken, SESSION_COOKIE_NAME, UserRole } from '@/lib/auth';
 
 const inter = Inter({ subsets: ['latin'] });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: 'cover',
+  themeColor: '#0f172a',
+};
 
 export const metadata: Metadata = {
   title: 'Sistem Intern SSM & Cursuri Igienă',
@@ -42,7 +51,7 @@ export default async function RootLayout({
         <Navbar currentUser={currentUser} />
 
         {/* Main Content Area */}
-        <main className="flex-1 w-full max-w-[1920px] 2xl:max-w-[98vw] mx-auto px-3 sm:px-6 lg:px-8 py-6 transition-all">
+        <main className="flex-1 w-full max-w-[1920px] 2xl:max-w-[98vw] min-w-0 mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 transition-all">
           {children}
         </main>
       </body>

@@ -98,12 +98,12 @@ export function ClientEmployeesTable({
   return (
     <div className="space-y-3">
       {/* Search & Quick Filter Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 pt-3 pb-2 bg-slate-50/50 border-b border-slate-100">
-        <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-5 pt-3 pb-2 bg-slate-50/50 border-b border-slate-100">
+        <div className="overflow-x-auto flex-nowrap sm:flex-wrap flex items-center gap-1.5 no-scrollbar pb-1 max-w-full">
           <button
             type="button"
             onClick={() => setStatusFilter('ALL')}
-            className={`px-2.5 py-1 rounded text-xs font-semibold transition ${
+            className={`px-2.5 py-1 rounded text-xs font-semibold shrink-0 transition ${
               statusFilter === 'ALL'
                 ? 'bg-blue-600 text-white shadow-2xs'
                 : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
@@ -114,7 +114,7 @@ export function ClientEmployeesTable({
           <button
             type="button"
             onClick={() => setStatusFilter('ACTIV')}
-            className={`px-2.5 py-1 rounded text-xs font-semibold transition ${
+            className={`px-2.5 py-1 rounded text-xs font-semibold shrink-0 transition ${
               statusFilter === 'ACTIV'
                 ? 'bg-emerald-600 text-white shadow-2xs'
                 : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
@@ -126,7 +126,7 @@ export function ClientEmployeesTable({
             <button
               type="button"
               onClick={() => setStatusFilter('SUSPENDAT')}
-              className={`px-2.5 py-1 rounded text-xs font-semibold transition ${
+              className={`px-2.5 py-1 rounded text-xs font-semibold shrink-0 transition ${
                 statusFilter === 'SUSPENDAT'
                   ? 'bg-amber-600 text-white shadow-2xs'
                   : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
@@ -139,7 +139,7 @@ export function ClientEmployeesTable({
             <button
               type="button"
               onClick={() => setStatusFilter('PLECAT')}
-              className={`px-2.5 py-1 rounded text-xs font-semibold transition ${
+              className={`px-2.5 py-1 rounded text-xs font-semibold shrink-0 transition ${
                 statusFilter === 'PLECAT'
                   ? 'bg-slate-700 text-white shadow-2xs'
                   : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
@@ -150,7 +150,7 @@ export function ClientEmployeesTable({
           )}
         </div>
 
-        <div className="relative min-w-[200px] max-w-xs">
+        <div className="relative w-full sm:w-auto min-w-[200px] max-w-xs">
           <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
@@ -163,11 +163,11 @@ export function ClientEmployeesTable({
       </div>
 
       {/* Main Table */}
-      <div className="overflow-x-auto w-full">
+      <div className="overflow-x-auto w-full overscroll-x-contain touch-pan-x">
         <table className="w-full text-left text-xs divide-y divide-slate-100">
           <thead className="bg-white text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
             <tr>
-              <th className="px-5 py-3 w-[22%] min-w-[170px]">Salariat</th>
+              <th className="sticky left-0 z-20 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] px-4 sm:px-5 py-3 min-w-[170px]">Salariat</th>
               <th className="px-3 py-3 w-[11%] min-w-[110px]">Stare Generală</th>
               <th className="px-3 py-3 w-[13%] min-w-[120px]">
                 <span className="flex items-center gap-1">
@@ -205,8 +205,8 @@ export function ClientEmployeesTable({
               return (
                 <React.Fragment key={emp.id}>
                   <tr className={`transition hover:bg-slate-50/70 ${isExpanded ? 'bg-blue-50/20' : ''}`}>
-                    {/* Salariat & Detalii de bază */}
-                    <td className="px-5 py-3.5">
+                    {/* Salariat & Detalii de bază (Sticky on tablet horizontal scroll) */}
+                    <td className="sticky left-0 z-10 bg-white group-hover:bg-slate-50/70 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] px-4 sm:px-5 py-3.5">
                       <div className="font-semibold text-slate-900">
                         {emp.lastName} {emp.firstName}
                       </div>

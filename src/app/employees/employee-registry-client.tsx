@@ -350,12 +350,12 @@ function EmployeeRegistryInner({
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           
-          {/* Status Tabs with Dynamic Counters */}
-          <div className="flex flex-wrap items-center gap-1.5">
+          {/* Status Tabs with Dynamic Counters - Swipable on touch devices */}
+          <div className="overflow-x-auto flex-nowrap sm:flex-wrap flex items-center gap-1.5 no-scrollbar pb-1 max-w-full">
             <button
               type="button"
               onClick={() => handleTabChange('ALL')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition ${
                 activeTab === 'ALL'
                   ? 'bg-slate-900 text-white shadow-sm'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -366,7 +366,7 @@ function EmployeeRegistryInner({
             <button
               type="button"
               onClick={() => handleTabChange('VALID')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1.5 ${
                 activeTab === 'VALID'
                   ? 'bg-emerald-600 text-white shadow-sm'
                   : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
@@ -378,7 +378,7 @@ function EmployeeRegistryInner({
             <button
               type="button"
               onClick={() => handleTabChange('UPCOMING')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1.5 ${
                 activeTab === 'UPCOMING'
                   ? 'bg-amber-600 text-white shadow-sm'
                   : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
@@ -390,7 +390,7 @@ function EmployeeRegistryInner({
             <button
               type="button"
               onClick={() => handleTabChange('OVERDUE')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1.5 ${
                 activeTab === 'OVERDUE'
                   ? 'bg-red-600 text-white shadow-sm'
                   : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
@@ -402,7 +402,7 @@ function EmployeeRegistryInner({
             <button
               type="button"
               onClick={() => handleTabChange('MISSING')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1.5 ${
                 activeTab === 'MISSING'
                   ? 'bg-rose-700 text-white shadow-sm'
                   : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'
@@ -414,7 +414,7 @@ function EmployeeRegistryInner({
             <button
               type="button"
               onClick={() => handleTabChange('SUSPENDAT')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1.5 ${
                 activeTab === 'SUSPENDAT'
                   ? 'bg-amber-600 text-white shadow-sm'
                   : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
@@ -425,7 +425,7 @@ function EmployeeRegistryInner({
             <button
               type="button"
               onClick={() => handleTabChange('PLECAT')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1.5 ${
                 activeTab === 'PLECAT'
                   ? 'bg-slate-700 text-white shadow-sm'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'
@@ -436,9 +436,9 @@ function EmployeeRegistryInner({
           </div>
 
           {/* Search & Company Filter */}
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
             {/* Search Input */}
-            <div className="relative min-w-[220px]">
+            <div className="relative flex-1 sm:w-64 min-w-[200px]">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
@@ -451,11 +451,11 @@ function EmployeeRegistryInner({
 
             {/* Client Dropdown Filter */}
             <div className="flex items-center gap-1">
-              <Building2 className="w-4 h-4 text-slate-400" />
+              <Building2 className="w-4 h-4 text-slate-400 shrink-0" />
               <select
                 value={selectedClientId}
                 onChange={(e) => setSelectedClientId(e.target.value)}
-                className="text-xs bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-2.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full sm:w-auto text-xs bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-2.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
               >
                 <option value="ALL">Toate companiile ({clients.length})</option>
                 {clients.map((c) => (
@@ -490,18 +490,20 @@ function EmployeeRegistryInner({
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto w-full overscroll-x-contain touch-pan-x">
             <table className="min-w-full divide-y divide-slate-100 text-left text-xs">
               <thead className="bg-slate-50/75 text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
                 <tr>
-                  <th className="px-5 py-3 w-[20%] min-w-[170px]">Salariat & Identitate</th>
-                  <th className="px-4 py-3 w-[16%] min-w-[150px]">Angajator & Post</th>
-                  <th className="px-4 py-3 w-[11%] min-w-[110px]">Conformitate Generală</th>
-                  <th className="px-4 py-3 w-[12%] min-w-[115px]">Medicină a Muncii</th>
-                  <th className="px-4 py-3 w-[11%] min-w-[110px]">Instruire SSM</th>
-                  <th className="px-4 py-3 w-[11%] min-w-[110px]">Instruire PSI/SU</th>
-                  <th className="px-4 py-3 w-[10%] min-w-[100px]">Curs Igienă</th>
-                  <th className="px-4 py-3 w-[9%] min-w-[150px] text-right">Acțiuni & Documente</th>
+                  <th className="sticky left-0 z-20 bg-slate-50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] px-4 sm:px-5 py-3 min-w-[170px]">
+                    Salariat & Identitate
+                  </th>
+                  <th className="px-4 py-3 min-w-[150px]">Angajator & Post</th>
+                  <th className="px-4 py-3 min-w-[110px]">Conformitate Generală</th>
+                  <th className="px-4 py-3 min-w-[115px]">Medicină a Muncii</th>
+                  <th className="px-4 py-3 min-w-[110px]">Instruire SSM</th>
+                  <th className="px-4 py-3 min-w-[110px]">Instruire PSI/SU</th>
+                  <th className="px-4 py-3 min-w-[100px]">Curs Igienă</th>
+                  <th className="px-4 py-3 min-w-[140px] text-right">Acțiuni & Documente</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -513,8 +515,8 @@ function EmployeeRegistryInner({
                   return (
                     <React.Fragment key={emp.id}>
                       <tr className={`transition hover:bg-slate-50/70 ${isExpanded ? 'bg-blue-50/20' : ''}`}>
-                      {/* 1. Salariat & Identitate */}
-                      <td className="px-5 py-3.5">
+                      {/* 1. Salariat & Identitate (Sticky on tablet horizontal scroll) */}
+                      <td className="sticky left-0 z-10 bg-white group-hover:bg-slate-50/70 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] px-4 sm:px-5 py-3.5">
                         <div className="font-bold text-slate-900">
                           {emp.lastName} {emp.firstName}
                         </div>

@@ -32,15 +32,19 @@ export function CaenSelector({
     setSelectedEntry(value ? getCaenEntry(value) : undefined);
   }, [value]);
 
-  // Click outside to close dropdown
+  // Click outside to close dropdown (handles both mouse and touch on iPadOS/Android)
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
   const filteredEntries = searchCaen(searchQuery);

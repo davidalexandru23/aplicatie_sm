@@ -848,7 +848,7 @@ function DocumentGeneratorContent() {
 
       {/* Quick 1-Click Packages Banner when Client is selected (Filtrat per rol: SSM vede Dosar SSM; HR vede Onboarding) */}
       {selectedClientId && (userRole === 'ADMIN' || userRole === 'SSM' || userRole === 'HR') && (
-        <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50/60 border border-blue-200/80 rounded-xl text-xs shadow-2xs">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50/60 border border-blue-200/80 rounded-xl text-xs shadow-2xs">
           <div className="flex items-center gap-2 text-slate-800">
             <Sparkles className="w-4 h-4 text-amber-500 flex-shrink-0" />
             <div>
@@ -856,27 +856,27 @@ function DocumentGeneratorContent() {
               <span className="text-slate-600 block sm:inline sm:ml-1.5">Generează direct arhiva ZIP structurată conform cerințelor legale:</span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full lg:w-auto">
             {(userRole === 'ADMIN' || userRole === 'SSM') && (
               <a
                 href={`/api/clients/${selectedClientId}/packages/dossier`}
                 download
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-blue-200 hover:border-blue-300 text-blue-900 font-semibold rounded-lg shadow-2xs hover:bg-blue-50 transition"
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-blue-200 hover:border-blue-300 text-blue-900 font-semibold rounded-lg shadow-2xs hover:bg-blue-50 transition"
                 title="Descarcă dosarul de securitate al companiei (16 DOCX)"
               >
                 <Download className="w-3.5 h-3.5 text-blue-600" />
-                Dosar SSM Firmă (16 DOCX)
+                <span>Dosar SSM Firmă (16 DOCX)</span>
               </a>
             )}
             {(userRole === 'ADMIN' || userRole === 'HR') && selectedEmployeeId && (
               <a
                 href={`/api/clients/${selectedClientId}/packages/onboarding?employeeId=${selectedEmployeeId}`}
                 download
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-2xs transition"
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-2xs transition"
                 title="Descarcă dosarul complet de angajare (11 DOCX)"
               >
                 <Download className="w-3.5 h-3.5" />
-                Pachet Onboarding (11 DOCX)
+                <span>Pachet Onboarding (11 DOCX)</span>
               </a>
             )}
           </div>
@@ -884,7 +884,7 @@ function DocumentGeneratorContent() {
       )}
 
       {/* Main Form Selection */}
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+      <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Client Selection */}
           <div>
@@ -918,8 +918,8 @@ function DocumentGeneratorContent() {
               </label>
             </div>
 
-            {/* Domain category pills filtrate per rol */}
-            <div className="flex flex-wrap gap-1 mb-2">
+            {/* Domain category pills filtrate per rol - Swipable on mobile/tablet */}
+            <div className="overflow-x-auto flex-nowrap sm:flex-wrap flex items-center gap-1 no-scrollbar pb-1 max-w-full mb-2">
               {roleCategories.map((tab) => (
                 <button
                   key={tab.id}
@@ -940,7 +940,7 @@ function DocumentGeneratorContent() {
                       setSelectedTemplateCode(matching[0].code);
                     }
                   }}
-                  className={`px-2 py-0.5 rounded text-[11px] font-medium transition ${
+                  className={`px-2 py-1 rounded text-[11px] font-medium shrink-0 transition ${
                     selectedCategory === tab.id
                       ? 'bg-blue-600 text-white shadow-2xs'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'

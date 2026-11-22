@@ -243,28 +243,28 @@ export function AddEmployeeModal({
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[92dvh] sm:max-h-[88vh] flex flex-col overflow-hidden border border-slate-200">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 bg-slate-900 text-white shrink-0">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-slate-900 text-white shrink-0">
               <div className="flex items-center gap-2">
-                <UserPlus className="w-5 h-5 text-blue-400" />
-                <div>
-                  <h3 className="text-sm font-bold">Adăugare Salariat Nou (Statutar)</h3>
-                  <p className="text-xs text-slate-300">Înregistrare conform Codul Muncii, HG 1425/2006 & HG 355/2007</p>
+                <UserPlus className="w-5 h-5 text-blue-400 shrink-0" />
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold truncate">Adăugare Salariat Nou (Statutar)</h3>
+                  <p className="text-xs text-slate-300 truncate">Înregistrare conform Codul Muncii, HG 1425/2006 & HG 355/2007</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="text-slate-400 hover:text-white transition p-1 rounded-lg"
+                className="text-slate-400 hover:text-white transition p-1.5 rounded-lg shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="flex border-b border-slate-200 bg-slate-50 px-6 shrink-0">
+            {/* Navigation Tabs - Swipable on mobile/tablet */}
+            <div className="overflow-x-auto flex-nowrap flex border-b border-slate-200 bg-slate-50 px-3 sm:px-6 shrink-0 no-scrollbar">
               {[
                 { id: 'identity', label: '1. Identitate', icon: User },
                 { id: 'contract', label: hideCim ? '2. Încadrare & Post' : '2. CIM & Încadrare', icon: FileText },
@@ -277,7 +277,7 @@ export function AddEmployeeModal({
                     key={t.id}
                     type="button"
                     onClick={() => setActiveTab(t.id as TabKey)}
-                    className={`flex items-center gap-1.5 py-3 px-3.5 border-b-2 text-xs font-semibold transition ${
+                    className={`flex items-center gap-1.5 py-2.5 sm:py-3 px-3 sm:px-3.5 border-b-2 text-xs font-semibold shrink-0 transition ${
                       activeTab === t.id
                         ? 'border-blue-600 text-blue-600 bg-white'
                         : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -291,7 +291,7 @@ export function AddEmployeeModal({
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
               {errorMessage && (
                 <div className="flex items-start gap-2 p-3 text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />

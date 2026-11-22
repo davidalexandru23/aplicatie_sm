@@ -1216,7 +1216,7 @@ export async function resolveTemplateData(
 
   const effectiveJobTitle = job?.title || participant?.jobTitle || participant?.employee?.currentJob?.title ||
     (riskAssessment?.title?.includes(' - ') ? riskAssessment.title.split(' - ').slice(1).join(' - ').trim() : riskAssessment?.title) ||
-    'Activități generale / Sediu social';
+    '';
 
   const hasDbRiskAssessment = !!(riskAssessment && riskAssessment.riskItems && riskAssessment.riskItems.length > 0);
   const dbRiskItems: any[] = hasDbRiskAssessment ? riskAssessment.riskItems : [];

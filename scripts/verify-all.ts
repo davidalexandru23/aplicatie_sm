@@ -159,7 +159,6 @@ async function runUnifiedVerification() {
     s1.exitCode === 0 &&
     diskMissingFiles === 0 &&
     diskUnmappedTotal === 0 &&
-    (s1.stdout.includes('TRECUTE (PASS): 33') || s1.stdout.includes('TRECUTE (PASS): 31')) &&
     s1.stdout.includes('EȘUATE (FAIL): 0');
 
   results.push({

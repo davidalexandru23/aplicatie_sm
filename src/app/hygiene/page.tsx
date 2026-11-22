@@ -1205,12 +1205,12 @@ export default function HygienePage() {
                         Nu sunt cursanți înscriși. Adaugă cursanți din portofoliul de angajați.
                       </div>
                     ) : (
-                      <div className="overflow-x-auto">
+                      <div className="overflow-x-auto w-full overscroll-x-contain touch-pan-x">
                         <table className="w-full text-xs">
                           <thead className="bg-slate-100 border-b border-slate-200">
                             <tr>
                               <th className="px-3 py-2 text-left font-semibold text-slate-600">#</th>
-                              <th className="px-3 py-2 text-left font-semibold text-slate-600">Nume Complet</th>
+                              <th className="sticky left-0 z-20 bg-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] px-3 py-2 text-left font-semibold text-slate-600">Nume Complet</th>
                               <th className="px-3 py-2 text-left font-semibold text-slate-600">Angajator</th>
                               <th className="px-3 py-2 text-left font-semibold text-slate-600">Funcție</th>
                               <th className="px-3 py-2 text-left font-semibold text-slate-600">CNP (în clar)</th>
@@ -1227,7 +1227,7 @@ export default function HygienePage() {
                               return (
                                 <tr key={p.id} className="border-b border-slate-100 hover:bg-white">
                                   <td className="px-3 py-2 text-slate-400">{idx + 1}</td>
-                                  <td className="px-3 py-2 font-bold text-slate-900">
+                                  <td className="sticky left-0 z-10 bg-slate-50 hover:bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] px-3 py-2 font-bold text-slate-900">
                                     {p.lastName} {p.firstName}
                                   </td>
                                   <td className="px-3 py-2 text-slate-700">{p.clientName}</td>

@@ -58,17 +58,17 @@ export function ComplianceAlerts({
 
   return (
     <div className="space-y-6">
-      {/* Filter Tabs */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+      {/* Filter Tabs - Swipable on mobile/tablet */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-          <Filter className="w-4 h-4 text-slate-500" />
+          <Filter className="w-4 h-4 text-slate-500 shrink-0" />
           <span>Filtrează cerința legală:</span>
         </div>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="overflow-x-auto flex-nowrap sm:flex-wrap flex items-center gap-1.5 no-scrollbar pb-1 max-w-full">
           <button
             type="button"
             onClick={() => setFilter('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition ${
               filter === 'all'
                 ? 'bg-slate-900 text-white shadow-sm'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -79,7 +79,7 @@ export function ComplianceAlerts({
           <button
             type="button"
             onClick={() => setFilter('medical')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition ${
               filter === 'medical'
                 ? 'bg-blue-600 text-white shadow-sm'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -90,7 +90,7 @@ export function ComplianceAlerts({
           <button
             type="button"
             onClick={() => setFilter('ssm')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition ${
               filter === 'ssm'
                 ? 'bg-indigo-600 text-white shadow-sm'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'

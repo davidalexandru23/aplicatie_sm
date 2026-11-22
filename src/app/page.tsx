@@ -200,13 +200,13 @@ export default async function DashboardPage() {
       </div>
 
       {/* 2. Executive Compliance KPI Cards (4 Cards) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         {/* Card 1: Scor General de Conformitate */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between min-w-0">
           <div>
             <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
-              <span>Scor General Conformitate</span>
-              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+              <span className="truncate">Scor General Conformitate</span>
+              <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
             </div>
             <div className="flex items-baseline gap-2 mt-2">
               <span className={`text-3xl font-extrabold ${
@@ -218,7 +218,7 @@ export default async function DashboardPage() {
               }`}>
                 {globalCompliance.complianceScorePercent}%
               </span>
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-slate-400 truncate">
                 ({globalCompliance.validCount}/{globalCompliance.totalItemsTracked} la zi)
               </span>
             </div>
@@ -243,18 +243,18 @@ export default async function DashboardPage() {
         {/* Card 2: Termene Depășite (OVERDUE) */}
         <Link
           href="/employees?status=OVERDUE"
-          className="bg-white p-5 rounded-xl border border-red-200 hover:border-red-300 hover:shadow-md transition flex flex-col justify-between group"
+          className="bg-white p-5 rounded-xl border border-red-200 hover:border-red-300 hover:shadow-md transition flex flex-col justify-between group min-w-0"
         >
           <div>
             <div className="flex items-center justify-between text-xs font-bold text-red-700">
-              <span>Termene Depășite</span>
-              <AlertTriangle className="w-5 h-5 text-red-600 group-hover:scale-110 transition-transform" />
+              <span className="truncate">Termene Depășite</span>
+              <AlertTriangle className="w-5 h-5 text-red-600 group-hover:scale-110 transition-transform shrink-0" />
             </div>
             <div className="flex items-baseline gap-2 mt-2">
               <span className="text-3xl font-extrabold text-red-700">
                 {globalCompliance.overdueCount}
               </span>
-              <span className="text-xs font-bold text-red-600">
+              <span className="text-xs font-bold text-red-600 truncate">
                 cerințe expirate
               </span>
             </div>
@@ -271,18 +271,18 @@ export default async function DashboardPage() {
         {/* Card 3: Scadențe Iminente (UPCOMING <= 30z) */}
         <Link
           href="/employees?status=UPCOMING"
-          className="bg-white p-5 rounded-xl border border-amber-200 hover:border-amber-300 hover:shadow-md transition flex flex-col justify-between group"
+          className="bg-white p-5 rounded-xl border border-amber-200 hover:border-amber-300 hover:shadow-md transition flex flex-col justify-between group min-w-0"
         >
           <div>
             <div className="flex items-center justify-between text-xs font-bold text-amber-700">
-              <span>Scadențe Iminente (&le;30z)</span>
-              <Clock className="w-5 h-5 text-amber-500 group-hover:scale-110 transition-transform" />
+              <span className="truncate">Scadențe Iminente (&le;30z)</span>
+              <Clock className="w-5 h-5 text-amber-500 group-hover:scale-110 transition-transform shrink-0" />
             </div>
             <div className="flex items-baseline gap-2 mt-2">
               <span className="text-3xl font-extrabold text-amber-700">
                 {globalCompliance.upcomingCount}
               </span>
-              <span className="text-xs font-bold text-amber-600">
+              <span className="text-xs font-bold text-amber-600 truncate">
                 în atenție
               </span>
             </div>
@@ -299,18 +299,18 @@ export default async function DashboardPage() {
         {/* Card 4: Date Lipsă / Dosare Incomplete (MISSING) */}
         <Link
           href="/employees?status=MISSING"
-          className="bg-white p-5 rounded-xl border border-rose-200 hover:border-rose-300 hover:shadow-md transition flex flex-col justify-between group"
+          className="bg-white p-5 rounded-xl border border-rose-200 hover:border-rose-300 hover:shadow-md transition flex flex-col justify-between group min-w-0"
         >
           <div>
             <div className="flex items-center justify-between text-xs font-bold text-rose-800">
-              <span>Dosare Incomplete</span>
-              <AlertCircle className="w-5 h-5 text-rose-600 group-hover:scale-110 transition-transform" />
+              <span className="truncate">Dosare Incomplete</span>
+              <AlertCircle className="w-5 h-5 text-rose-600 group-hover:scale-110 transition-transform shrink-0" />
             </div>
             <div className="flex items-baseline gap-2 mt-2">
               <span className="text-3xl font-extrabold text-rose-800">
                 {globalCompliance.missingCount}
               </span>
-              <span className="text-xs font-bold text-rose-700">
+              <span className="text-xs font-bold text-rose-700 truncate">
                 date lipsă
               </span>
             </div>
