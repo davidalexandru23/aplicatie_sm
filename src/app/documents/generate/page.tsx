@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense, useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { 
   FileCheck, 
@@ -22,6 +22,14 @@ import {
   ShieldAlert,
   UserCheck
 } from 'lucide-react';
+import {
+  UserRole,
+  TemplateCategory,
+  ROLE_ALLOWED_TEMPLATE_CATEGORIES,
+  ROLE_GENERATOR_CONFIG,
+  ROLE_CONFIG,
+  isTemplateAllowedForRole,
+} from '@/lib/rbac';
 
 interface ClientOption {
   id: string;
@@ -277,6 +285,7 @@ function DocumentGeneratorContent() {
   const [jobs, setJobs] = useState<JobOption[]>([]);
   const [worksites, setWorksites] = useState<WorksiteOption[]>([]);
   const [hygieneSessions, setHygieneSessions] = useState<HygieneSessionOption[]>([]);
+  const [userRole, setUserRole] = useState<UserRole>('ADMIN');
 
   const [selectedClientId, setSelectedClientId] = useState<string>(initialClientId);
   const [selectedTemplateCode, setSelectedTemplateCode] = useState<string>(initialTemplateCode);
@@ -318,6 +327,20 @@ function DocumentGeneratorContent() {
     if (initialHygieneParticipantId) setSelectedHygieneParticipantId(initialHygieneParticipantId);
   }, [initialClientId, initialTemplateCode, initialEmployeeId, initialJobId, initialWorksiteId, initialHygieneSessionId, initialHygieneParticipantId]);
 
+  // Load user role from session
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.user?.role) {
+          setUserRole(data.user.role as UserRole);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load user role:', err);
+      });
+  }, []);
+
   // Load clients and templates
   useEffect(() => {
     fetch('/api/clients')
@@ -331,15 +354,74 @@ function DocumentGeneratorContent() {
       .then((data) => {
         if (Array.isArray(data)) setTemplates(data);
       });
-
-    fetch('/api/hygiene/sessions')
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) setHygieneSessions(data);
-      });
   }, []);
 
-  const currentTemplate = templates.find((t) => t.code === selectedTemplateCode);
+  // Load hygiene sessions only if role has access
+  useEffect(() => {
+    if (userRole === 'ADMIN' || userRole === 'IGIENA') {
+      fetch('/api/hygiene/sessions')
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) setHygieneSessions(data);
+        })
+        .catch(() => {});
+    }
+  }, [userRole]);
+
+  // Filter templates allowed for the current role
+  const allowedTemplates = useMemo(() => {
+    return templates.filter((t) => isTemplateAllowedForRole(t, userRole));
+  }, [templates, userRole]);
+
+  // Allowed categories based on RBAC matrix
+  const roleCategories = useMemo(() => {
+    const allowedCatSet = new Set(ROLE_ALLOWED_TEMPLATE_CATEGORIES[userRole] || ['all']);
+    const allTabs: { id: TemplateCategory; label: string }[] = [
+      { id: 'all', label: `Toate (${allowedTemplates.length})` },
+      { id: 'ssm', label: 'SSM' },
+      { id: 'psi', label: 'PSI / SU' },
+      { id: 'med_eip', label: 'Medicină & EIP' },
+      { id: 'hr', label: 'HR / CIM' },
+      { id: 'hygiene', label: 'Igienă' },
+      { id: 'ipssm', label: 'IPSSM' },
+    ];
+    return allTabs.filter((t) => allowedCatSet.has(t.id));
+  }, [userRole, allowedTemplates.length]);
+
+  // Reset category if not permitted for current role
+  useEffect(() => {
+    if (!roleCategories.some((c) => c.id === selectedCategory)) {
+      setSelectedCategory('all');
+    }
+  }, [roleCategories, selectedCategory]);
+
+  const filteredTemplates = useMemo(() => {
+    return allowedTemplates.filter((t) => {
+      if (selectedCategory === 'all') return true;
+      if (selectedCategory === 'hygiene') return t.family === 'hygiene' || t.code.startsWith('hygiene-');
+      if (selectedCategory === 'ipssm') return t.family === 'ipssm';
+      if (selectedCategory === 'med_eip') return t.code.startsWith('med-') || t.code.startsWith('eip-');
+      if (selectedCategory === 'psi') return t.code.includes('psi') || t.code.includes('urgenta');
+      if (selectedCategory === 'hr') return t.family === 'hr';
+      if (selectedCategory === 'ssm') return t.family === 'risk' || t.family === 'training' || t.family === 'decision';
+      return true;
+    });
+  }, [allowedTemplates, selectedCategory]);
+
+  // Keep selectedTemplateCode in sync with filteredTemplates
+  useEffect(() => {
+    if (templates.length === 0) return;
+    if (filteredTemplates.length > 0) {
+      if (!filteredTemplates.some((t) => t.code === selectedTemplateCode)) {
+        setSelectedTemplateCode(filteredTemplates[0].code);
+      }
+    } else {
+      setSelectedTemplateCode('');
+    }
+  }, [templates.length, filteredTemplates, selectedTemplateCode]);
+
+  const generatorConfig = ROLE_GENERATOR_CONFIG[userRole] || ROLE_GENERATOR_CONFIG.ADMIN;
+  const currentTemplate = allowedTemplates.find((t) => t.code === selectedTemplateCode);
   const isHygieneTemplate =
     currentTemplate?.family === 'hygiene' ||
     currentTemplate?.contextLevel === 'hygiene_session' ||
@@ -433,17 +515,6 @@ function DocumentGeneratorContent() {
   });
   const displayedSessions = filteredSessions.length > 0 ? filteredSessions : hygieneSessions;
   const selectedHygieneSession = hygieneSessions.find((session) => session.id === selectedHygieneSessionId);
-
-  const filteredTemplates = templates.filter((t) => {
-    if (selectedCategory === 'all') return true;
-    if (selectedCategory === 'hygiene') return t.family === 'hygiene' || t.code.startsWith('hygiene-');
-    if (selectedCategory === 'ipssm') return t.family === 'ipssm';
-    if (selectedCategory === 'med_eip') return t.code.startsWith('med-') || t.code.startsWith('eip-');
-    if (selectedCategory === 'psi') return t.code.includes('psi') || t.code.includes('urgenta');
-    if (selectedCategory === 'hr') return t.family === 'hr';
-    if (selectedCategory === 'ssm') return t.family === 'risk' || t.family === 'training' || t.family === 'decision';
-    return true;
-  });
 
   // Load dynamic template placeholders & pre-filled values
   useEffect(() => {
@@ -654,17 +725,22 @@ function DocumentGeneratorContent() {
       {/* Header Banner */}
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${ROLE_CONFIG[userRole]?.bgColor || 'bg-slate-100'} ${ROLE_CONFIG[userRole]?.color || 'text-slate-800'} ${ROLE_CONFIG[userRole]?.borderColor || 'border-slate-200'}`}>
+              {generatorConfig.badge}
+            </span>
+          </div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <FileCheck className="w-5 h-5 text-blue-600" />
-            <span>Generator Oficial SSM & Igienă</span>
+            <span>{generatorConfig.title}</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Autocompletare inteligentă a celor 31 de șabloane statutare din datele firmei, salariaților și sesiunilor înregistrate.
+            {generatorConfig.subtitle}
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs bg-blue-50 text-blue-800 px-3 py-1.5 rounded-lg border border-blue-200">
           <Sparkles className="w-4 h-4 text-blue-600" />
-          <span>31 Șabloane Normate 100%</span>
+          <span>{allowedTemplates.length} Șabloane Normate 100%</span>
         </div>
       </div>
 
@@ -675,27 +751,29 @@ function DocumentGeneratorContent() {
         </div>
       )}
 
-      {/* Quick 1-Click Packages Banner when Client is selected */}
-      {selectedClientId && (
+      {/* Quick 1-Click Packages Banner when Client is selected (Filtrat per rol: SSM vede Dosar SSM; HR vede Onboarding) */}
+      {selectedClientId && (userRole === 'ADMIN' || userRole === 'SSM' || userRole === 'HR') && (
         <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50/60 border border-blue-200/80 rounded-xl text-xs shadow-2xs">
           <div className="flex items-center gap-2 text-slate-800">
             <Sparkles className="w-4 h-4 text-amber-500 flex-shrink-0" />
             <div>
               <span className="font-bold text-slate-900">Vrei pachetul complet dintr-un singur click?</span>
-              <span className="text-slate-600 block sm:inline sm:ml-1.5">Generează direct arhiva ZIP structurată conform cerințelor ITM / ISU:</span>
+              <span className="text-slate-600 block sm:inline sm:ml-1.5">Generează direct arhiva ZIP structurată conform cerințelor legale:</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <a
-              href={`/api/clients/${selectedClientId}/packages/dossier`}
-              download
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-blue-200 hover:border-blue-300 text-blue-900 font-semibold rounded-lg shadow-2xs hover:bg-blue-50 transition"
-              title="Descarcă dosarul de securitate al companiei (16 DOCX)"
-            >
-              <Download className="w-3.5 h-3.5 text-blue-600" />
-              Dosar SSM Firmă (16 DOCX)
-            </a>
-            {selectedEmployeeId && (
+            {(userRole === 'ADMIN' || userRole === 'SSM') && (
+              <a
+                href={`/api/clients/${selectedClientId}/packages/dossier`}
+                download
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-blue-200 hover:border-blue-300 text-blue-900 font-semibold rounded-lg shadow-2xs hover:bg-blue-50 transition"
+                title="Descarcă dosarul de securitate al companiei (16 DOCX)"
+              >
+                <Download className="w-3.5 h-3.5 text-blue-600" />
+                Dosar SSM Firmă (16 DOCX)
+              </a>
+            )}
+            {(userRole === 'ADMIN' || userRole === 'HR') && selectedEmployeeId && (
               <a
                 href={`/api/clients/${selectedClientId}/packages/onboarding?employeeId=${selectedEmployeeId}`}
                 download
@@ -741,27 +819,19 @@ function DocumentGeneratorContent() {
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="block text-xs font-semibold text-slate-700">
-                Șablon Oficial ({filteredTemplates.length}/{templates.length || 31}) *
+                Șablon Oficial ({filteredTemplates.length}/{allowedTemplates.length}) *
               </label>
             </div>
 
-            {/* Domain category pills */}
+            {/* Domain category pills filtrate per rol */}
             <div className="flex flex-wrap gap-1 mb-2">
-              {[
-                { id: 'all', label: `Toate (${templates.length || 31})` },
-                { id: 'ssm', label: 'SSM' },
-                { id: 'psi', label: 'PSI / SU' },
-                { id: 'med_eip', label: 'Medicină & EIP' },
-                { id: 'hr', label: 'HR / CIM' },
-                { id: 'hygiene', label: 'Igienă' },
-                { id: 'ipssm', label: 'IPSSM' },
-              ].map((tab) => (
+              {roleCategories.map((tab) => (
                 <button
                   key={tab.id}
                   type="button"
                   onClick={() => {
                     setSelectedCategory(tab.id);
-                    const matching = templates.filter((t) => {
+                    const matching = allowedTemplates.filter((t) => {
                       if (tab.id === 'all') return true;
                       if (tab.id === 'hygiene') return t.family === 'hygiene' || t.code.startsWith('hygiene-');
                       if (tab.id === 'ipssm') return t.family === 'ipssm';
@@ -791,7 +861,7 @@ function DocumentGeneratorContent() {
               onChange={(e) => {
                 const newCode = e.target.value;
                 setSelectedTemplateCode(newCode);
-                const nextTpl = templates.find((t) => t.code === newCode);
+                const nextTpl = allowedTemplates.find((t) => t.code === newCode);
                 const isNextHygiene =
                   nextTpl?.family === 'hygiene' ||
                   nextTpl?.contextLevel === 'hygiene_session' ||
@@ -1070,7 +1140,7 @@ function DocumentGeneratorContent() {
                                     </p>
                                   ) : (
                                     <p className="text-[11px] text-slate-400 mt-0.5">
-                                      CNP: {emp.cnp || 'Nespecificat'}
+                                      CNP: {userRole === 'SSM' ? (emp.cnp ? '•••••••••••••' : 'Nespecificat') : (emp.cnp || 'Nespecificat')}
                                     </p>
                                   )}
                                 </div>
@@ -1135,8 +1205,8 @@ function DocumentGeneratorContent() {
           </div>
         )}
 
-        {/* Scope Selector for Hygiene Templates */}
-        {isHygieneTemplate && (
+        {/* Scope Selector for Hygiene Templates (accesibil exclusiv pentru ADMIN și IGIENA) */}
+        {isHygieneTemplate && (userRole === 'ADMIN' || userRole === 'IGIENA') && (
           <div className="pt-3 border-t border-slate-100 space-y-3">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">

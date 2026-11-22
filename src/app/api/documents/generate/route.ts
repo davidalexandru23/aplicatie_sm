@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { generateDocument } from '@/lib/templates/generator';
 import { resolveTemplatePlaceholders } from '@/lib/templates/resolver';
 import { allocateCertificateNumberForParticipant } from '@/lib/hygiene-numbering';
+import { parseSessionFromCookieHeader, UserRole } from '@/lib/auth';
+import { isTemplateAllowedForRole, ROLE_CONFIG } from '@/lib/rbac';
 
 export async function POST(request: NextRequest) {
   try {
@@ -64,6 +66,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Codul șablonului și clientul sunt obligatorii.' },
         { status: 400 }
+      );
+    }
+
+    // Role-Based Access Control (RBAC) validation for template generation
+    const sessionCookie = request.headers.get('cookie');
+    const session = parseSessionFromCookieHeader(sessionCookie);
+    const userRole: UserRole = session?.role || 'ADMIN';
+
+    if (!isTemplateAllowedForRole({ code: templateCode }, userRole)) {
+      return NextResponse.json(
+        { error: `Rolul dumneavoastră (${ROLE_CONFIG[userRole].label}) nu are permisiunea de a genera documente pentru șablonul "${templateCode}".` },
+        { status: 403 }
       );
     }
 

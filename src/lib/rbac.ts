@@ -127,6 +127,89 @@ export function isRouteAllowedForRole(pathname: string, role: UserRole): boolean
   return true;
 }
 
+export type TemplateCategory = 'all' | 'ssm' | 'psi' | 'med_eip' | 'hr' | 'hygiene' | 'ipssm';
+
+export const ROLE_ALLOWED_TEMPLATE_CATEGORIES: Record<UserRole, TemplateCategory[]> = {
+  ADMIN: ['all', 'ssm', 'psi', 'med_eip', 'hr', 'hygiene', 'ipssm'],
+  SSM: ['all', 'ssm', 'psi', 'med_eip', 'ipssm'],
+  HR: ['all', 'hr', 'med_eip'],
+  IGIENA: ['all', 'hygiene'],
+};
+
+export interface RoleGeneratorMeta {
+  title: string;
+  subtitle: string;
+  badge: string;
+}
+
+export const ROLE_GENERATOR_CONFIG: Record<UserRole, RoleGeneratorMeta> = {
+  ADMIN: {
+    title: 'Generator Oficial SSM, HR & Igienă',
+    subtitle: 'Autocompletare inteligentă a celor 33 de șabloane statutare din datele firmei, salariaților și sesiunilor înregistrate.',
+    badge: 'Admin Master',
+  },
+  SSM: {
+    title: 'Generator Oficial SSM, PSI & Instruiri',
+    subtitle: 'Autocompletare inteligentă a șabloanelor de securitate în muncă (SSM), situații de urgență (PSI/SU), instrucțiuni proprii (IPSSM) și evaluări de risc.',
+    badge: 'Specialist SSM',
+  },
+  HR: {
+    title: 'Generator Oficial Resurse Umane (HR & CIM)',
+    subtitle: 'Autocompletare inteligentă a contractelor individuale de muncă (CIM), actelor adiționale, fișelor de post și documentelor de personal.',
+    badge: 'Resurse Umane',
+  },
+  IGIENA: {
+    title: 'Generator Oficial Cursuri & Adeverințe Igienă',
+    subtitle: 'Generare automată a adeverințelor DSP și cataloagelor oficiale conform Ordin MS/ME 2209/4469/2022.',
+    badge: 'Inspector Igienă',
+  },
+};
+
+export function isTemplateAllowedForRole(
+  template: { code: string; family?: string | null },
+  role: UserRole
+): boolean {
+  if (role === 'ADMIN') return true;
+
+  const code = (template.code || '').toLowerCase();
+  const family = (template.family || '').toLowerCase();
+
+  const isHygiene = family === 'hygiene' || code.startsWith('hygiene-');
+  const isHr = (family === 'hr' || code.startsWith('hr-')) && !code.startsWith('med-') && !code.startsWith('eip-');
+  const isIpssm = family === 'ipssm' || code.startsWith('ipssm-');
+  const isMedEip = code.startsWith('med-') || code.startsWith('eip-');
+  const isPsi = code.includes('psi') || code.includes('urgenta');
+  const isSsm =
+    family === 'risk' ||
+    family === 'training' ||
+    family === 'decision' ||
+    code.startsWith('ssm-') ||
+    code.startsWith('risk-') ||
+    code.startsWith('training-') ||
+    code === 'decizii-angajator';
+
+  if (role === 'SSM') {
+    // SSM manages SSM, PSI, Med & EIP, IPSSM
+    // Strictly forbidden: HR and Hygiene
+    if (isHr || isHygiene) return false;
+    return isSsm || isPsi || isMedEip || isIpssm;
+  }
+
+  if (role === 'HR') {
+    // HR manages HR (CIM, job sheets, employee forms) and Med & EIP (occupational health forms)
+    // Strictly forbidden: SSM, PSI, IPSSM, Hygiene
+    if (isSsm || isPsi || isIpssm || isHygiene) return false;
+    return isHr || isMedEip;
+  }
+
+  if (role === 'IGIENA') {
+    // Igiena handles strictly Hygiene
+    return isHygiene;
+  }
+
+  return true;
+}
+
 /**
  * Returnează ruta implicită de landing pentru fiecare rol
  */
