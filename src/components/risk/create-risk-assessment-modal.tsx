@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, X, ShieldAlert, AlertTriangle, Check, Loader2, Trash2, Sparkles, Building2, Briefcase } from 'lucide-react';
 import { CAEN_RISK_PROFILES, calculatePecePartialRisk } from '@/lib/risk/caen-risk-presets';
+import { findCorRiskProfile, CorRiskProfile } from '@/lib/risk/cor-risk-presets';
 
 function extractCaenCode(raw?: unknown): string {
   if (!raw) return '6201';
@@ -16,7 +17,12 @@ interface ClientItem {
   id: string;
   name: string;
   caenCode?: string | null;
-  jobs?: { id: string; title: string }[];
+  jobs?: {
+    id: string;
+    title: string;
+    corCode?: string | null;
+    mainActivities?: string | null;
+  }[];
 }
 
 interface CreateRiskAssessmentModalProps {
@@ -60,6 +66,12 @@ export function CreateRiskAssessmentModal({ clients }: CreateRiskAssessmentModal
   const [evaluatorName, setEvaluatorName] = useState('Ing. Specialist Evaluator');
   const [method, setMethod] = useState('INCDPM');
   const [conclusions, setConclusions] = useState('');
+  const [matchedProfile, setMatchedProfile] = useState<{
+    title: string;
+    corCode: string;
+    factorsCount: number;
+    globalRiskScore: number;
+  } | null>(null);
 
   const [items, setItems] = useState<RiskItemRow[]>([
     {
@@ -101,33 +113,90 @@ export function CreateRiskAssessmentModal({ clients }: CreateRiskAssessmentModal
 
   const selectedClient = clients.find((c) => c.id === selectedClientId);
   const availableJobs = selectedClient?.jobs || [];
+  const selectedJob = availableJobs.find((j) => j.id === selectedJobId);
+
+  function applyCorProfile(job: { id: string; title: string; corCode?: string | null }): boolean {
+    const profile = findCorRiskProfile({ corCode: job.corCode, jobTitle: job.title });
+    if (profile && profile.factors && profile.factors.length > 0) {
+      const newItems: RiskItemRow[] = profile.factors.map((f) => ({
+        hazard: f.hazard,
+        riskSituation: f.riskSituation,
+        consequence: f.consequence,
+        severityScore: f.severityScore,
+        probabilityScore: f.probabilityScore,
+        riskLevel: f.riskLevel,
+      }));
+
+      const newMeasures: MeasureRow[] = profile.factors.map((f, idx) => ({
+        itemIndex: idx,
+        description: f.measure.description,
+        measureType: f.measure.measureType,
+        responsiblePerson: f.measure.responsiblePerson,
+        deadline: f.measure.deadline,
+      }));
+
+      setItems(newItems);
+      setMeasures(newMeasures);
+      setConclusions(
+        `Nivelul global de risc calculat conform metodei INCDPM pentru postul de ${job.title} (${profile.title} - COR ${profile.corCode}) este de ${profile.globalRiskScore.toFixed(2)}, încadrându-se în categoria locurilor de muncă cu risc acceptabil (Nrg <= 3.50). Măsurile din Planul de Prevenire și Protecție asigură controlul factorilor identificați.`
+      );
+      setMatchedProfile({
+        title: profile.title,
+        corCode: profile.corCode,
+        factorsCount: profile.factors.length,
+        globalRiskScore: profile.globalRiskScore,
+      });
+      setError(null);
+      return true;
+    }
+    return false;
+  }
 
   function handleClientChange(newClientId: string) {
     setSelectedClientId(newClientId);
     const cl = clients.find((c) => c.id === newClientId);
     if (cl && cl.jobs && cl.jobs.length > 0) {
-      setSelectedJobId(cl.jobs[0].id);
-      setTitle(`Evaluarea Riscurilor Profesionale - ${cl.jobs[0].title}`);
+      const firstJob = cl.jobs[0];
+      setSelectedJobId(firstJob.id);
+      setTitle(`Evaluarea Riscurilor Profesionale - ${firstJob.title}`);
+      const matched = applyCorProfile(firstJob);
+      if (!matched && cl.caenCode) {
+        handleAutoPopulateCaen(cl.caenCode);
+      }
     } else {
       setSelectedJobId('');
       setTitle(`Evaluarea Riscurilor Profesionale - ${cl?.name || ''}`);
+      setMatchedProfile(null);
+      if (cl?.caenCode) {
+        handleAutoPopulateCaen(cl.caenCode);
+      }
     }
   }
 
   function handleJobChange(newJobId: string) {
     setSelectedJobId(newJobId);
+    if (!newJobId) {
+      setTitle(`Evaluarea Riscurilor Profesionale - ${selectedClient?.name || ''}`);
+      setMatchedProfile(null);
+      return;
+    }
     const j = availableJobs.find((item) => item.id === newJobId);
     if (j) {
       setTitle(`Evaluarea Riscurilor Profesionale - ${j.title}`);
+      const applied = applyCorProfile(j);
+      if (!applied && selectedClient?.caenCode) {
+        handleAutoPopulateCaen();
+      }
     }
   }
 
-  function handleAutoPopulateCaen() {
-    if (!selectedClient?.caenCode) {
+  function handleAutoPopulateCaen(overrideCaen?: string) {
+    const rawCaen = overrideCaen || selectedClient?.caenCode;
+    if (!rawCaen) {
       setError('Clientul selectat nu are cod CAEN configurat.');
       return;
     }
-    const cleanCaen = extractCaenCode(selectedClient.caenCode);
+    const cleanCaen = extractCaenCode(rawCaen);
     const profile = CAEN_RISK_PROFILES[cleanCaen];
     if (!profile || !profile.factors || profile.factors.length === 0) {
       setError(`Nu s-a găsit profil predefinit pentru codul CAEN ${cleanCaen}.`);
@@ -157,9 +226,25 @@ export function CreateRiskAssessmentModal({ clients }: CreateRiskAssessmentModal
     setItems(newItems);
     setMeasures(newMeasures);
     setConclusions(
-      `Nivelul global de risc estimat este de ${profile.globalRiskScore.toFixed(2)}, încadrându-se în categoria locurilor de muncă cu risc acceptabil (Nrg <= 3.50). Măsurile din Planul de Prevenire și Protecție asigură controlul factorilor identificați.`
+      `Nivelul global de risc estimat conform codului CAEN ${cleanCaen} este de ${profile.globalRiskScore.toFixed(2)}, încadrându-se în categoria locurilor de muncă cu risc acceptabil (Nrg <= 3.50). Măsurile din Planul de Prevenire și Protecție asigură controlul factorilor identificați.`
     );
+    setMatchedProfile(null);
     setError(null);
+  }
+
+  function handleOpenModal() {
+    setIsOpen(true);
+    // If client has jobs, auto-populate the first job immediately
+    if (selectedClient && selectedClient.jobs && selectedClient.jobs.length > 0) {
+      const activeJob = selectedClient.jobs.find((j) => j.id === selectedJobId) || selectedClient.jobs[0];
+      if (activeJob) {
+        setSelectedJobId(activeJob.id);
+        setTitle(`Evaluarea Riscurilor Profesionale - ${activeJob.title}`);
+        applyCorProfile(activeJob);
+      }
+    } else if (selectedClient?.caenCode) {
+      handleAutoPopulateCaen();
+    }
   }
 
   function addItem() {
@@ -297,7 +382,7 @@ export function CreateRiskAssessmentModal({ clients }: CreateRiskAssessmentModal
   return (
     <>
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={handleOpenModal}
         className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition shadow-sm"
       >
         <Plus className="w-4 h-4" />
@@ -337,16 +422,28 @@ export function CreateRiskAssessmentModal({ clients }: CreateRiskAssessmentModal
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
                     1. Identificare Firmă & Post Evaluat
                   </h4>
-                  {selectedClient?.caenCode && (
-                    <button
-                      type="button"
-                      onClick={handleAutoPopulateCaen}
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200 transition"
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>Preia din Profil CAEN ({selectedClient.caenCode})</span>
-                    </button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {selectedJob && (
+                      <button
+                        type="button"
+                        onClick={() => applyCorProfile(selectedJob)}
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-300 transition"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Preia Riscuri COR ({selectedJob.corCode || selectedJob.title})</span>
+                      </button>
+                    )}
+                    {selectedClient?.caenCode && (
+                      <button
+                        type="button"
+                        onClick={() => handleAutoPopulateCaen()}
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200 transition"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Preia din Profil CAEN ({selectedClient.caenCode})</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -379,10 +476,23 @@ export function CreateRiskAssessmentModal({ clients }: CreateRiskAssessmentModal
                       <option value="">-- Toate posturile / Nivel firmă --</option>
                       {availableJobs.map((j) => (
                         <option key={j.id} value={j.id}>
-                          {j.title}
+                          {j.title} {j.corCode ? `(COR ${j.corCode})` : ''}
                         </option>
                       ))}
                     </select>
+                    {matchedProfile && (
+                      <div className="mt-1.5 p-2 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between text-xs text-emerald-800">
+                        <div className="flex items-center gap-1.5">
+                          <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span>
+                            Autocompletat profil COR <strong>{matchedProfile.corCode}</strong> ({matchedProfile.title}): <strong>{matchedProfile.factorsCount} factori</strong> generați.
+                          </span>
+                        </div>
+                        <span className="text-[11px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded border border-emerald-300">
+                          Nrg estimat: {matchedProfile.globalRiskScore.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 

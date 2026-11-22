@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Edit2, X, ShieldAlert, AlertTriangle, Check, Loader2, Trash2 } from 'lucide-react';
+import { Edit2, X, ShieldAlert, AlertTriangle, Check, Loader2, Trash2, Sparkles } from 'lucide-react';
 import { calculatePecePartialRisk } from '@/lib/risk/caen-risk-presets';
+import { findCorRiskProfile } from '@/lib/risk/cor-risk-presets';
 
 interface RiskItemData {
   id?: string;
@@ -40,8 +41,8 @@ interface RiskAssessmentData {
   evaluatorName?: string | null;
   conclusions?: string | null;
   status: string;
-  client: { id: string; name: string };
-  job?: { id: string; title: string } | null;
+  client: { id: string; name: string; caenCode?: string | null };
+  job?: { id: string; title: string; corCode?: string | null } | null;
   riskItems?: RiskItemData[];
   preventionMeasures?: PreventionMeasureData[];
   hazardZones?: HazardZoneData[];
@@ -57,6 +58,11 @@ export function EditRiskAssessmentModal({ assessment }: EditRiskAssessmentModalP
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [appliedCorInfo, setAppliedCorInfo] = useState<{
+    title: string;
+    corCode: string;
+    factorsCount: number;
+  } | null>(null);
 
   const [title, setTitle] = useState(assessment.title || '');
   const [evaluatorName, setEvaluatorName] = useState(assessment.evaluatorName || '');
@@ -85,6 +91,46 @@ export function EditRiskAssessmentModal({ assessment }: EditRiskAssessmentModalP
   const [hazardZones, setHazardZones] = useState<HazardZoneData[]>(
     assessment.hazardZones || []
   );
+
+  function handleAutoPopulateCor() {
+    const jobTitle = assessment.job?.title || assessment.title;
+    const corCode = assessment.job?.corCode;
+    const profile = findCorRiskProfile({ corCode, jobTitle });
+    if (!profile || !profile.factors || profile.factors.length === 0) {
+      setError(`Nu s-a găsit profil de risc predefinit pentru ${jobTitle}.`);
+      return;
+    }
+
+    const newItems: RiskItemData[] = profile.factors.map((f, idx) => ({
+      hazard: f.hazard,
+      riskSituation: f.riskSituation,
+      consequence: f.consequence,
+      severityScore: f.severityScore,
+      probabilityScore: f.probabilityScore,
+      riskLevel: f.riskLevel,
+      sortOrder: idx + 1,
+    }));
+
+    const newMeasures: PreventionMeasureData[] = profile.factors.map((f) => ({
+      description: f.measure.description,
+      measureType: f.measure.measureType,
+      responsiblePerson: f.measure.responsiblePerson,
+      deadline: f.measure.deadline,
+      status: 'planificat',
+    }));
+
+    setItems(newItems);
+    setMeasures(newMeasures);
+    setConclusions(
+      `Nivelul global de risc calculat conform metodei INCDPM pentru postul de ${assessment.job?.title || profile.title} (${profile.title} - COR ${profile.corCode}) este de ${profile.globalRiskScore.toFixed(2)}, încadrându-se în categoria locurilor de muncă cu risc acceptabil (Nrg <= 3.50). Măsurile din Planul de Prevenire și Protecție asigură controlul factorilor identificați.`
+    );
+    setAppliedCorInfo({
+      title: profile.title,
+      corCode: profile.corCode,
+      factorsCount: profile.factors.length,
+    });
+    setError(null);
+  }
 
   function addItem() {
     setItems((prev) => [
@@ -275,14 +321,35 @@ export function EditRiskAssessmentModal({ assessment }: EditRiskAssessmentModalP
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
                     Factori de Risc ({items.length})
                   </h4>
-                  <button
-                    type="button"
-                    onClick={addItem}
-                    className="text-xs font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200"
-                  >
-                    + Adaugă Factor
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleAutoPopulateCor}
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-300 transition"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Preia Riscuri COR ({assessment.job?.title || 'Post'})</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={addItem}
+                      className="text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200 transition"
+                    >
+                      + Adaugă Factor
+                    </button>
+                  </div>
                 </div>
+
+                {appliedCorInfo && (
+                  <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between text-xs text-emerald-800">
+                    <div className="flex items-center gap-1.5">
+                      <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>
+                        S-au preluat <strong>{appliedCorInfo.factorsCount} factori de risc</strong> și măsurile aferente din profilul COR <strong>{appliedCorInfo.corCode}</strong> ({appliedCorInfo.title}).
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   {items.map((it, idx) => (
