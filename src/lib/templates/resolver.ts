@@ -1066,10 +1066,10 @@ export async function resolveTemplateData(
     throw new Error(`Șablonul cu identificatorul ${templateId} nu a fost găsit în catalog.`);
   }
 
-  const client = context.client;
+  let client = context.client;
   const employee = context.employee || null;
-  const job = context.job || (context.jobId && client?.jobs ? client.jobs.find((j: any) => j.id === context.jobId) : null) || employee?.currentJob || null;
-  const worksite = context.worksite || (context.worksiteId && client?.worksites ? client.worksites.find((w: any) => w.id === context.worksiteId) : null) || employee?.currentWorksite || null;
+  let job = context.job || (context.jobId && client?.jobs ? client.jobs.find((j: any) => j.id === context.jobId) : null) || employee?.currentJob || null;
+  let worksite = context.worksite || (context.worksiteId && client?.worksites ? client.worksites.find((w: any) => w.id === context.worksiteId) : null) || employee?.currentWorksite || null;
   const hygieneSession = context.hygieneSession || null;
   const participant = context.hygieneParticipant || null;
   const trainingEvent =
@@ -1160,6 +1160,11 @@ export async function resolveTemplateData(
           hazardZones: true,
         },
       });
+      if (riskAssessment) {
+        if (!job && riskAssessment.job) job = riskAssessment.job;
+        if (!client && riskAssessment.client) client = riskAssessment.client;
+        if (!worksite && riskAssessment.worksite) worksite = riskAssessment.worksite;
+      }
     } catch {}
   }
   if (!riskAssessment && (job?.id || context.jobId) && client?.id) {
@@ -1179,6 +1184,10 @@ export async function resolveTemplateData(
           hazardZones: true,
         },
       });
+      if (riskAssessment) {
+        if (!job && riskAssessment.job) job = riskAssessment.job;
+        if (!worksite && riskAssessment.worksite) worksite = riskAssessment.worksite;
+      }
     } catch {}
   }
   if (!riskAssessment && client?.id) {
@@ -1198,8 +1207,16 @@ export async function resolveTemplateData(
           hazardZones: true,
         },
       });
+      if (riskAssessment) {
+        if (!job && riskAssessment.job) job = riskAssessment.job;
+        if (!worksite && riskAssessment.worksite) worksite = riskAssessment.worksite;
+      }
     } catch {}
   }
+
+  const effectiveJobTitle = job?.title || participant?.jobTitle || participant?.employee?.currentJob?.title ||
+    (riskAssessment?.title?.includes(' - ') ? riskAssessment.title.split(' - ').slice(1).join(' - ').trim() : riskAssessment?.title) ||
+    'Activități generale / Sediu social';
 
   const hasDbRiskAssessment = !!(riskAssessment && riskAssessment.riskItems && riskAssessment.riskItems.length > 0);
   const dbRiskItems: any[] = hasDbRiskAssessment ? riskAssessment.riskItems : [];
@@ -1613,16 +1630,47 @@ export async function resolveTemplateData(
   let planPrevenire: any[];
   if (hasDbRiskAssessment) {
     const dbMeasures: any[] = riskAssessment.preventionMeasures || [];
+    const unassignedMeasures = dbMeasures.filter((m: any) => !m.riskItemId);
+
     planPrevenire = dbRiskItems.map((item: any, idx: number) => {
       const itemMeasures = dbMeasures.filter((m: any) => m.riskItemId === item.id);
-      const relevantMeasures = itemMeasures.length > 0
-        ? itemMeasures
-        : (dbMeasures.length > 0 && idx === 0 ? dbMeasures.filter((m: any) => !m.riskItemId) : []);
+      let relevantMeasures = itemMeasures;
+      if (relevantMeasures.length === 0 && unassignedMeasures.length > 0) {
+        if (unassignedMeasures[idx]) {
+          relevantMeasures = [unassignedMeasures[idx]];
+        } else if (idx === 0) {
+          relevantMeasures = unassignedMeasures;
+        }
+      }
 
       const tech = relevantMeasures.filter((m: any) => m.measureType === 'tehnica');
       const org = relevantMeasures.filter((m: any) => m.measureType === 'organizatorica');
       const hyg = relevantMeasures.filter((m: any) => m.measureType === 'igienico-sanitara');
       const alt = relevantMeasures.filter((m: any) => !['tehnica', 'organizatorica', 'igienico-sanitara'].includes(m.measureType));
+
+      let techStr = tech.length > 0 ? tech.map((t: any) => `- ${t.description}`).join('\n') : '-';
+      let orgStr = org.length > 0 ? org.map((o: any) => `- ${o.description}`).join('\n') : '-';
+      let hygStr = hyg.length > 0 ? hyg.map((h: any) => `- ${h.description}`).join('\n') : '-';
+      let altStr = alt.length > 0 ? alt.map((a: any) => `- ${a.description}`).join('\n') : '-';
+
+      // Fallback statutory measures per HG 1425/2006 if no measure of any kind was assigned to this item
+      if (relevantMeasures.length === 0) {
+        const sit = (item.riskSituation || '').toUpperCase();
+        if (sit.includes('MIJLOAC')) {
+          techStr = '- Verificarea periodică a echipamentelor de muncă și a sistemelor de protecție\n- Întreținerea și exploatarea conform cărții tehnice a utilajului';
+          orgStr = '- Instruirea lucrătorilor privind modul de operare în condiții de securitate';
+        } else if (sit.includes('MEDIU')) {
+          hygStr = '- Asigurarea parametrilor de microclimat, ventilație și iluminat optim\n- Menținerea curățeniei și a ordinii la locul de muncă';
+          orgStr = '- Monitorizarea factorilor de mediu și semnalizarea zonelor cu disconfort ambiental';
+        } else if (sit.includes('SARCIN')) {
+          orgStr = '- Alternarea ritmului de lucru, organizarea de pauze ergonomice reglementate\n- Respectarea limitelor de efort fizic și manipulare manuală a maselor';
+          techStr = '- Dotarea cu scaune ergonomice și adaptarea ergonomică a postului de lucru';
+        } else {
+          // EXECUTANT / general
+          orgStr = '- Instruirea periodică SSM și verificarea respectării disciplinei tehnologice\n- Respectarea strictă a procedurilor și instrucțiunilor proprii de securitate';
+          hygStr = '- Purtarea obligatorie a echipamentului individual de protecție (EIP) acordat';
+        }
+      }
 
       const deadlines = relevantMeasures.map((m: any) => m.deadline).filter(Boolean);
       const responsibles = relevantMeasures.map((m: any) => m.responsiblePerson).filter(Boolean);
@@ -1633,13 +1681,13 @@ export async function resolveTemplateData(
         factorRisc: item.hazard,
         manifestare: item.riskSituation || item.hazard,
         consecinte: item.consequence || 'ITM 3-45 zile',
-        masuriTehnice: tech.length > 0 ? tech.map((t: any) => `- ${t.description}`).join('\n') : '-',
-        masuriOrganizatorice: org.length > 0 ? org.map((o: any) => `- ${o.description}`).join('\n') : '-',
-        masuriIgienicoSanitare: hyg.length > 0 ? hyg.map((h: any) => `- ${h.description}`).join('\n') : '-',
-        masuriAltaNatura: alt.length > 0 ? alt.map((a: any) => `- ${a.description}`).join('\n') : '-',
+        masuriTehnice: techStr,
+        masuriOrganizatorice: orgStr,
+        masuriIgienicoSanitare: hygStr,
+        masuriAltaNatura: altStr,
         actiuni: relevantMeasures.length > 0
           ? relevantMeasures.map((m: any) => m.resources ? `- ${m.description} (${m.resources})` : `- ${m.description}`).join('\n')
-          : '- instruirea lucrătorilor privind cerințele de SSM\n- verificarea modului de respectare a procedurilor',
+          : '- instruirea lucrătorilor privind cerințele de SSM\n- verificarea modului de respectare a procedurilor de lucru',
         termen: deadlines.length > 0 ? [...new Set(deadlines)].join(', ') : 'Permanent',
         responsabil: responsibles.length > 0 ? [...new Set(responsibles)].join(', ') : (designatedWorker || legalRepresentativeName || 'CLM / Lucrător desemnat SSM'),
       };
@@ -1738,10 +1786,14 @@ export async function resolveTemplateData(
     markAutocompleted('PLACEHOLDER_EMAIL_CONTACT', client.contactEmail);
     markAutocompleted('PLACEHOLDER_EMAIL_FIRMA', client.contactEmail);
   }
-  if (fullCaenDisplay) markAutocompleted('PLACEHOLDER_COD_CAEN', fullCaenDisplay);
+  if (fullCaenDisplay) {
+    markAutocompleted('PLACEHOLDER_COD_CAEN', fullCaenDisplay);
+    markAutocompleted('PLACEHOLDER_DOMENIU_ACTIVITATE', fullCaenDisplay);
+  }
   if (caenTitle) {
     markAutocompleted('PLACEHOLDER_ACTIVITATE_PRINCIPALA', caenTitle);
     markAutocompleted('PLACEHOLDER_ACTIVITATE_CAEN', caenTitle);
+    markAutocompleted('PLACEHOLDER_DOMENIU_ACTIVITATE', fullCaenDisplay || caenTitle);
   }
   if (client?.foundedYear) markAutocompleted('PLACEHOLDER_AN_INFIINTARE', client.foundedYear);
   if (job?.workersCount || (client?.employees && client.employees.length > 0)) {
@@ -2009,9 +2061,10 @@ export async function resolveTemplateData(
   }
 
   // Job authentic tracking
-  if (job?.title || participant?.jobTitle) {
-    markAutocompleted('PLACEHOLDER_FUNCTIE', job?.title || participant?.jobTitle);
-    markAutocompleted('PLACEHOLDER_PROFESIE_OCUPATIE', job?.title || participant?.jobTitle);
+  if (effectiveJobTitle) {
+    markAutocompleted('PLACEHOLDER_FUNCTIE', effectiveJobTitle);
+    markAutocompleted('PLACEHOLDER_PROFESIE_OCUPATIE', effectiveJobTitle);
+    markAutocompleted('PLACEHOLDER_POST_LUCRU', effectiveJobTitle);
   }
   if (job?.corCode) markAutocompleted('PLACEHOLDER_COD_COR', job.corCode);
   if (job?.mainActivities) {
@@ -2247,6 +2300,7 @@ export async function resolveTemplateData(
     // CAEN & Company Profile
     PLACEHOLDER_COD_CAEN: fullCaenDisplay,
     PLACEHOLDER_ACTIVITATE_PRINCIPALA: caenTitle,
+    PLACEHOLDER_DOMENIU_ACTIVITATE: fullCaenDisplay || caenTitle || 'Servicii / Activități specifice',
     PLACEHOLDER_AN_INFIINTARE: client?.foundedYear ? String(client.foundedYear) : '',
     PLACEHOLDER_AN_EVALUARE: currentYear,
     PLACEHOLDER_NUMAR_LUCRATORI: job?.workersCount ? String(job.workersCount) : (client?.employees?.length ? String(client.employees.length) : ''),
@@ -2436,7 +2490,8 @@ export async function resolveTemplateData(
     }),
 
     // 4. Post și Punct de lucru (Feature F14: Job Operational Context Plumbing)
-    PLACEHOLDER_FUNCTIE: participant?.jobTitle || participant?.employee?.currentJob?.title || job?.title || '',
+    PLACEHOLDER_FUNCTIE: effectiveJobTitle,
+    PLACEHOLDER_POST_LUCRU: effectiveJobTitle,
     PLACEHOLDER_COD_COR: job?.corCode || '',
     PLACEHOLDER_ACTIVITATI_POST: job?.mainActivities || (ROMANIAN_LEGAL_OCCUPATIONAL_HEALTH.PLACEHOLDER_ACTIVITATI_POST || ''),
     PLACEHOLDER_DESCRIERE_ACTIVITATE: job?.mainActivities || (ROMANIAN_LEGAL_OCCUPATIONAL_HEALTH.PLACEHOLDER_DESCRIERE_ACTIVITATE || ''),

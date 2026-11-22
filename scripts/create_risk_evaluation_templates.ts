@@ -187,6 +187,33 @@ function wrapDocumentBody(bodyContent: string): string {
 </w:document>`;
 }
 
+function wrapDocumentBodyLandscape(bodyContent: string): string {
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas"
+            xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:o="urn:schemas-microsoft-com:office:office"
+            xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+            xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"
+            xmlns:v="urn:schemas-microsoft-com:vml"
+            xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+            xmlns:w10="urn:schemas-microsoft-com:office:word"
+            xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+            xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"
+            xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml"
+            mc:Ignorable="w14 w15">
+  <w:body>
+    ${bodyContent}
+    <w:sectPr>
+      <w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/>
+      <w:pgMar w:top="1000" w:right="1000" w:bottom="1000" w:left="1000" w:header="708" w:footer="708" w:gutter="0"/>
+      <w:cols w:space="708"/>
+      <w:docGrid w:linePitch="360"/>
+    </w:sectPr>
+  </w:body>
+</w:document>`;
+}
+
 // INCDPM PECE 7x6 Matrix Colors and values
 const PECE_MATRIX_DATA = [
   // G=7 (Deces)
@@ -1162,6 +1189,201 @@ function generateTesaXml(): string {
   return wrapDocumentBody(b.join('\n'));
 }
 
+export function generatePlanPrevenireXml(): string {
+  const b: string[] = [];
+
+  // 1. Formal Company & Legal Header Table (14800 dxa)
+  const headerXml = `
+    <w:tbl>
+      <w:tblPr>
+        <w:tblW w:w="14800" w:type="dxa"/>
+        <w:tblBorders>
+          <w:top w:val="none"/>
+          <w:bottom w:val="none"/>
+          <w:left w:val="none"/>
+          <w:right w:val="none"/>
+          <w:insideH w:val="none"/>
+          <w:insideV w:val="none"/>
+        </w:tblBorders>
+        <w:tblCellMar><w:top w:w="80" w:type="dxa"/><w:bottom w:w="80" w:type="dxa"/><w:left w:w="120" w:type="dxa"/><w:right w:w="120" w:type="dxa"/></w:tblCellMar>
+      </w:tblPr>
+      <w:tr>
+        <w:trPr><w:cantSplit/></w:trPr>
+        ${tableCell(
+          `
+            ${p('S.C. {PLACEHOLDER_FIRMA}', { bold: true, size: 22, color: '1E3A8A', spaceBefore: 0, spaceAfter: 40 })}
+            ${p('C.U.I.: {PLACEHOLDER_CUI} | Nr. Reg. Com.: {PLACEHOLDER_NR_REG_COM}', { size: 19, color: '475569', spaceBefore: 20, spaceAfter: 40 })}
+            ${p('Sediu social: {PLACEHOLDER_ADRESA_FIRMA}', { size: 19, color: '475569', spaceBefore: 20, spaceAfter: 40 })}
+            ${p('Punct de lucru: {PLACEHOLDER_PUNCT_LUCRU}', { size: 19, color: '475569', spaceBefore: 20, spaceAfter: 40 })}
+          `,
+          9500,
+          { vAlign: 'top' }
+        )}
+        ${tableCell(
+          `
+            ${p('APROBAT,', { bold: true, size: 20, align: 'center', color: '1E3A8A', spaceBefore: 0, spaceAfter: 20 })}
+            ${p('ADMINISTRATOR / ANGAJATOR', { bold: true, size: 17, align: 'center', color: '0F172A', spaceBefore: 20, spaceAfter: 40 })}
+            ${p('{PLACEHOLDER_REPREZENTANT_LEGAL}', { bold: true, size: 20, align: 'center', color: 'B91C1C', spaceBefore: 20, spaceAfter: 40 })}
+            ${p('Semnătura și ștampila: ........................', { size: 16, align: 'center', color: '64748B', spaceBefore: 60, spaceAfter: 40 })}
+            ${p('Data aprobării: {PLACEHOLDER_DATA_DOCUMENT}', { size: 18, align: 'center', color: '334155', spaceBefore: 40, spaceAfter: 20 })}
+          `,
+          5300,
+          { bgColor: 'F8FAFC', vAlign: 'center' }
+        )}
+      </w:tr>
+    </w:tbl>
+  `;
+  b.push(headerXml);
+
+  b.push(p('', { spaceBefore: 120, spaceAfter: 120 }));
+
+  // 2. Title Block (Statutory HG 1425/2006 Art. 15)
+  b.push(p('PLANUL DE PREVENIRE ȘI PROTECȚIE', {
+    bold: true,
+    size: 28,
+    align: 'center',
+    color: '1E3A8A',
+    spaceBefore: 80,
+    spaceAfter: 40,
+  }));
+
+  b.push(p('PENTRU LOCUL DE MUNCĂ / POSTUL: {PLACEHOLDER_FUNCTIE}', {
+    bold: true,
+    size: 22,
+    align: 'center',
+    color: 'B91C1C',
+    spaceBefore: 40,
+    spaceAfter: 60,
+  }));
+
+  b.push(p('Elaborat în temeiul Art. 15 alin. (1) pct. 2 din H.G. nr. 1425/2006 pentru punerea în aplicare a Legii securității și sănătății în muncă nr. 319/2006', {
+    italic: true,
+    size: 18,
+    align: 'center',
+    color: '475569',
+    spaceBefore: 20,
+    spaceAfter: 40,
+  }));
+
+  b.push(p('Domeniu de activitate CAEN: {PLACEHOLDER_DOMENIU_ACTIVITATE}', {
+    size: 18,
+    align: 'center',
+    color: '64748B',
+    spaceBefore: 20,
+    spaceAfter: 160,
+  }));
+
+  // 3. Prevention Plan Table (14800 dxa) - 9 statutory columns
+  const colWidths = [600, 2600, 2100, 2100, 1700, 1200, 2300, 1000, 1200];
+  const headers = [
+    { text: 'Nr. crt.', width: colWidths[0], align: 'center' as const },
+    { text: 'Loc de muncă / Riscuri evaluate', width: colWidths[1], align: 'left' as const },
+    { text: 'Măsuri tehnice', width: colWidths[2], align: 'left' as const },
+    { text: 'Măsuri organizatorice', width: colWidths[3], align: 'left' as const },
+    { text: 'Măsuri igienico-sanitare', width: colWidths[4], align: 'left' as const },
+    { text: 'Măsuri de altă natură', width: colWidths[5], align: 'left' as const },
+    { text: 'Acțiuni realizare măsură', width: colWidths[6], align: 'left' as const },
+    { text: 'Termen', width: colWidths[7], align: 'center' as const },
+    { text: 'Persoana care răspunde', width: colWidths[8], align: 'center' as const },
+  ];
+
+  const tableXml = `
+    <w:tbl>
+      <w:tblPr>
+        <w:tblW w:w="14800" w:type="dxa"/>
+        <w:tblBorders>
+          <w:top w:val="single" w:sz="6" w:space="0" w:color="94A3B8"/>
+          <w:bottom w:val="single" w:sz="6" w:space="0" w:color="94A3B8"/>
+          <w:left w:val="single" w:sz="6" w:space="0" w:color="94A3B8"/>
+          <w:right w:val="single" w:sz="6" w:space="0" w:color="94A3B8"/>
+          <w:insideH w:val="single" w:sz="4" w:space="0" w:color="CBD5E1"/>
+          <w:insideV w:val="single" w:sz="4" w:space="0" w:color="CBD5E1"/>
+        </w:tblBorders>
+        <w:tblCellMar><w:top w:w="80" w:type="dxa"/><w:bottom w:w="80" w:type="dxa"/><w:left w:w="100" w:type="dxa"/><w:right w:w="100" w:type="dxa"/></w:tblCellMar>
+      </w:tblPr>
+      ${tableHeaderRow(headers, { bgColor: '1E3A8A', fontSize: 17 })}
+      <w:tr>
+        <w:trPr><w:cantSplit/></w:trPr>
+        ${tableCell(p('{#planPrevenire}{nr}', { bold: true, size: 17, align: 'center' }), colWidths[0], { vAlign: 'center' })}
+        ${tableCell(p('{riscEvaluat}', { bold: true, size: 17, align: 'left' }), colWidths[1], { vAlign: 'top' })}
+        ${tableCell(p('{masuriTehnice}', { size: 17, align: 'left' }), colWidths[2], { vAlign: 'top' })}
+        ${tableCell(p('{masuriOrganizatorice}', { size: 17, align: 'left' }), colWidths[3], { vAlign: 'top' })}
+        ${tableCell(p('{masuriIgienicoSanitare}', { size: 17, align: 'left' }), colWidths[4], { vAlign: 'top' })}
+        ${tableCell(p('{masuriAltaNatura}', { size: 17, align: 'left' }), colWidths[5], { vAlign: 'top' })}
+        ${tableCell(p('{actiuni}', { size: 17, align: 'left' }), colWidths[6], { vAlign: 'top' })}
+        ${tableCell(p('{termen}', { size: 17, align: 'center' }), colWidths[7], { vAlign: 'center' })}
+        ${tableCell(p('{responsabil}{/planPrevenire}', { size: 17, align: 'center' }), colWidths[8], { vAlign: 'center' })}
+      </w:tr>
+    </w:tbl>
+  `;
+  b.push(tableXml);
+
+  // 4. Statutory Revision Footnote
+  b.push(p('Notă: Prezentul Plan de Prevenire și Protecție se revizuiește cel puțin o dată pe an, ori de câte ori intervin modificări ale condițiilor de muncă, la apariția unor riscuri noi sau în urma producerii unui accident de muncă / eveniment, conform art. 15 alin. (2) din H.G. nr. 1425/2006.', {
+    italic: true,
+    size: 16,
+    color: '475569',
+    spaceBefore: 120,
+    spaceAfter: 140,
+  }));
+
+  // 5. Signatures Table (14800 dxa / 3 = 4933 dxa each)
+  const sigColWidth = 4933;
+  const signaturesXml = `
+    <w:tbl>
+      <w:tblPr>
+        <w:tblW w:w="14800" w:type="dxa"/>
+        <w:tblBorders>
+          <w:top w:val="single" w:sz="6" w:space="0" w:color="CBD5E1"/>
+          <w:bottom w:val="single" w:sz="6" w:space="0" w:color="CBD5E1"/>
+          <w:left w:val="single" w:sz="6" w:space="0" w:color="CBD5E1"/>
+          <w:right w:val="single" w:sz="6" w:space="0" w:color="CBD5E1"/>
+          <w:insideH w:val="single" w:sz="4" w:space="0" w:color="CBD5E1"/>
+          <w:insideV w:val="single" w:sz="4" w:space="0" w:color="CBD5E1"/>
+        </w:tblBorders>
+        <w:tblCellMar><w:top w:w="120" w:type="dxa"/><w:bottom w:w="120" w:type="dxa"/><w:left w:w="140" w:type="dxa"/><w:right w:w="140" w:type="dxa"/></w:tblCellMar>
+      </w:tblPr>
+      <w:tr>
+        <w:trPr><w:cantSplit/></w:trPr>
+        ${tableCell(
+          `
+            ${p('ÎNTOCMIT,', { bold: true, size: 19, align: 'center', color: '1E3A8A' })}
+            ${p('Serviciu Extern de Prevenire și Protecție (SEPP)', { bold: true, size: 17, align: 'center', color: '475569' })}
+            ${p('{PLACEHOLDER_PRESTATOR_SSM}', { bold: true, size: 18, align: 'center', color: '0F172A', spaceBefore: 40, spaceAfter: 20 })}
+            ${p('Specialist SSM: {PLACEHOLDER_SPECIALIST_SSM}', { size: 17, align: 'center', color: '334155' })}
+            ${p('Semnătura: __________________', { size: 16, align: 'center', spaceBefore: 100, spaceAfter: 20 })}
+          `,
+          sigColWidth,
+          { bgColor: 'F8FAFC', vAlign: 'top' }
+        )}
+        ${tableCell(
+          `
+            ${p('VERIFICAT,', { bold: true, size: 19, align: 'center', color: '1E3A8A' })}
+            ${p('Lucrător Desemnat SSM / Reprezentant Lucrători', { bold: true, size: 17, align: 'center', color: '475569' })}
+            ${p('{PLACEHOLDER_LUCRATOR_DESEMNAT_SSM}', { bold: true, size: 18, align: 'center', color: '0F172A', spaceBefore: 40, spaceAfter: 20 })}
+            ${p('Semnătura: __________________', { size: 16, align: 'center', spaceBefore: 120, spaceAfter: 20 })}
+          `,
+          sigColWidth,
+          { bgColor: 'F8FAFC', vAlign: 'top' }
+        )}
+        ${tableCell(
+          `
+            ${p('APROBAT,', { bold: true, size: 19, align: 'center', color: '1E3A8A' })}
+            ${p('Administrator / Angajator', { bold: true, size: 17, align: 'center', color: '475569' })}
+            ${p('{PLACEHOLDER_REPREZENTANT_LEGAL}', { bold: true, size: 18, align: 'center', color: 'B91C1C', spaceBefore: 40, spaceAfter: 20 })}
+            ${p('Semnătura și ștampila: __________________', { size: 16, align: 'center', spaceBefore: 120, spaceAfter: 20 })}
+          `,
+          sigColWidth + 34,
+          { bgColor: 'F8FAFC', vAlign: 'top' }
+        )}
+      </w:tr>
+    </w:tbl>
+  `;
+  b.push(signaturesXml);
+
+  return wrapDocumentBodyLandscape(b.join('\n'));
+}
+
 function saveDocxTemplate(filename: string, documentXml: string) {
   const baseContent = fs.readFileSync(BASE_TEMPLATE_PATH);
   const zip = new PizZip(baseContent);
@@ -1190,6 +1412,10 @@ export function generateRiskTemplates() {
   console.log('Generating TESA.docx...');
   const tesaXml = generateTesaXml();
   saveDocxTemplate('TESA.docx', tesaXml);
+
+  console.log('Generating Plan de Prevenire TESA.docx (A4 Landscape)...');
+  const planPrevenireXml = generatePlanPrevenireXml();
+  saveDocxTemplate('Plan de Prevenire TESA.docx', planPrevenireXml);
 
   console.log('Finished generating clean statutory INCDPM risk evaluation templates!');
 }

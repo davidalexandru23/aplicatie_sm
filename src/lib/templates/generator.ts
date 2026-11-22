@@ -448,8 +448,10 @@ export async function renderTemplateBuffer(
       return v;
     };
 
+    const safeData = data || {};
+
     const renderData = Object.fromEntries(
-      Object.entries(data)
+      Object.entries(safeData)
         .filter(([_, value]) => value !== undefined && value !== null)
         .map(([key, value]) => [key, sanitizeValue(value)])
     );
@@ -475,7 +477,7 @@ export async function renderTemplateBuffer(
           }
         }
 
-        for (const [k, v] of Object.entries(data)) {
+        for (const [k, v] of Object.entries(safeData)) {
           if (v !== undefined && v !== null) {
             const strVal = String(v);
             const escapedVal = escapeXml(strVal);
@@ -726,7 +728,7 @@ export async function generateDocument(params: {
   const outputBuffer = await renderTemplateBuffer(
     templateFilePath,
     templateFormat,
-    params.data,
+    data,
     templateFilename
   );
 

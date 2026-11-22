@@ -14,6 +14,7 @@ export async function GET(
     const worksiteId = searchParams.get('worksiteId') || undefined;
     const hygieneSessionId = searchParams.get('hygieneSessionId') || undefined;
     const hygieneParticipantId = searchParams.get('hygieneParticipantId') || undefined;
+    const assessmentId = searchParams.get('assessmentId') || undefined;
 
     if (!clientId) {
       return NextResponse.json(
@@ -28,6 +29,7 @@ export async function GET(
       employeeId,
       jobId,
       worksiteId,
+      assessmentId,
       hygieneSessionId,
       hygieneParticipantId,
     });

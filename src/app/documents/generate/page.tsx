@@ -283,6 +283,7 @@ function DocumentGeneratorContent() {
   const initialHygieneParticipantId = searchParams.get('hygieneParticipantId') || '';
   const initialJobId = searchParams.get('jobId') || '';
   const initialWorksiteId = searchParams.get('worksiteId') || '';
+  const initialAssessmentId = searchParams.get('assessmentId') || '';
 
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [templates, setTemplates] = useState<TemplateOption[]>([]);
@@ -297,6 +298,7 @@ function DocumentGeneratorContent() {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>(initialEmployeeId);
   const [selectedJobId, setSelectedJobId] = useState<string>(initialJobId);
   const [selectedWorksiteId, setSelectedWorksiteId] = useState<string>(initialWorksiteId);
+  const [selectedAssessmentId, setSelectedAssessmentId] = useState<string>(initialAssessmentId);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedHygieneSessionId, setSelectedHygieneSessionId] = useState<string>(initialHygieneSessionId);
   const [selectedHygieneParticipantId, setSelectedHygieneParticipantId] = useState<string>(initialHygieneParticipantId);
@@ -339,12 +341,13 @@ function DocumentGeneratorContent() {
     if (initialEmployeeId) setSelectedEmployeeId(initialEmployeeId);
     if (initialJobId) setSelectedJobId(initialJobId);
     if (initialWorksiteId) setSelectedWorksiteId(initialWorksiteId);
+    if (initialAssessmentId) setSelectedAssessmentId(initialAssessmentId);
     if (initialHygieneSessionId) {
       setSelectedHygieneSessionId(initialHygieneSessionId);
       setHygieneScope('session');
     }
     if (initialHygieneParticipantId) setSelectedHygieneParticipantId(initialHygieneParticipantId);
-  }, [initialClientId, initialTemplateCode, initialEmployeeId, initialJobId, initialWorksiteId, initialHygieneSessionId, initialHygieneParticipantId]);
+  }, [initialClientId, initialTemplateCode, initialEmployeeId, initialJobId, initialWorksiteId, initialAssessmentId, initialHygieneSessionId, initialHygieneParticipantId]);
 
   // Load user role from session
   useEffect(() => {
@@ -615,6 +618,7 @@ function DocumentGeneratorContent() {
     if (selectedEmployeeId) params.append('employeeId', selectedEmployeeId);
     if (effectiveJobId) params.append('jobId', effectiveJobId);
     if (selectedWorksiteId) params.append('worksiteId', selectedWorksiteId);
+    if (selectedAssessmentId || initialAssessmentId) params.append('assessmentId', selectedAssessmentId || initialAssessmentId);
     if (!isHygieneTemplate || hygieneScope === 'session') {
       if (selectedHygieneSessionId) params.append('hygieneSessionId', selectedHygieneSessionId);
       if (selectedHygieneParticipantId) params.append('hygieneParticipantId', selectedHygieneParticipantId);
@@ -786,6 +790,7 @@ function DocumentGeneratorContent() {
           employeeId: selectedEmployeeId || undefined,
           jobId: effectiveJobId,
           worksiteId: selectedWorksiteId || undefined,
+          assessmentId: selectedAssessmentId || initialAssessmentId || undefined,
           hygieneSessionId: (isHygieneTemplate && hygieneScope === 'client') ? undefined : (selectedHygieneSessionId || undefined),
           hygieneParticipantId: (isHygieneTemplate && hygieneScope === 'client') ? undefined : (selectedHygieneParticipantId || undefined),
           customFields: formValues,
