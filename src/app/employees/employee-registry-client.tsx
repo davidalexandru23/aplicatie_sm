@@ -16,7 +16,9 @@ import {
   FileText,
   RotateCcw,
   Download,
-  Navigation
+  Navigation,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { 
   ComplianceStatus, 
@@ -36,6 +38,7 @@ import {
   EditEmployeeModal,
   TerminateEmployeeModal,
   ManageHygieneModulesModal,
+  EmployeeDocumentsDrawer,
 } from '@/components/employees';
 
 import { UserRole } from '@/lib/auth';
@@ -46,7 +49,7 @@ export interface EmployeeWithCompliance {
   lastName: string;
   fullName: string;
   cnp: string | null;
-  status: string; // ACTIV / PLECAT
+  status: string; // ACTIV / PLECAT / Suspendat/CM
   hireDate: string | null;
   leaveDate?: string | null;
   medicalLastExamDate?: string | null;
@@ -57,6 +60,18 @@ export interface EmployeeWithCompliance {
   currentJob: { id: string; title: string } | null;
   currentWorksite: { id: string; name: string } | null;
   identityDocument: { docType: string; series: string | null; number: string | null } | null;
+  commuteTransport?: string | null;
+  commuteDurationMinutes?: number | null;
+  commuteRoute?: string | null;
+  residenceAddress?: {
+    county?: string | null;
+    locality?: string | null;
+    street?: string | null;
+    number?: string | null;
+    building?: string | null;
+    entrance?: string | null;
+    apartment?: string | null;
+  } | null;
   compliance: EmployeeComplianceSummary;
 }
 
@@ -99,6 +114,19 @@ function EmployeeRegistryInner({
   const [activeTab, setActiveTab] = useState<TabType>(getInitialTab);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClientId, setSelectedClientId] = useState('ALL');
+  const [expandedEmployeeIds, setExpandedEmployeeIds] = useState<Set<string>>(new Set());
+
+  const toggleExpand = (id: string) => {
+    setExpandedEmployeeIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   // Sync if URL searchParams changes
   useEffect(() => {
@@ -464,25 +492,27 @@ function EmployeeRegistryInner({
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-100 text-left text-xs">
-              <thead className="bg-slate-50/75 text-slate-400 font-semibold uppercase tracking-wider">
+              <thead className="bg-slate-50/75 text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
                 <tr>
-                  <th className="px-5 py-3">Salariat & Identitate</th>
-                  <th className="px-4 py-3">Angajator & Post</th>
-                  <th className="px-4 py-3">Conformitate Generală</th>
-                  <th className="px-4 py-3">Medicină a Muncii</th>
-                  <th className="px-4 py-3">Instruire SSM</th>
-                  <th className="px-4 py-3">Instruire PSI/SU</th>
-                  <th className="px-4 py-3">Curs Igienă</th>
-                  <th className="px-4 py-3 text-right">Acțiuni & Documente</th>
+                  <th className="px-5 py-3 w-[20%] min-w-[170px]">Salariat & Identitate</th>
+                  <th className="px-4 py-3 w-[16%] min-w-[150px]">Angajator & Post</th>
+                  <th className="px-4 py-3 w-[11%] min-w-[110px]">Conformitate Generală</th>
+                  <th className="px-4 py-3 w-[12%] min-w-[115px]">Medicină a Muncii</th>
+                  <th className="px-4 py-3 w-[11%] min-w-[110px]">Instruire SSM</th>
+                  <th className="px-4 py-3 w-[11%] min-w-[110px]">Instruire PSI/SU</th>
+                  <th className="px-4 py-3 w-[10%] min-w-[100px]">Curs Igienă</th>
+                  <th className="px-4 py-3 w-[9%] min-w-[150px] text-right">Acțiuni & Documente</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
                 {filteredEmployees.map((emp) => {
                   const comp = emp.compliance;
                   const alertSubtext = getSubtextAlert(emp);
+                  const isExpanded = expandedEmployeeIds.has(emp.id);
 
                   return (
-                    <tr key={emp.id} className="hover:bg-slate-50/60 transition">
+                    <React.Fragment key={emp.id}>
+                      <tr className={`transition hover:bg-slate-50/70 ${isExpanded ? 'bg-blue-50/20' : ''}`}>
                       {/* 1. Salariat & Identitate */}
                       <td className="px-5 py-3.5">
                         <div className="font-bold text-slate-900">
@@ -594,72 +624,53 @@ function EmployeeRegistryInner({
                       {/* 8. Acțiuni & Documente */}
                       <td className="px-4 py-3.5 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
-                          {emp.status === 'ACTIV' ? (
-                            <>
-                              {userRole !== 'IGIENA' && <RecordMedicalExamModal employee={emp} />}
-                              <ManageHygieneModulesModal employee={emp as any} />
-                              <EditEmployeeModal employeeId={emp.id} employeeName={emp.fullName} userRole={userRole} isSsmRole={userRole === 'SSM'} />
-                              {userRole !== 'IGIENA' && (
-                                <Link
-                                  href={`/documents/generate?clientId=${emp.client.id}&employeeId=${emp.id}&templateCode=ssm-declaratie-traseu`}
-                                  className="inline-flex items-center gap-1 text-[11px] text-blue-700 bg-blue-50 hover:bg-blue-100 font-semibold px-2 py-1.5 rounded border border-blue-200 shadow-2xs transition"
-                                  title="Generează Fișă / Declarație Traseu (DOCX)"
-                                >
-                                  <Navigation className="w-3 h-3 text-blue-600" />
-                                  <span>Traseu</span>
-                                </Link>
-                              )}
-                              {userRole !== 'IGIENA' && userRole !== 'SSM' && <TerminateEmployeeModal employee={emp} />}
-                              {userRole !== 'IGIENA' && userRole !== 'SSM' && (
-                                <>
-                                  <a
-                                    href={`/api/clients/${emp.client.id}/packages/onboarding?employeeId=${emp.id}`}
-                                    download
-                                    className="inline-flex items-center gap-1 text-[11px] text-emerald-700 bg-emerald-50 hover:bg-emerald-100 font-semibold px-2 py-1.5 rounded border border-emerald-200 shadow-2xs transition"
-                                    title="Descarcă dosarul complet de angajare (11 DOCX ZIP)"
-                                  >
-                                    <Download className="w-3 h-3 text-emerald-600" />
-                                    Onboarding ZIP
-                                  </a>
-                                  <Link
-                                    href={`/documents/generate?clientId=${emp.client.id}&employeeId=${emp.id}&templateCode=hr-cim-2026`}
-                                    className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1.5 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
-                                    title="Generează CIM individual"
-                                  >
-                                    CIM
-                                  </Link>
-                                </>
-                              )}
-                            </>
-                          ) : emp.status === 'Suspendat/CM' ? (
-                            <>
-                              <span className="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200">
-                                SUSPENDAT / CM
-                              </span>
-                              <EditEmployeeModal employeeId={emp.id} employeeName={emp.fullName} userRole={userRole} isSsmRole={userRole === 'SSM'} />
-                              {userRole !== 'IGIENA' && (
-                                <Link
-                                  href={`/documents/generate?clientId=${emp.client.id}&employeeId=${emp.id}&templateCode=ssm-declaratie-traseu`}
-                                  className="inline-flex items-center gap-1 text-[11px] text-blue-700 bg-blue-50 hover:bg-blue-100 font-semibold px-2 py-1.5 rounded border border-blue-200 shadow-2xs transition"
-                                  title="Generează Fișă / Declarație Traseu (DOCX)"
-                                >
-                                  <Navigation className="w-3 h-3 text-blue-600" />
-                                  <span>Traseu</span>
-                                </Link>
-                              )}
-                            </>
-                          ) : (
-                            <>
-                              <span className="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200">
-                                ÎNCETAT: {formatRoDate(emp.leaveDate)}
-                              </span>
-                              <EditEmployeeModal employeeId={emp.id} employeeName={emp.fullName} userRole={userRole} isSsmRole={userRole === 'SSM'} />
-                            </>
-                          )}
+                          <EditEmployeeModal
+                            employeeId={emp.id}
+                            employeeName={emp.fullName}
+                            userRole={userRole}
+                            isSsmRole={userRole === 'SSM'}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => toggleExpand(emp.id)}
+                            className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition shadow-2xs cursor-pointer ${
+                              isExpanded
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300 hover:border-slate-400'
+                            }`}
+                            title={
+                              isExpanded
+                                ? 'Restrânge panoul de documente și acțiuni'
+                                : 'Deschide panoul cu documentele ce pot fi generate pentru acest salariat'
+                            }
+                          >
+                            <FileText className={`w-3.5 h-3.5 ${isExpanded ? 'text-white' : 'text-blue-600'}`} />
+                            <span>Documente</span>
+                            <ChevronDown
+                              className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                                isExpanded ? 'rotate-180 text-white' : 'text-slate-400'
+                              }`}
+                            />
+                          </button>
                         </div>
                       </td>
                     </tr>
-                  );
+
+                    {/* Collapsible Drawer Sub-Row */}
+                    {isExpanded && (
+                      <tr key={`${emp.id}-drawer`} className="bg-slate-50/70 border-b border-slate-200">
+                        <td colSpan={8} className="p-3 sm:p-4">
+                          <EmployeeDocumentsDrawer
+                            employee={emp}
+                            clientId={emp.client.id}
+                            clientName={emp.client.name}
+                            userRole={userRole}
+                          />
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
                 })}
               </tbody>
             </table>

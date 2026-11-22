@@ -30,6 +30,7 @@ export default async function EmployeesPage({
         currentJob: { select: { id: true, title: true } },
         currentWorksite: { select: { id: true, name: true } },
         identityDocument: { select: { docType: true, series: true, number: true } },
+        residenceAddress: true,
       },
     }),
     prisma.client.findMany({
@@ -62,6 +63,10 @@ export default async function EmployeesPage({
       currentJob: emp.currentJob,
       currentWorksite: emp.currentWorksite,
       identityDocument: isSsm ? null : emp.identityDocument,
+      commuteTransport: emp.commuteTransport,
+      commuteDurationMinutes: emp.commuteDurationMinutes,
+      commuteRoute: emp.commuteRoute,
+      residenceAddress: isSsm ? null : emp.residenceAddress,
       compliance: calculateEmployeeCompliance(emp),
     };
   });

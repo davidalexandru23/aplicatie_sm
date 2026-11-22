@@ -19,6 +19,7 @@ import {
 } from '@/components/compliance-badge';
 import { ClientEditModal } from '@/components/client-edit-modal';
 import { OrganizationalDecisionsCard } from '@/components/organizational-decisions-card';
+import { ClientEmployeesTable } from '@/components/clients/client-employees-table';
 import {
   AddEmployeeModal,
   RecordMedicalExamModal,
@@ -466,193 +467,18 @@ export default async function ClientDetailPage({
           </div>
         </div>
 
-        {client.employees.length === 0 ? (
-          <div className="p-8 text-center text-slate-400 text-xs">
-            Niciun angajat înregistrat. Importă fișierul <code className="text-blue-600">Model_date_client_SSM.xlsx</code>.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-100 text-left text-xs">
-              <thead className="bg-white text-slate-400 font-semibold uppercase tracking-wider">
-                <tr>
-                  <th className="px-5 py-3">Salariat</th>
-                  <th className="px-3 py-3">Stare Generală</th>
-                  <th className="px-3 py-3">
-                    <span className="flex items-center gap-1">
-                      <Stethoscope className="w-3.5 h-3.5 text-blue-500" />
-                      <span>Medicină Muncii</span>
-                    </span>
-                  </th>
-                  <th className="px-3 py-3">
-                    <span className="flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                      <span>Instruire SSM</span>
-                    </span>
-                  </th>
-                  <th className="px-3 py-3">
-                    <span className="flex items-center gap-1">
-                      <Flame className="w-3.5 h-3.5 text-orange-500" />
-                      <span>Instruire PSI</span>
-                    </span>
-                  </th>
-                  <th className="px-3 py-3">
-                    <span className="flex items-center gap-1">
-                      <Award className="w-3.5 h-3.5 text-indigo-500" />
-                      <span>Curs Igienă</span>
-                    </span>
-                  </th>
-                  <th className="px-3 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Acțiuni & Documente</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
-                {evaluatedEmployees.map((emp) => {
-                  const comp = emp.compliance;
-                  return (
-                    <tr key={emp.id} className="hover:bg-slate-50/60 transition">
-                      {/* Salariat & Detalii de bază */}
-                      <td className="px-5 py-3.5">
-                        <div className="font-semibold text-slate-900">
-                          {emp.lastName} {emp.firstName}
-                        </div>
-                        <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
-                          {!isSsmRole && (
-                            <>
-                              <span className="font-mono">{emp.cnp || '—'}</span>
-                              <span>•</span>
-                            </>
-                          )}
-                          <span className="truncate max-w-[140px]">{emp.currentJob?.title || 'Fără post'}</span>
-                        </div>
-                      </td>
-
-                      {/* Stare Generală Agregată */}
-                      <td className="px-3 py-3.5 whitespace-nowrap">
-                        <OverallComplianceBadge status={comp.overallStatus} size="sm" />
-                      </td>
-
-                      {/* 1. Medicină a Muncii */}
-                      <td className="px-3 py-3.5 whitespace-nowrap">
-                        <ComplianceItemBadge 
-                          item={comp.occupationalMedicine} 
-                          showSubtext={true}
-                        />
-                      </td>
-
-                      {/* 2. Instruire SSM */}
-                      <td className="px-3 py-3.5 whitespace-nowrap">
-                        <ComplianceItemBadge 
-                          item={comp.ssmTraining} 
-                          showSubtext={true}
-                        />
-                      </td>
-
-                      {/* 3. Instruire PSI */}
-                      <td className="px-3 py-3.5 whitespace-nowrap">
-                        <ComplianceItemBadge 
-                          item={comp.psiTraining} 
-                          showSubtext={true}
-                        />
-                      </td>
-
-                      {/* 4. Curs Igienă (Condițional) */}
-                      <td className="px-3 py-3.5 whitespace-nowrap">
-                        {comp.hygieneCertificate ? (
-                          <ComplianceItemBadge 
-                            item={comp.hygieneCertificate} 
-                            showSubtext={true}
-                          />
-                        ) : (
-                          <span className="text-[11px] text-slate-400 italic">
-                            Neaplicabil
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Status HR (ACTIV / PLECAT) */}
-                      <td className="px-3 py-3.5 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                            emp.status === 'ACTIV'
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : emp.status === 'Suspendat/CM'
-                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                              : 'bg-rose-50 text-rose-700 border border-rose-200'
-                          }`}
-                        >
-                          {emp.status}
-                        </span>
-                      </td>
-
-                      {/* Acțiuni & Documente */}
-                      <td className="px-4 py-3.5 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {emp.status === 'ACTIV' ? (
-                            <>
-                              {userRole !== 'IGIENA' && <ManageEipModal clientId={client.id} employee={emp as any} eipCatalog={eipCatalog} />}
-                              {userRole !== 'IGIENA' && <RecordMedicalExamModal employee={emp} />}
-                              <ManageHygieneModulesModal employee={emp as any} />
-                              <EditEmployeeModal employeeId={emp.id} employeeName={`${emp.lastName} ${emp.firstName}`} jobs={client.jobs} worksites={client.worksites} userRole={userRole} isSsmRole={isSsmRole} />
-                              {!isSsmRole && userRole !== 'IGIENA' && <TerminateEmployeeModal employee={emp} />}
-                              {!isSsmRole && userRole !== 'IGIENA' && (
-                                <>
-                                  <Link
-                                    href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-cerere-angajare`}
-                                    className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
-                                    title="Generează cerere de angajare"
-                                  >
-                                    Cerere
-                                  </Link>
-                                  <Link
-                                    href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-declaratie-regulament`}
-                                    className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
-                                    title="Generează declarație regulament intern"
-                                  >
-                                    Declarație RI
-                                  </Link>
-                                  <Link
-                                    href={`/documents/generate?clientId=${client.id}&employeeId=${emp.id}&templateCode=hr-cim-2026`}
-                                    className="text-[11px] text-blue-600 hover:text-blue-800 font-medium px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
-                                    title="Generează CIM 2026"
-                                  >
-                                    CIM
-                                  </Link>
-                                  <a
-                                    href={`/api/clients/${client.id}/packages/onboarding?employeeId=${emp.id}`}
-                                    className="text-[11px] text-emerald-700 hover:text-emerald-900 font-semibold px-2 py-1 bg-emerald-50 hover:bg-emerald-100 rounded inline-flex items-center gap-1 border border-emerald-200"
-                                    title="Descarcă dosar complet de onboarding salariat (11 documente DOCX în ZIP)"
-                                    download
-                                  >
-                                    <Download className="w-3 h-3" />
-                                    <span>Onboarding ZIP</span>
-                                  </a>
-                                </>
-                              )}
-                            </>
-                          ) : emp.status === 'Suspendat/CM' ? (
-                            <>
-                              <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200">
-                                SUSPENDAT / CM
-                              </span>
-                              <EditEmployeeModal employeeId={emp.id} employeeName={`${emp.lastName} ${emp.firstName}`} jobs={client.jobs} worksites={client.worksites} userRole={userRole} isSsmRole={isSsmRole} />
-                            </>
-                          ) : (
-                            <>
-                              <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-1 rounded border border-rose-200">
-                                ÎNCETAT: {formatRoDate(emp.leaveDate)}
-                              </span>
-                              <EditEmployeeModal employeeId={emp.id} employeeName={`${emp.lastName} ${emp.firstName}`} jobs={client.jobs} worksites={client.worksites} userRole={userRole} isSsmRole={isSsmRole} />
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <ClientEmployeesTable
+          client={{
+            id: client.id,
+            name: client.name,
+            jobs: client.jobs,
+            worksites: client.worksites,
+          }}
+          employees={evaluatedEmployees}
+          eipCatalog={eipCatalog}
+          userRole={userRole}
+          isSsmRole={isSsmRole}
+        />
       </div>
 
       {/* 7. Two Column Layout: Worksites & Jobs */}
