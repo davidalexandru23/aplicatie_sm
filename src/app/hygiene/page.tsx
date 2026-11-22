@@ -192,6 +192,7 @@ export default function HygienePage() {
   });
   const [usedNumbersInYear, setUsedNumbersInYear] = useState<string[]>([]);
   const [nextYearNumber, setNextYearNumber] = useState<number>(1);
+  const [formattedNextNumber, setFormattedNextNumber] = useState<string>('');
   const [loadingNumbering, setLoadingNumbering] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
@@ -359,6 +360,7 @@ export default function HygienePage() {
       if (data && !data.error) {
         setUsedNumbersInYear(data.usedNumbers || []);
         setNextYearNumber(data.nextNumber || 1);
+        setFormattedNextNumber(data.formattedNextNumber || '');
       }
     } catch {
       // fallback
@@ -1521,7 +1523,7 @@ export default function HygienePage() {
                       Număr Adeverință DSP (Fără Serie)
                     </label>
                     <span className="text-[10px] text-slate-500">
-                      Următorul secvențial: <strong>Nr. {nextYearNumber}</strong>
+                      Următorul secvențial: <strong>Nr. {formattedNextNumber || nextYearNumber}</strong>
                     </span>
                   </div>
                   <div className="relative">
@@ -1537,7 +1539,7 @@ export default function HygienePage() {
                           setEditFormData((prev) => ({ ...prev, certificateNumber: adjusted }));
                         }
                       }}
-                      placeholder={String(nextYearNumber)}
+                      placeholder={formattedNextNumber || String(nextYearNumber)}
                       className="w-full pl-9 pr-3 py-2 font-mono font-bold text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400"
                     />
                   </div>

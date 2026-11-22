@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { generateDocument } from '@/lib/templates/generator';
 import { resolveTemplatePlaceholders } from '@/lib/templates/resolver';
+import { allocateCertificateNumberForParticipant } from '@/lib/hygiene-numbering';
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,13 +27,22 @@ export async function POST(request: NextRequest) {
     const assessmentId = rawAssessmentId || rawRiskAssessmentId;
 
     let effClientId = clientId;
-    if (!effClientId && hygieneParticipantId) {
-      const part = await prisma.hygieneParticipant.findUnique({
-        where: { id: hygieneParticipantId },
-        include: { employee: true },
-      });
-      if (part?.employee?.clientId) {
-        effClientId = part.employee.clientId;
+    if (hygieneParticipantId) {
+      // Ensure participant has certificate number allocated
+      try {
+        await allocateCertificateNumberForParticipant(hygieneParticipantId);
+      } catch (err) {
+        console.warn('Could not auto-allocate certificate number for participant:', err);
+      }
+
+      if (!effClientId) {
+        const part = await prisma.hygieneParticipant.findUnique({
+          where: { id: hygieneParticipantId },
+          include: { employee: true },
+        });
+        if (part?.employee?.clientId) {
+          effClientId = part.employee.clientId;
+        }
       }
     }
     if (!effClientId && hygieneSessionId) {

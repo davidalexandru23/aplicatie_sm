@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { allocateCertificateNumbersForSession } from '@/lib/hygiene-numbering';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,8 +74,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       jobTitle: emp.currentJob?.title || null,
       attendance: 'prezent',
       examResult: 'admis',
+      examGrade: 10,
     })),
   });
+
+  // Automatically assign sequential certificate numbers and update employee records
+  await allocateCertificateNumbersForSession(id);
 
   return NextResponse.json({
     success: true,

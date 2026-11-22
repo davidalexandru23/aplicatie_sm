@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { allocateCertificateNumbersForSession } from '@/lib/hygiene-numbering';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,9 +54,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
   // Status progression: programata → in_desfasurare → finalizata → certificate_emise
   const validTransitions: Record<string, string[]> = {
-    programata: ['in_desfasurare'],
-    in_desfasurare: ['finalizata'],
-    finalizata: ['certificate_emise'],
+    programata: ['in_desfasurare', 'finalizata', 'certificate_emise'],
+    in_desfasurare: ['finalizata', 'certificate_emise', 'programata'],
+    finalizata: ['certificate_emise', 'in_desfasurare'],
+    certificate_emise: ['finalizata'],
   };
 
   const newStatus = body.status as string | undefined;
@@ -87,122 +89,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     include: { participants: true },
   });
 
-  // When transitioning to "certificate_emise", automatically allocate sequential certificate numbers (1..X per calendar year)
-  if (newStatus === 'certificate_emise') {
-    const sessionYear = updated.examDate ? updated.examDate.getFullYear() : new Date().getFullYear();
-    const yearStart = new Date(sessionYear, 0, 1);
-    const yearEnd = new Date(sessionYear, 11, 31, 23, 59, 59, 999);
-
-    const existingInYear = await prisma.hygieneParticipant.findMany({
-      where: {
-        certificateNumber: { not: null },
-        OR: [
-          { certificateDate: { gte: yearStart, lte: yearEnd } },
-          { certificateDate: null, session: { examDate: { gte: yearStart, lte: yearEnd } } },
-        ],
-      },
-      select: { certificateNumber: true },
-    });
-
-    let maxNum = 0;
-    for (const item of existingInYear) {
-      if (item.certificateNumber && /^\d+$/.test(item.certificateNumber.trim())) {
-        const val = parseInt(item.certificateNumber.trim(), 10);
-        if (val > maxNum) maxNum = val;
-      }
-    }
-
-    for (const participant of updated.participants) {
-      if (participant.examResult.toLowerCase() === 'admis' && participant.attendance !== 'absent') {
-        let certNum = participant.certificateNumber;
-        if (!certNum) {
-          maxNum++;
-          certNum = String(maxNum);
-          await prisma.hygieneParticipant.update({
-            where: { id: participant.id },
-            data: {
-              certificateNumber: certNum,
-              certificateDate: updated.examDate,
-            },
-          });
-        }
-        if (participant.employeeId) {
-          const moduleName = participant.hygieneModule || updated.hygieneModule || 'Modulul 1 - Servicii de alimentație publică și colectivă';
-          await prisma.employeeHygieneModule.upsert({
-            where: {
-              employeeId_moduleName: {
-                employeeId: participant.employeeId,
-                moduleName: moduleName.trim(),
-              },
-            },
-            update: {
-              certificateNumber: certNum,
-              examDate: updated.examDate,
-              issueDate: updated.examDate,
-              intervalMonths: 36,
-            },
-            create: {
-              employeeId: participant.employeeId,
-              moduleName: moduleName.trim(),
-              certificateNumber: certNum,
-              examDate: updated.examDate,
-              issueDate: updated.examDate,
-              intervalMonths: 36,
-            },
-          });
-
-          await prisma.employee.update({
-            where: { id: participant.employeeId },
-            data: {
-              hygieneLastExamDate: updated.examDate,
-              hygieneCertificateNumber: certNum,
-              hygieneCertificateIssueDate: updated.examDate,
-            },
-          });
-        }
-      }
-    }
-  }
-
-  // When transitioning to "finalizata", update linked employee hygiene records
-  if (newStatus === 'finalizata') {
-    for (const participant of updated.participants) {
-      if (participant.employeeId && participant.examResult.toLowerCase() === 'admis') {
-        const moduleName = participant.hygieneModule || updated.hygieneModule || 'Modulul 1 - Servicii de alimentație publică și colectivă';
-        await prisma.employeeHygieneModule.upsert({
-          where: {
-            employeeId_moduleName: {
-              employeeId: participant.employeeId,
-              moduleName: moduleName.trim(),
-            },
-          },
-          update: {
-            certificateNumber: participant.certificateNumber || null,
-            examDate: updated.examDate,
-            issueDate: updated.examDate,
-            intervalMonths: 36,
-          },
-          create: {
-            employeeId: participant.employeeId,
-            moduleName: moduleName.trim(),
-            certificateNumber: participant.certificateNumber || null,
-            examDate: updated.examDate,
-            issueDate: updated.examDate,
-            intervalMonths: 36,
-          },
-        });
-
-        await prisma.employee.update({
-          where: { id: participant.employeeId },
-          data: {
-            hygieneLastExamDate: updated.examDate,
-            hygieneCertificateNumber: participant.certificateNumber || null,
-            hygieneCertificateIssueDate: updated.examDate,
-            hygieneNotes: `Curs igienă finalizat ${updated.examDate.toLocaleDateString('ro-RO')} — ${participant.examResult} (Nota: ${participant.examGrade ?? 'N/A'})`,
-          },
-        });
-      }
-    }
+  // Automatically allocate sequential certificate numbers and synchronize employee records
+  if (newStatus === 'finalizata' || newStatus === 'certificate_emise' || updated.participants.some(p => !p.certificateNumber && p.examResult.toLowerCase() === 'admis')) {
+    await allocateCertificateNumbersForSession(id);
   }
 
   const finalUpdated = await prisma.hygieneSession.findUnique({

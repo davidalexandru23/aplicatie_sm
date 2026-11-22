@@ -682,12 +682,13 @@ export async function generateDocument(params: {
   // Canonical code definitions take priority over DB manifest to avoid stale requirement flags
   const fieldDefs: TemplateFieldDef[] = catalogDef?.fields || manifest.fields || [];
 
-  const missingFields = new Set(validateMissingFields(fieldDefs, params.data));
+  const data = params.data || {};
+  const missingFields = new Set(validateMissingFields(fieldDefs, data));
 
   // Enforce statutory mandatory fields per template
   const statutoryReqs = STATUTORY_MANDATORY_FIELDS[params.templateCode] || [];
   for (const req of statutoryReqs) {
-    const val = params.data[req.key];
+    const val = data[req.key];
     if (isBlankOrPlaceholderMarker(val)) {
       missingFields.add(req.label);
     }

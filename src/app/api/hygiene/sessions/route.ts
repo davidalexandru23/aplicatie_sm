@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { allocateCertificateNumbersForSession } from '@/lib/hygiene-numbering';
 
 export const dynamic = 'force-dynamic';
 
@@ -234,7 +235,7 @@ export async function POST(request: NextRequest) {
             docNumber: p.docNumber || null,
             jobTitle: p.jobTitle || null,
             attendance: p.attendance || 'prezent',
-            examGrade: p.examGrade ?? null,
+            examGrade: p.examGrade ?? (p.attendance !== 'absent' && (p.examResult || 'admis') === 'admis' ? 10 : null),
             examResult: p.examResult || 'admis',
             certificateSeries: p.certificateSeries || null,
             certificateNumber: p.certificateNumber || null,
@@ -248,7 +249,47 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(session, { status: 201 });
+    // Automatically allocate sequential certificate numbers and initialize participant grades
+    await allocateCertificateNumbersForSession(session.id);
+
+    const sessionWithParticipants = await prisma.hygieneSession.findUnique({
+      where: { id: session.id },
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true,
+            cui: true,
+          },
+        },
+        participants: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            cnp: true,
+            clientName: true,
+            jobTitle: true,
+            attendance: true,
+            examGrade: true,
+            examResult: true,
+            certificateSeries: true,
+            certificateNumber: true,
+            certificateDate: true,
+            diplomaDelivered: true,
+            diplomaDeliveredDate: true,
+            employeeId: true,
+            employee: {
+              select: {
+                clientId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return NextResponse.json(sessionWithParticipants || session, { status: 201 });
   } catch (err: unknown) {
     console.error('Hygiene session creation error:', err);
     return NextResponse.json(
