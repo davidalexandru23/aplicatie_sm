@@ -15,7 +15,8 @@ import {
   ShieldCheck, 
   FileText,
   RotateCcw,
-  Download
+  Download,
+  Navigation
 } from 'lucide-react';
 import { 
   ComplianceStatus, 
@@ -598,6 +599,16 @@ function EmployeeRegistryInner({
                               {userRole !== 'IGIENA' && <RecordMedicalExamModal employee={emp} />}
                               <ManageHygieneModulesModal employee={emp as any} />
                               <EditEmployeeModal employeeId={emp.id} employeeName={emp.fullName} userRole={userRole} isSsmRole={userRole === 'SSM'} />
+                              {userRole !== 'IGIENA' && (
+                                <Link
+                                  href={`/documents/generate?clientId=${emp.client.id}&employeeId=${emp.id}&templateCode=ssm-declaratie-traseu`}
+                                  className="inline-flex items-center gap-1 text-[11px] text-blue-700 bg-blue-50 hover:bg-blue-100 font-semibold px-2 py-1.5 rounded border border-blue-200 shadow-2xs transition"
+                                  title="Generează Fișă / Declarație Traseu (DOCX)"
+                                >
+                                  <Navigation className="w-3 h-3 text-blue-600" />
+                                  <span>Traseu</span>
+                                </Link>
+                              )}
                               {userRole !== 'IGIENA' && userRole !== 'SSM' && <TerminateEmployeeModal employee={emp} />}
                               {userRole !== 'IGIENA' && userRole !== 'SSM' && (
                                 <>
@@ -626,6 +637,16 @@ function EmployeeRegistryInner({
                                 SUSPENDAT / CM
                               </span>
                               <EditEmployeeModal employeeId={emp.id} employeeName={emp.fullName} userRole={userRole} isSsmRole={userRole === 'SSM'} />
+                              {userRole !== 'IGIENA' && (
+                                <Link
+                                  href={`/documents/generate?clientId=${emp.client.id}&employeeId=${emp.id}&templateCode=ssm-declaratie-traseu`}
+                                  className="inline-flex items-center gap-1 text-[11px] text-blue-700 bg-blue-50 hover:bg-blue-100 font-semibold px-2 py-1.5 rounded border border-blue-200 shadow-2xs transition"
+                                  title="Generează Fișă / Declarație Traseu (DOCX)"
+                                >
+                                  <Navigation className="w-3 h-3 text-blue-600" />
+                                  <span>Traseu</span>
+                                </Link>
+                              )}
                             </>
                           ) : (
                             <>

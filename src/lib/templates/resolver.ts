@@ -1675,8 +1675,16 @@ export async function resolveTemplateData(
   };
 
   // 1. Client / Angajator authentic tracking
-  if (client?.name) markAutocompleted('PLACEHOLDER_FIRMA', client.name);
-  if (client?.cui) markAutocompleted('PLACEHOLDER_CUI', client.cui);
+  if (client?.name) {
+    markAutocompleted('PLACEHOLDER_FIRMA', client.name);
+    markAutocompleted('PLACEHOLDER_NUME_FIRMA', client.name);
+    markAutocompleted('PLACEHOLDER_NUME_COMPANIE', client.name);
+  }
+  if (client?.cui) {
+    markAutocompleted('PLACEHOLDER_CUI', client.cui);
+    markAutocompleted('PLACEHOLDER_CUI_COMPANIE', client.cui);
+    markAutocompleted('PLACEHOLDER_CUI_FIRMA', client.cui);
+  }
   if (client?.regCom) markAutocompleted('PLACEHOLDER_NR_REG_COM', client.regCom);
   if (client?.address) {
     markAutocompleted('PLACEHOLDER_ADRESA_FIRMA', client.address);
@@ -1881,10 +1889,16 @@ export async function resolveTemplateData(
     }
     if (identity) {
       if (identity.docType) markAutocompleted('PLACEHOLDER_TIP_ACT', identity.docType);
-      if (identity.series) markAutocompleted('PLACEHOLDER_SERIE_ACT', identity.series);
+      if (identity.series) {
+        markAutocompleted('PLACEHOLDER_SERIE_ACT', identity.series);
+        markAutocompleted('PLACEHOLDER_CI_SERIE', identity.series);
+        markAutocompleted('PLACEHOLDER_SERIE', identity.series);
+      }
       if (identity.number) {
         markAutocompleted('PLACEHOLDER_NUMAR_ACT', identity.number);
         markAutocompleted('PLACEHOLDER_NR_ACT', identity.number);
+        markAutocompleted('PLACEHOLDER_CI_NUMAR', identity.number);
+        markAutocompleted('PLACEHOLDER_NUMAR', identity.number);
       }
       if (identity.issuedBy) {
         markAutocompleted('PLACEHOLDER_EMITENT_ACT', identity.issuedBy);
@@ -1910,9 +1924,13 @@ export async function resolveTemplateData(
         markAutocompleted('PLACEHOLDER_LOCALITATE', residence.locality);
         markAutocompleted('PLACEHOLDER_LOCALITATE_SEMNARE', residence.locality);
       }
-      if (residence.street) markAutocompleted('PLACEHOLDER_STRADA_DOMICILIU', residence.street);
+      if (residence.street) {
+        markAutocompleted('PLACEHOLDER_STRADA_DOMICILIU', residence.street);
+        markAutocompleted('PLACEHOLDER_STRADA', residence.street);
+      }
       if (residence.number) {
         markAutocompleted('PLACEHOLDER_NUMAR_DOMICILIU', residence.number);
+        markAutocompleted('PLACEHOLDER_NUMAR_STRADA', residence.number);
         markAutocompleted('PLACEHOLDER_NR', residence.number);
       }
       if (residence.building) markAutocompleted('PLACEHOLDER_BLOC', residence.building);
@@ -1937,8 +1955,12 @@ export async function resolveTemplateData(
     }
     if ((employee as any)?.bankName) markAutocompleted('PLACEHOLDER_BANCA_SALARIAT', (employee as any).bankName);
     if ((employee as any)?.bloodType) markAutocompleted('PLACEHOLDER_GRUPA_SANGUINA', (employee as any).bloodType);
+    if ((employee as any)?.commuteTransport) markAutocompleted('PLACEHOLDER_MIJLOACE_TRANSPORT', (employee as any).commuteTransport);
     if ((employee as any)?.commuteRoute) markAutocompleted('PLACEHOLDER_TRASEU_DEPLASARE', (employee as any).commuteRoute);
-    if ((employee as any)?.commuteDurationMinutes) markAutocompleted('PLACEHOLDER_DURATA_DEPLASARE', (employee as any).commuteDurationMinutes);
+    if ((employee as any)?.commuteDurationMinutes) {
+      markAutocompleted('PLACEHOLDER_DURATA_DEPLASARE', `${(employee as any).commuteDurationMinutes} minute`);
+      markAutocompleted('PLACEHOLDER_DURATA_TRASEU', `${(employee as any).commuteDurationMinutes} minute`);
+    }
     if ((employee as any)?.shoeSize) markAutocompleted('PLACEHOLDER_MARIME_INCALTAMINTE', (employee as any).shoeSize);
     if ((employee as any)?.clothingSize) {
       markAutocompleted('PLACEHOLDER_MARIME_HAINE', (employee as any).clothingSize);
@@ -2169,7 +2191,11 @@ export async function resolveTemplateData(
   const verifiedMap: Record<string, unknown> = {
     // 1. Client / Angajator
     PLACEHOLDER_FIRMA: client?.name || '',
+    PLACEHOLDER_NUME_FIRMA: client?.name || '',
+    PLACEHOLDER_NUME_COMPANIE: client?.name || '',
     PLACEHOLDER_CUI: client?.cui || '',
+    PLACEHOLDER_CUI_COMPANIE: client?.cui || '',
+    PLACEHOLDER_CUI_FIRMA: client?.cui || '',
     PLACEHOLDER_NR_REG_COM: client?.regCom || '',
     PLACEHOLDER_ADRESA_FIRMA: client?.address || '',
     PLACEHOLDER_ADRESA: addressFull || client?.address || '',
@@ -2293,8 +2319,12 @@ export async function resolveTemplateData(
 
       PLACEHOLDER_TIP_ACT: identity?.docType || '',
       PLACEHOLDER_SERIE_ACT: identity?.series || '',
+      PLACEHOLDER_CI_SERIE: identity?.series || '',
+      PLACEHOLDER_SERIE: identity?.series || '',
       PLACEHOLDER_NUMAR_ACT: identity?.number || '',
       PLACEHOLDER_NR_ACT: identity?.number || '',
+      PLACEHOLDER_CI_NUMAR: identity?.number || '',
+      PLACEHOLDER_NUMAR: identity?.number || '',
       PLACEHOLDER_EMITENT_ACT: identity?.issuedBy || '',
       PLACEHOLDER_EMITENT: identity?.issuedBy || '',
       PLACEHOLDER_DATA_EMITERII: identity?.issueDate ? formatDateRo(identity.issueDate) : '',
@@ -2307,7 +2337,9 @@ export async function resolveTemplateData(
       PLACEHOLDER_LOCALITATE_DOMICILIU: residence?.locality || '',
       PLACEHOLDER_LOCALITATE: residence?.locality || '',
       PLACEHOLDER_STRADA_DOMICILIU: residence?.street ? formatStreetName(residence.street) : '',
+      PLACEHOLDER_STRADA: residence?.street ? formatStreetName(residence.street) : '',
       PLACEHOLDER_NUMAR_DOMICILIU: residence?.number || '',
+      PLACEHOLDER_NUMAR_STRADA: residence?.number || '',
       PLACEHOLDER_NR: residence?.number || '',
       PLACEHOLDER_BLOC: residence?.building || '',
       PLACEHOLDER_SCARA: residence?.entrance || '',
@@ -2340,7 +2372,9 @@ export async function resolveTemplateData(
       PLACEHOLDER_LOCALITATE_DOMICILIU: '',
       PLACEHOLDER_LOCALITATE: '',
       PLACEHOLDER_STRADA_DOMICILIU: '',
+      PLACEHOLDER_STRADA: '',
       PLACEHOLDER_NUMAR_DOMICILIU: '',
+      PLACEHOLDER_NUMAR_STRADA: '',
       PLACEHOLDER_NR: '',
       PLACEHOLDER_BLOC: '',
       PLACEHOLDER_SCARA: '',
@@ -2375,8 +2409,11 @@ export async function resolveTemplateData(
     PLACEHOLDER_CONT_BANCA_SALARIAT: (employee as any)?.bankIban || (employee as any)?.bankAccount || (employee as any)?.iban || '',
     PLACEHOLDER_BANCA_SALARIAT: (employee as any)?.bankName || '',
     PLACEHOLDER_GRUPA_SANGUINA: (employee as any)?.bloodType ? `${(employee as any).bloodType}${(employee as any)?.rhFactor ? ` (Rh ${(employee as any).rhFactor})` : ''}` : '',
-    PLACEHOLDER_TRASEU_DEPLASARE: (employee as any)?.commuteRoute || '',
-    PLACEHOLDER_DURATA_DEPLASARE: (employee as any)?.commuteDurationMinutes ? `${(employee as any).commuteDurationMinutes} minute` : '',
+    PLACEHOLDER_MIJLOACE_TRANSPORT: (employee as any)?.commuteTransport || (context.customOverrides?.PLACEHOLDER_MIJLOACE_TRANSPORT as string) || 'Autobuz, transport în comun, pietonal',
+    PLACEHOLDER_TRASEU_DEPLASARE: (employee as any)?.commuteRoute || (context.customOverrides?.PLACEHOLDER_TRASEU_DEPLASARE as string) || (residence?.locality ? `Domiciliu (${residence.locality}${residence.street ? `, Str. ${residence.street}` : ''}${residence.number ? ` nr. ${residence.number}` : ''}) -> Traseu transport în comun / pietonal -> Sediu / Punct de lucru (${worksite?.address || client?.address || 'Locul de muncă'})` : 'Domiciliu -> Traseu transport în comun -> Locul de muncă'),
+    PLACEHOLDER_DURATA_DEPLASARE: (employee as any)?.commuteDurationMinutes ? `${(employee as any).commuteDurationMinutes} minute` : ((context.customOverrides?.PLACEHOLDER_DURATA_DEPLASARE as string) || '30 minute'),
+    PLACEHOLDER_DURATA_TRASEU: (employee as any)?.commuteDurationMinutes ? `${(employee as any).commuteDurationMinutes} minute` : ((context.customOverrides?.PLACEHOLDER_DURATA_TRASEU as string) || '30 minute'),
+    PLACEHOLDER_DATA_CURENTA: currentDateRo,
     PLACEHOLDER_MARIME_HAINE: (employee as any)?.clothingSize || '',
     PLACEHOLDER_MARIME_IMBRACAMINTE: (employee as any)?.clothingSize || '',
     PLACEHOLDER_MARIME_INCALTAMINTE: (employee as any)?.shoeSize ? String((employee as any).shoeSize) : '',
@@ -2620,8 +2657,12 @@ export async function resolveTemplateData(
       PLACEHOLDER_LOCALITATE_NASTERII: employee.birthPlace || '',
       PLACEHOLDER_TIP_ACT: identity?.docType || '',
       PLACEHOLDER_SERIE_ACT: identity?.series || '',
+      PLACEHOLDER_CI_SERIE: identity?.series || '',
+      PLACEHOLDER_SERIE: identity?.series || '',
       PLACEHOLDER_NUMAR_ACT: identity?.number || '',
       PLACEHOLDER_NR_ACT: identity?.number || '',
+      PLACEHOLDER_CI_NUMAR: identity?.number || '',
+      PLACEHOLDER_NUMAR: identity?.number || '',
       PLACEHOLDER_SERIE_ADEVERINTA: '',
       PLACEHOLDER_NUMAR_ADEVERINTA: employee.hygieneCertificateNumber || '',
       PLACEHOLDER_DATA_ELIBERARE: employee.hygieneCertificateIssueDate ? formatDateRo(employee.hygieneCertificateIssueDate) : (employee.hygieneLastExamDate ? formatDateRo(employee.hygieneLastExamDate) : ''),

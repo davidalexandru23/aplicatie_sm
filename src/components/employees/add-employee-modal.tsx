@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { UserPlus, X, AlertCircle, RefreshCw, CheckCircle2, User, FileText, MapPin, Shield } from 'lucide-react';
+import { UserPlus, X, AlertCircle, RefreshCw, CheckCircle2, User, FileText, MapPin, Shield, Navigation, Sparkles } from 'lucide-react';
 import { UserRole } from '@/lib/rbac';
 
 export interface AddEmployeeModalProps {
@@ -105,10 +105,29 @@ export function AddEmployeeModal({
     bloodType: '',
     rhFactor: '',
     qualification: '',
+    commuteTransport: '',
     commuteRoute: '',
     commuteDurationMinutes: '',
     adminNotes: '',
   });
+
+  const handleSuggestRoute = () => {
+    const loc = formData.addressLocality.trim() || 'Domiciliu';
+    const street = formData.addressStreet.trim();
+    const nr = formData.addressNumber.trim();
+    const homeStr = street ? `${loc}, ${street}${nr ? ` nr. ${nr}` : ''}` : loc;
+
+    const currentWs = availableWorksites.find((w) => w.id === formData.currentWorksiteId);
+    const destStr = currentWs?.name || currentClient?.name || 'Sediul companiei / Punct de lucru';
+
+    const suggested = `Domiciliu (${homeStr}) -> Traseu transport în comun / pietonal -> ${destStr}`;
+    setFormData((prev) => ({
+      ...prev,
+      commuteRoute: suggested,
+      commuteTransport: prev.commuteTransport || 'Autobuz, transport în comun, pietonal',
+      commuteDurationMinutes: prev.commuteDurationMinutes || '30',
+    }));
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -174,6 +193,7 @@ export function AddEmployeeModal({
         bloodType: formData.bloodType.trim() || undefined,
         rhFactor: formData.rhFactor.trim() || undefined,
         qualification: formData.qualification.trim() || undefined,
+        commuteTransport: formData.commuteTransport.trim() || undefined,
         commuteRoute: formData.commuteRoute.trim() || undefined,
         commuteDurationMinutes: formData.commuteDurationMinutes ? Number(formData.commuteDurationMinutes) : undefined,
         adminNotes: formData.adminNotes.trim() || undefined,
@@ -911,6 +931,117 @@ export function AddEmployeeModal({
                       </div>
                     </div>
                   </div>
+
+                  {/* Traseu de Deplasare la/de la Serviciu */}
+                  <div className="p-3.5 bg-gradient-to-br from-blue-50/70 to-indigo-50/40 border border-blue-200/90 rounded-lg space-y-3">
+                    <div className="flex items-center gap-2 border-b border-blue-200/60 pb-2">
+                      <Navigation className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                      <div>
+                        <span className="text-xs font-bold text-slate-800">
+                          Traseu de Deplasare (Fișă Traseu - Legea 319/2006 art. 30)
+                        </span>
+                        <p className="text-[10px] text-slate-500">
+                          Necesar pentru declararea traseului normal domiciliu - loc de muncă (accidente de traseu).
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Mijloc de Transport + Durată */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="sm:col-span-2">
+                        <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                          Mijloace de Transport Utilizate
+                        </label>
+                        <input
+                          type="text"
+                          name="commuteTransport"
+                          value={formData.commuteTransport}
+                          onChange={handleChange}
+                          placeholder="Ex: Autobuz, tramvai, pietonal, auto personal..."
+                          className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                        {/* Pastile opțiuni rapide */}
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {[
+                            'Autobuz, pietonal',
+                            'Auto personal',
+                            'Pietonal',
+                            'Metrou, autobuz',
+                            'Bicicletă / Trotinetă',
+                            'Auto firmă',
+                          ].map((preset) => (
+                            <button
+                              key={preset}
+                              type="button"
+                              onClick={() => setFormData((prev) => ({ ...prev, commuteTransport: preset }))}
+                              className={`text-[10px] px-1.5 py-0.5 rounded border transition ${
+                                formData.commuteTransport === preset
+                                  ? 'bg-blue-100 text-blue-800 border-blue-300 font-semibold'
+                                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                              }`}
+                            >
+                              {preset}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                          Durată Deplasare (min)
+                        </label>
+                        <input
+                          type="number"
+                          name="commuteDurationMinutes"
+                          value={formData.commuteDurationMinutes}
+                          onChange={handleChange}
+                          placeholder="Ex: 30"
+                          className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                        <div className="flex gap-1 mt-1.5">
+                          {[15, 30, 45, 60].map((mins) => (
+                            <button
+                              key={mins}
+                              type="button"
+                              onClick={() => setFormData((prev) => ({ ...prev, commuteDurationMinutes: String(mins) }))}
+                              className={`text-[10px] px-1.5 py-0.5 rounded border transition ${
+                                formData.commuteDurationMinutes === String(mins)
+                                  ? 'bg-blue-100 text-blue-800 border-blue-300 font-semibold'
+                                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                              }`}
+                            >
+                              {mins}m
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Traseu Detaliat */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-[11px] font-semibold text-slate-700">
+                          Traseu Detaliat (adresa domiciliu - repere - adresa loc de muncă)
+                        </label>
+                        <button
+                          type="button"
+                          onClick={handleSuggestRoute}
+                          className="text-[10px] text-blue-600 hover:text-blue-800 font-medium underline flex items-center gap-1 cursor-pointer"
+                        >
+                          <Sparkles className="w-3 h-3 text-amber-500" />
+                          <span>Sugerează traseu automat</span>
+                        </button>
+                      </div>
+                      <textarea
+                        rows={2}
+                        name="commuteRoute"
+                        value={formData.commuteRoute}
+                        onChange={handleChange}
+                        placeholder="Ex: Domiciliu (Brașov, Str. Republicii nr. 52) -> Stație transport -> Bvd. Eroilor -> Loc de muncă (Str. ...)"
+                        className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono text-[11px]"
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -986,30 +1117,6 @@ export function AddEmployeeModal({
                           <option value="+">Pozitiv (+)</option>
                           <option value="-">Negativ (-)</option>
                         </select>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">Traseu Navetă</label>
-                        <input
-                          type="text"
-                          name="commuteRoute"
-                          value={formData.commuteRoute}
-                          onChange={handleChange}
-                          placeholder="ex: Domiciliu - Metrou - Sediu"
-                          className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">Durată Navetă (min)</label>
-                        <input
-                          type="number"
-                          name="commuteDurationMinutes"
-                          value={formData.commuteDurationMinutes}
-                          onChange={handleChange}
-                          placeholder="ex: 45"
-                          className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg"
-                        />
                       </div>
                     </div>
                   </div>

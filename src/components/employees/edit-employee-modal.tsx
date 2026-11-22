@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Edit3, X, AlertCircle, RefreshCw, CheckCircle2, User, FileText, MapPin, Shield } from 'lucide-react';
+import { Edit3, X, AlertCircle, RefreshCw, CheckCircle2, User, FileText, MapPin, Shield, Navigation, Download, Compass, Sparkles } from 'lucide-react';
 import { UserRole } from '@/lib/rbac';
 
 export interface EditEmployeeModalProps {
@@ -91,10 +91,13 @@ export function EditEmployeeModal({
     bloodType: '',
     rhFactor: '',
     qualification: '',
+    commuteTransport: '',
     commuteRoute: '',
     commuteDurationMinutes: '',
     adminNotes: '',
   });
+
+  const [isGeneratingTraseu, setIsGeneratingTraseu] = useState(false);
 
   const loadEmployeeData = async () => {
     setIsLoading(true);
@@ -156,6 +159,7 @@ export function EditEmployeeModal({
         bloodType: emp.bloodType || '',
         rhFactor: emp.rhFactor || '',
         qualification: emp.qualification || '',
+        commuteTransport: emp.commuteTransport || '',
         commuteRoute: emp.commuteRoute || '',
         commuteDurationMinutes: emp.commuteDurationMinutes ? String(emp.commuteDurationMinutes) : '',
         adminNotes: emp.adminNotes || '',
@@ -178,6 +182,134 @@ export function EditEmployeeModal({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const saveEmployeeInternal = async () => {
+    const payload: Record<string, any> = {
+      lastName: formData.lastName.trim(),
+      firstName: formData.firstName.trim(),
+      cnp: formData.cnp.trim() || null,
+      sex: formData.sex || undefined,
+      birthDate: formData.birthDate || null,
+      birthPlace: formData.birthPlace.trim() || null,
+      birthCounty: formData.birthCounty.trim() || null,
+      citizenship: formData.citizenship.trim() || 'Română',
+      phone: formData.phone.trim() || null,
+      email: formData.email.trim() || null,
+      currentJobId: formData.currentJobId || null,
+      currentWorksiteId: formData.currentWorksiteId || null,
+      status: formData.status || 'ACTIV',
+      hireDate: formData.hireDate || null,
+      cimNumber: formData.cimNumber.trim() || null,
+      cimDate: formData.cimDate || null,
+      grossSalary: formData.grossSalary ? Number(formData.grossSalary) : null,
+      workNorm: formData.workNorm ? Number(formData.workNorm) : 8,
+      probationDays: formData.probationDays ? Number(formData.probationDays) : 90,
+      annualLeaveDays: formData.annualLeaveDays ? Number(formData.annualLeaveDays) : 20,
+      bankIban: formData.bankIban.trim() || null,
+      bankName: formData.bankName.trim() || null,
+      idDocType: formData.idDocType || 'CI',
+      idSeries: formData.idSeries.trim() || null,
+      idNumber: formData.idNumber.trim() || null,
+      idIssuedBy: formData.idIssuedBy.trim() || null,
+      idIssueDate: formData.idIssueDate || null,
+      idExpiryDate: formData.idExpiryDate || null,
+      addressCounty: formData.addressCounty.trim() || null,
+      addressLocality: formData.addressLocality.trim() || null,
+      addressStreet: formData.addressStreet.trim() || null,
+      addressNumber: formData.addressNumber.trim() || null,
+      addressBuilding: formData.addressBuilding.trim() || null,
+      addressEntrance: formData.addressEntrance.trim() || null,
+      addressFloor: formData.addressFloor.trim() || null,
+      addressApartment: formData.addressApartment.trim() || null,
+      addressPostalCode: formData.addressPostalCode.trim() || null,
+      shoeSize: formData.shoeSize.trim() || null,
+      clothingSize: formData.clothingSize.trim() || null,
+      gloveSize: formData.gloveSize.trim() || null,
+      bloodType: formData.bloodType.trim() || null,
+      rhFactor: formData.rhFactor.trim() || null,
+      qualification: formData.qualification.trim() || null,
+      commuteTransport: formData.commuteTransport.trim() || null,
+      commuteRoute: formData.commuteRoute.trim() || null,
+      commuteDurationMinutes: formData.commuteDurationMinutes ? Number(formData.commuteDurationMinutes) : null,
+      adminNotes: formData.adminNotes.trim() || null,
+    };
+
+    const res = await fetch(`/api/employees/${employeeId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'A apărut o eroare la salvarea modificărilor.');
+    }
+    return data;
+  };
+
+  const handleSuggestRoute = () => {
+    const loc = formData.addressLocality.trim() || 'Domiciliu';
+    const street = formData.addressStreet.trim();
+    const nr = formData.addressNumber.trim();
+    const homeStr = street ? `${loc}, ${street}${nr ? ` nr. ${nr}` : ''}` : loc;
+
+    const currentWs = (availableWorksites.length > 0 ? availableWorksites : worksites).find((w) => w.id === formData.currentWorksiteId);
+    const destStr = currentWs?.name || 'Sediul companiei / Punct de lucru';
+
+    const suggested = `Domiciliu (${homeStr}) -> Traseu transport în comun / pietonal -> ${destStr}`;
+    setFormData((prev) => ({
+      ...prev,
+      commuteRoute: suggested,
+      commuteTransport: prev.commuteTransport || 'Autobuz, transport în comun, pietonal',
+      commuteDurationMinutes: prev.commuteDurationMinutes || '30',
+    }));
+  };
+
+  const handleGenerateFisaTraseu = async () => {
+    setIsGeneratingTraseu(true);
+    setErrorMessage(null);
+    try {
+      await saveEmployeeInternal();
+
+      const empRes = await fetch(`/api/employees/${employeeId}`);
+      const empData = await empRes.json();
+      const clientId = empData.clientId;
+
+      const genRes = await fetch('/api/documents/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          templateCode: 'ssm-declaratie-traseu',
+          clientId,
+          employeeId,
+          customFields: {
+            PLACEHOLDER_MIJLOACE_TRANSPORT: formData.commuteTransport || 'Autobuz, transport în comun, pietonal',
+            PLACEHOLDER_TRASEU_DEPLASARE: formData.commuteRoute,
+            PLACEHOLDER_DURATA_DEPLASARE: formData.commuteDurationMinutes ? `${formData.commuteDurationMinutes} minute` : '30 minute',
+            PLACEHOLDER_LOCALITATE: formData.addressLocality,
+            PLACEHOLDER_STRADA: formData.addressStreet,
+            PLACEHOLDER_NUMAR_STRADA: formData.addressNumber,
+            PLACEHOLDER_BLOC: formData.addressBuilding || '-',
+            PLACEHOLDER_SCARA: formData.addressEntrance || '-',
+            PLACEHOLDER_APARTAMENT: formData.addressApartment || '-',
+          },
+        }),
+      });
+
+      const genData = await genRes.json();
+      if (!genRes.ok || !genData.downloadUrl) {
+        throw new Error(genData.error || 'Eroare la generarea fișei de traseu.');
+      }
+
+      window.open(genData.downloadUrl, '_blank');
+      setSuccessMessage('Fișa de traseu autocompletată (DOCX) a fost generată și descărcată!');
+      router.refresh();
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Eroare la generarea fișei de traseu.');
+    } finally {
+      setIsGeneratingTraseu(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -185,66 +317,7 @@ export function EditEmployeeModal({
     setSuccessMessage(null);
 
     try {
-      const payload: Record<string, any> = {
-        lastName: formData.lastName.trim(),
-        firstName: formData.firstName.trim(),
-        cnp: formData.cnp.trim() || null,
-        sex: formData.sex || undefined,
-        birthDate: formData.birthDate || null,
-        birthPlace: formData.birthPlace.trim() || null,
-        birthCounty: formData.birthCounty.trim() || null,
-        citizenship: formData.citizenship.trim() || 'Română',
-        phone: formData.phone.trim() || null,
-        email: formData.email.trim() || null,
-        currentJobId: formData.currentJobId || null,
-        currentWorksiteId: formData.currentWorksiteId || null,
-        status: formData.status || 'ACTIV',
-        hireDate: formData.hireDate || null,
-        cimNumber: formData.cimNumber.trim() || null,
-        cimDate: formData.cimDate || null,
-        grossSalary: formData.grossSalary ? Number(formData.grossSalary) : null,
-        workNorm: formData.workNorm ? Number(formData.workNorm) : 8,
-        probationDays: formData.probationDays ? Number(formData.probationDays) : 90,
-        annualLeaveDays: formData.annualLeaveDays ? Number(formData.annualLeaveDays) : 20,
-        bankIban: formData.bankIban.trim() || null,
-        bankName: formData.bankName.trim() || null,
-        idDocType: formData.idDocType || 'CI',
-        idSeries: formData.idSeries.trim() || null,
-        idNumber: formData.idNumber.trim() || null,
-        idIssuedBy: formData.idIssuedBy.trim() || null,
-        idIssueDate: formData.idIssueDate || null,
-        idExpiryDate: formData.idExpiryDate || null,
-        addressCounty: formData.addressCounty.trim() || null,
-        addressLocality: formData.addressLocality.trim() || null,
-        addressStreet: formData.addressStreet.trim() || null,
-        addressNumber: formData.addressNumber.trim() || null,
-        addressBuilding: formData.addressBuilding.trim() || null,
-        addressEntrance: formData.addressEntrance.trim() || null,
-        addressFloor: formData.addressFloor.trim() || null,
-        addressApartment: formData.addressApartment.trim() || null,
-        addressPostalCode: formData.addressPostalCode.trim() || null,
-        shoeSize: formData.shoeSize.trim() || null,
-        clothingSize: formData.clothingSize.trim() || null,
-        gloveSize: formData.gloveSize.trim() || null,
-        bloodType: formData.bloodType.trim() || null,
-        rhFactor: formData.rhFactor.trim() || null,
-        qualification: formData.qualification.trim() || null,
-        commuteRoute: formData.commuteRoute.trim() || null,
-        commuteDurationMinutes: formData.commuteDurationMinutes ? Number(formData.commuteDurationMinutes) : null,
-        adminNotes: formData.adminNotes.trim() || null,
-      };
-
-      const res = await fetch(`/api/employees/${employeeId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'A apărut o eroare la salvarea modificărilor.');
-      }
-
+      await saveEmployeeInternal();
       setSuccessMessage('Datele salariatului au fost actualizate cu succes!');
       setTimeout(() => {
         setIsOpen(false);
@@ -931,6 +1004,130 @@ export function EditEmployeeModal({
                         </div>
                       </div>
                     </div>
+
+                    {/* Traseu de Deplasare la/de la Serviciu */}
+                    <div className="p-3.5 bg-gradient-to-br from-blue-50/70 to-indigo-50/40 border border-blue-200/90 rounded-lg space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-blue-200/60 pb-2">
+                        <div className="flex items-center gap-2">
+                          <Navigation className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                          <div>
+                            <span className="text-xs font-bold text-slate-800">
+                              Traseu de Deplasare (Fișă Traseu - Legea 319/2006 art. 30)
+                            </span>
+                            <p className="text-[10px] text-slate-500">
+                              Necesar pentru declararea traseului normal domiciliu - loc de muncă (accidente de traseu).
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleGenerateFisaTraseu}
+                          disabled={isGeneratingTraseu}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-xs font-semibold shadow-2xs transition self-start sm:self-auto cursor-pointer"
+                          title="Generează și descarcă fișa de traseu completată cu datele din formular"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>{isGeneratingTraseu ? 'Se generează...' : 'Generează Fișă Traseu (DOCX)'}</span>
+                        </button>
+                      </div>
+
+                      {/* Mijloc de Transport + Durată */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="sm:col-span-2">
+                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                            Mijloace de Transport Utilizate
+                          </label>
+                          <input
+                            type="text"
+                            name="commuteTransport"
+                            value={formData.commuteTransport}
+                            onChange={handleChange}
+                            placeholder="Ex: Autobuz, tramvai, pietonal, auto personal..."
+                            className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                          {/* Pastile opțiuni rapide */}
+                          <div className="flex flex-wrap gap-1 mt-1.5">
+                            {[
+                              'Autobuz, pietonal',
+                              'Auto personal',
+                              'Pietonal',
+                              'Metrou, autobuz',
+                              'Bicicletă / Trotinetă',
+                              'Auto firmă',
+                            ].map((preset) => (
+                              <button
+                                key={preset}
+                                type="button"
+                                onClick={() => setFormData((prev) => ({ ...prev, commuteTransport: preset }))}
+                                className={`text-[10px] px-1.5 py-0.5 rounded border transition ${
+                                  formData.commuteTransport === preset
+                                    ? 'bg-blue-100 text-blue-800 border-blue-300 font-semibold'
+                                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                                }`}
+                              >
+                                {preset}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                            Durată Deplasare (min)
+                          </label>
+                          <input
+                            type="number"
+                            name="commuteDurationMinutes"
+                            value={formData.commuteDurationMinutes}
+                            onChange={handleChange}
+                            placeholder="Ex: 30"
+                            className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                          <div className="flex gap-1 mt-1.5">
+                            {[15, 30, 45, 60].map((mins) => (
+                              <button
+                                key={mins}
+                                type="button"
+                                onClick={() => setFormData((prev) => ({ ...prev, commuteDurationMinutes: String(mins) }))}
+                                className={`text-[10px] px-1.5 py-0.5 rounded border transition ${
+                                  formData.commuteDurationMinutes === String(mins)
+                                    ? 'bg-blue-100 text-blue-800 border-blue-300 font-semibold'
+                                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                                }`}
+                              >
+                                {mins}m
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Traseu Detaliat */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-[11px] font-semibold text-slate-700">
+                            Traseu Detaliat (adresa domiciliu - repere - adresa loc de muncă)
+                          </label>
+                          <button
+                            type="button"
+                            onClick={handleSuggestRoute}
+                            className="text-[10px] text-blue-600 hover:text-blue-800 font-medium underline flex items-center gap-1 cursor-pointer"
+                          >
+                            <Sparkles className="w-3 h-3 text-amber-500" />
+                            <span>Sugerează traseu automat</span>
+                          </button>
+                        </div>
+                        <textarea
+                          rows={2}
+                          name="commuteRoute"
+                          value={formData.commuteRoute}
+                          onChange={handleChange}
+                          placeholder="Ex: Domiciliu (Brașov, Str. Republicii nr. 52) -> Stație transport -> Bvd. Eroilor -> Loc de muncă (Str. ...)"
+                          className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono text-[11px]"
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -1003,28 +1200,6 @@ export function EditEmployeeModal({
                             <option value="+">Pozitiv (+)</option>
                             <option value="-">Negativ (-)</option>
                           </select>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">Traseu Navetă</label>
-                          <input
-                            type="text"
-                            name="commuteRoute"
-                            value={formData.commuteRoute}
-                            onChange={handleChange}
-                            className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">Durată Navetă (min)</label>
-                          <input
-                            type="number"
-                            name="commuteDurationMinutes"
-                            value={formData.commuteDurationMinutes}
-                            onChange={handleChange}
-                            className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg"
-                          />
                         </div>
                       </div>
                     </div>

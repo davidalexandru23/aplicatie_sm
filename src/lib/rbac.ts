@@ -145,7 +145,7 @@ export interface RoleGeneratorMeta {
 export const ROLE_GENERATOR_CONFIG: Record<UserRole, RoleGeneratorMeta> = {
   ADMIN: {
     title: 'Generator Oficial SSM, HR & Igienă',
-    subtitle: 'Autocompletare inteligentă a celor 33 de șabloane statutare din datele firmei, salariaților și sesiunilor înregistrate.',
+    subtitle: 'Autocompletare inteligentă a celor 34 de șabloane statutare din datele firmei, salariaților și sesiunilor înregistrate.',
     badge: 'Admin Master',
   },
   SSM: {
@@ -196,8 +196,8 @@ export function isTemplateAllowedForRole(
   }
 
   if (role === 'HR') {
-    // HR manages HR (CIM, job sheets, employee forms) and Med & EIP (occupational health forms)
-    // Strictly forbidden: SSM, PSI, IPSSM, Hygiene
+    // HR manages HR, Med & EIP, and Declaratie Traseu (dosar personal)
+    if (code === 'ssm-declaratie-traseu') return true;
     if (isSsm || isPsi || isIpssm || isHygiene) return false;
     return isHr || isMedEip;
   }
