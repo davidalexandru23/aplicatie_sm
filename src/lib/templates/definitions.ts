@@ -4041,7 +4041,7 @@ export const TRAINING_EVENT_TEMPLATES: TemplateDefinition[] = [
   },
   {
     code: 'ssm-declaratie-traseu',
-    name: 'Declarație pe proprie răspundere privind traseul de deplasare (DOCX)',
+    name: 'Declarație pe proprie răspundere privind traseul de deplasare',
     family: 'training',
     originalFilename: 'Declaratie traseu deplasare.docx',
     normalizedFilename: 'Declaratie traseu deplasare.docx',

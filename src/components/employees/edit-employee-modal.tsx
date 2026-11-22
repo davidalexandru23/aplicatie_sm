@@ -268,11 +268,13 @@ export function EditEmployeeModal({
     setIsGeneratingTraseu(true);
     setErrorMessage(null);
     try {
-      await saveEmployeeInternal();
-
-      const empRes = await fetch(`/api/employees/${employeeId}`);
-      const empData = await empRes.json();
-      const clientId = empData.clientId;
+      const saveResult = await saveEmployeeInternal();
+      let clientId = saveResult?.employee?.clientId || saveResult?.data?.clientId;
+      if (!clientId) {
+        const empRes = await fetch(`/api/employees/${employeeId}`);
+        const empData = await empRes.json();
+        clientId = empData?.employee?.clientId || empData?.clientId;
+      }
 
       const genRes = await fetch('/api/documents/generate', {
         method: 'POST',

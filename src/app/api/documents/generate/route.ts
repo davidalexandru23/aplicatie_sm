@@ -61,6 +61,33 @@ export async function POST(request: NextRequest) {
         }
       }
     }
+    if (!effClientId && employeeId) {
+      const emp = await prisma.employee.findUnique({
+        where: { id: employeeId },
+        select: { clientId: true },
+      });
+      if (emp?.clientId) {
+        effClientId = emp.clientId;
+      }
+    }
+    if (!effClientId && jobId) {
+      const job = await prisma.job.findUnique({
+        where: { id: jobId },
+        select: { clientId: true },
+      });
+      if (job?.clientId) {
+        effClientId = job.clientId;
+      }
+    }
+    if (!effClientId && worksiteId) {
+      const ws = await prisma.worksite.findUnique({
+        where: { id: worksiteId },
+        select: { clientId: true },
+      });
+      if (ws?.clientId) {
+        effClientId = ws.clientId;
+      }
+    }
 
     if (!templateCode || !effClientId) {
       return NextResponse.json(

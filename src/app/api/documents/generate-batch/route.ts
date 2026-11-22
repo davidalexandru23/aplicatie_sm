@@ -38,6 +38,11 @@ export function checkEmployeeTemplateExpiry(
 
   const code = templateCode.toLowerCase();
 
+  // Route declarations (Legea 319/2006 art. 30 lit. g) are route statements and are not blocked by instruction expiry
+  if (code.includes('traseu')) {
+    return { isExpired: false };
+  }
+
   // Exclude statutory training templates from hard overdue rejection (HG 1425/2006, OMAI 712/2005):
   // Training sheets must be generated to conduct and record reinstatement training.
   const isTrainingTemplate =

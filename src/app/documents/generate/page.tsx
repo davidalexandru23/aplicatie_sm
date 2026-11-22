@@ -127,6 +127,11 @@ export function getEmployeeExpiryInfo(templateCode: string, employee: EmployeeOp
 
   const code = (templateCode || '').toLowerCase();
 
+  // Route declarations (Legea 319/2006 art. 30 lit. g) are employee route statements and are not blocked by periodic training expiry
+  if (code.includes('traseu')) {
+    return { isExpired: false, badgeText: 'Conform', badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200', reason: '' };
+  }
+
   const isTrainingTemplate =
     code.includes('fisa-instruire') ||
     code.includes('fisa-instructaj') ||
@@ -402,8 +407,8 @@ function DocumentGeneratorContent() {
       if (selectedCategory === 'ipssm') return t.family === 'ipssm';
       if (selectedCategory === 'med_eip') return t.code.startsWith('med-') || t.code.startsWith('eip-');
       if (selectedCategory === 'psi') return t.code.includes('psi') || t.code.includes('urgenta');
-      if (selectedCategory === 'hr') return t.family === 'hr';
-      if (selectedCategory === 'ssm') return t.family === 'risk' || t.family === 'training' || t.family === 'decision';
+      if (selectedCategory === 'hr') return t.family === 'hr' || t.code.includes('traseu');
+      if (selectedCategory === 'ssm') return t.family === 'risk' || t.family === 'training' || t.family === 'decision' || t.code.includes('traseu') || t.code.startsWith('ssm-');
       return true;
     });
   }, [allowedTemplates, selectedCategory]);
@@ -837,8 +842,8 @@ function DocumentGeneratorContent() {
                       if (tab.id === 'ipssm') return t.family === 'ipssm';
                       if (tab.id === 'med_eip') return t.code.startsWith('med-') || t.code.startsWith('eip-');
                       if (tab.id === 'psi') return t.code.includes('psi') || t.code.includes('urgenta');
-                      if (tab.id === 'hr') return t.family === 'hr';
-                      if (tab.id === 'ssm') return t.family === 'risk' || t.family === 'training' || t.family === 'decision';
+                      if (tab.id === 'hr') return t.family === 'hr' || t.code.includes('traseu');
+                      if (tab.id === 'ssm') return t.family === 'risk' || t.family === 'training' || t.family === 'decision' || t.code.includes('traseu') || t.code.startsWith('ssm-');
                       return true;
                     });
                     if (matching.length > 0 && !matching.some((m) => m.code === selectedTemplateCode)) {
@@ -889,7 +894,7 @@ function DocumentGeneratorContent() {
               <option value="">-- Alege șablonul --</option>
               {filteredTemplates.map((t) => (
                 <option key={t.code} value={t.code}>
-                  [{t.family.toUpperCase()}] {t.name} ({t.format.toUpperCase()})
+                  [{t.family.toUpperCase()}] {t.name.replace(/\s*\((DOCX|PDF|XLSX)\)$/i, '')} ({t.format.toUpperCase()})
                 </option>
               ))}
             </select>
