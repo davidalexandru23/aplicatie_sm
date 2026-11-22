@@ -2105,6 +2105,27 @@ export const TEMPLATE_CATALOG: TemplateDefinition[] = [
         source: 'client.legalRepresentative',
         required: true,
         type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_EVALUATOR_RISC',
+        label: 'Nume evaluator riscuri profesionale',
+        source: 'manual',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_SPECIALIST_SSM',
+        label: 'Specialist SSM / Serviciu Extern',
+        source: 'client.ssmSpecialistName',
+        required: false,
+        type: 'string',
+      },
+      {
+        key: 'PLACEHOLDER_LUCRATOR_DESEMNAT_SSM',
+        label: 'Lucrător desemnat SSM',
+        source: 'client.designatedWorkerSsm',
+        required: false,
+        type: 'string',
       }
     ],
   },

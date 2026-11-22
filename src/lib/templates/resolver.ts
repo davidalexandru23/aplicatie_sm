@@ -1,7 +1,7 @@
 import { prisma } from '../prisma';
 import { maskCNP } from '../security';
 import { TEMPLATE_CATALOG, TemplateDefinition, TemplateFieldDef } from './definitions';
-import { getRiskProfileForCaen, CaenRiskProfile } from '../risk/caen-risk-presets';
+import { getRiskProfileForCaen, CaenRiskProfile, calculatePecePartialRisk } from '../risk/caen-risk-presets';
 
 export interface ResolvedPlaceholderItem {
   key: string;
@@ -1437,6 +1437,40 @@ export async function resolveTemplateData(
     }
   }
 
+  // 5b. Construct dynamic statutory Risk Evaluation & Prevention arrays
+  const mappedRiskItems = (hasDbRiskAssessment ? dbRiskItems : (factors.length > 0 ? factors : TESA_DEFAULT_FACTORS)).map((item: any, idx: number) => {
+    const isDb = hasDbRiskAssessment;
+    const g = isDb ? (item.severityScore ?? 3) : (item.severity ?? item.gravity ?? 3);
+    const p = isDb ? (item.probabilityScore ?? 2) : (item.probability ?? item.frequency ?? 2);
+    const r = isDb
+      ? (item.riskLevel ?? calculatePecePartialRisk(g, p))
+      : (item.riskLevel ?? item.partialRisk ?? calculatePecePartialRisk(g, p));
+    const factorRisc = isDb ? item.hazard : (item.riskFactor || item.hazard || `Factor de risc ${idx + 1}`);
+    const manifestare = isDb
+      ? (item.riskSituation ? `${item.hazard} (${item.riskSituation})` : item.hazard)
+      : (item.manifestation || item.riskFactor || item.hazard || `Manifestare risc ${idx + 1}`);
+    const consecinte = isDb ? (item.consequence || 'ITM 3-45 zile') : (item.consequences || item.consequence || 'ITM 3-45 zile');
+
+    let element = isDb ? (item.riskSituation || 'EXECUTANT') : (item.element || 'EXECUTANT');
+    const elUpper = String(element).toUpperCase();
+    if (elUpper.includes('EXEC') || elUpper.includes('OM')) element = 'EXECUTANT';
+    else if (elUpper.includes('SARC') || elUpper.includes('PROC') || elUpper.includes('OPER')) element = 'SARCINA DE MUNCĂ';
+    else if (elUpper.includes('MIJLOC') || elUpper.includes('ECHIP') || elUpper.includes('UTILAJ') || elUpper.includes('UNELT')) element = 'MIJLOACE DE PRODUCȚIE';
+    else if (elUpper.includes('MEDIU') || elUpper.includes('CONDIT')) element = 'MEDIUL DE MUNCĂ';
+    else element = 'EXECUTANT';
+
+    return {
+      nr: idx + 1,
+      element,
+      factorRisc,
+      manifestare,
+      consecinte,
+      gravitate: g,
+      probabilitate: p,
+      nivelRisc: r,
+    };
+  });
+
   // 6. Construct dynamic table padded arrays for training sheets (F7 & F8, F-M2-01: no truncation)
   // Participant-scoped training events:
   const participantEvents: any[] = (
@@ -2067,15 +2101,20 @@ export async function resolveTemplateData(
     markAutocompleted('PLACEHOLDER_VERIFICATOR_IG_PSI', legalRepresentativeName);
   }
 
+  // Risk Evaluation Autocomplete
+  markAutocompleted('PLACEHOLDER_NIVEL_RISC_GLOBAL', scoreNumber.toFixed(2));
+  markAutocompleted('PLACEHOLDER_NIVEL_GLOBAL_RISC', scoreNumber.toFixed(2));
+  markAutocompleted('PLACEHOLDER_CONCLUZII_EVALUARE', riskAssessment?.conclusions || `Nivelul global de risc calculat pentru postul de lucru ${job?.title || 'analizat'} este de ${scoreRo}, încadrându-se în categoria locurilor de muncă cu nivel de risc acceptabil (Nrg <= 3,50 conform metodei INCDPM). Pentru factorii de risc identificați au fost stabilite măsuri de prevenire în Planul de Prevenire și Protecție conform Legii 319/2006.`);
+  markAutocompleted('PLACEHOLDER_NUMAR_FACTORI_RISC', `${totalFactorsCount} factori de risc (${countL3} cu nivel parțial 3, ${countL2} cu nivel parțial 2, ${countL1} cu nivel parțial 1)`);
+  markAutocompleted('PLACEHOLDER_REPARTITIE_RISCURI', `Executant: ${pExec}% (${cExec} factori); Sarcina de muncă: ${pSarc}% (${cSarc} factori); Mijloace de producție: ${pMij}% (${cMij} factori); Mediul de muncă: ${pMed}% (${cMed} factori)`);
+  markAutocompleted('PLACEHOLDER_PROGRAM_LUCRU', '8 ore/zi (08:00 - 16:30, pauză de masă 30 min)');
+  markAutocompleted('PLACEHOLDER_DEPARTAMENT', worksite?.name || 'Departament Operațional / Birou');
+  markAutocompleted('PLACEHOLDER_DURATA_EXPUNERII', '8 ore/zi');
+  if (riskAssessment?.evaluatorName || evaluatorName) {
+    markAutocompleted('PLACEHOLDER_EVALUATOR_RISC', riskAssessment?.evaluatorName || evaluatorName);
+  }
+
   if (hasDbRiskAssessment) {
-    markAutocompleted('PLACEHOLDER_NIVEL_RISC_GLOBAL', scoreNumber.toFixed(2));
-    markAutocompleted('PLACEHOLDER_NIVEL_GLOBAL_RISC', scoreNumber.toFixed(2));
-    if (riskAssessment?.conclusions) {
-      markAutocompleted('PLACEHOLDER_CONCLUZII_EVALUARE', riskAssessment.conclusions);
-    }
-    if (riskAssessment?.evaluatorName) {
-      markAutocompleted('PLACEHOLDER_EVALUATOR_RISC', riskAssessment.evaluatorName);
-    }
     for (let i = 1; i <= Math.min(dbRiskItems.length, 30); i++) {
       const pad = String(i).padStart(2, '0');
       const it = dbRiskItems[i - 1];
@@ -2262,6 +2301,11 @@ export async function resolveTemplateData(
     PLACEHOLDER_CONCLUZII_EVALUARE: riskAssessment?.conclusions || `Nivelul global de risc calculat pentru postul de lucru ${job?.title || 'analizat'} este de ${scoreRo}, încadrându-se în categoria locurilor de muncă cu nivel de risc acceptabil (Nrg <= 3,50 conform metodei INCDPM). Pentru factorii de risc identificați au fost stabilite măsuri de prevenire în Planul de Prevenire și Protecție conform Legii 319/2006.`,
     PLACEHOLDER_NUMAR_FACTORI_RISC: `${totalFactorsCount} factori de risc (${countL3} cu nivel parțial 3, ${countL2} cu nivel parțial 2, ${countL1} cu nivel parțial 1)`,
     PLACEHOLDER_REPARTITIE_RISCURI: `Executant: ${pExec}% (${cExec} factori); Sarcina de muncă: ${pSarc}% (${cSarc} factori); Mijloace de producție: ${pMij}% (${cMij} factori); Mediul de muncă: ${pMed}% (${cMed} factori)`,
+    PLACEHOLDER_DURATA_EXPUNERII: '8 ore/zi',
+    PLACEHOLDER_NUMAR_FISA_EVALUARE: riskAssessment?.id ? `FE-${riskAssessment.id.substring(0, 8).toUpperCase()}` : `FE-01/${currentYear}`,
+    PLACEHOLDER_REPREZENTANT_LUCRATORI: client?.designatedWorkerSsm || (client?.employees?.[0]?.lastName ? `${client.employees[0].lastName} ${client.employees[0].firstName}` : 'Reprezentant Lucrători SSM'),
+    riskItems: mappedRiskItems,
+    factoriRisc: mappedRiskItems,
     ...dynamic30Factors,
 
     // Organizational Decisions & Numbers (empty string if client?.decisionsDate is missing)
@@ -2403,7 +2447,7 @@ export async function resolveTemplateData(
     PLACEHOLDER_DATA_SEMNARII: (context.customOverrides?.PLACEHOLDER_DATA_SEMNARII as string) || (employee?.hireDate ? formatDateRo(employee.hireDate) : ''),
     PLACEHOLDER_SALARIU_BRUT: (employee as any)?.grossSalary != null ? `${(employee as any).grossSalary} lei` : ((employee as any)?.salary || (context.customOverrides?.PLACEHOLDER_SALARIU_BRUT as string) || ''),
     PLACEHOLDER_NORMA_LUCRU: (employee as any)?.workNorm ? `Normă întreagă (${(employee as any).workNorm} ore/zi, ${(employee as any).workNorm * 5} ore/săptămână)` : '',
-    PLACEHOLDER_PROGRAM_LUCRU: (employee as any)?.workNorm ? `Normă întreagă de ${(employee as any).workNorm} ore/zi, ${(employee as any).workNorm * 5} ore/săptămână, Luni - Vineri` : '',
+    PLACEHOLDER_PROGRAM_LUCRU: (employee as any)?.workNorm ? `Normă întreagă de ${(employee as any).workNorm} ore/zi, ${(employee as any).workNorm * 5} ore/săptămână, Luni - Vineri` : '8 ore/zi (08:00 - 16:30, pauză de masă 30 min)',
     PLACEHOLDER_PERIOADA_PROBA: (employee as any)?.probationDays ? `${(employee as any).probationDays} zile calendaristice` : '',
     PLACEHOLDER_DURATA_CONCEDIULUI: (employee as any)?.annualLeaveDays ? `${(employee as any).annualLeaveDays} zile lucrătoare` : '',
     PLACEHOLDER_CONT_BANCA_SALARIAT: (employee as any)?.bankIban || (employee as any)?.bankAccount || (employee as any)?.iban || '',
@@ -2437,7 +2481,7 @@ export async function resolveTemplateData(
     echipamente: loopEipList,
     PLACEHOLDER_ADRESA_PUNCT_LUCRU: worksite?.address || client?.address || '',
     PLACEHOLDER_PUNCT_LUCRU: worksite?.name || (client?.address ? 'Sediu social' : ''),
-    PLACEHOLDER_DEPARTAMENT: worksite?.activity || '',
+    PLACEHOLDER_DEPARTAMENT: worksite?.activity || worksite?.name || 'Departament Operațional / Birou',
     PLACEHOLDER_SUBUNITATE: worksite?.name || (client?.address ? 'Sediu social' : ''),
     PLACEHOLDER_SECTIE_COMPARTIMENT: worksite?.activity || '',
     PLACEHOLDER_LOC_MUNCA: worksite?.address || client?.address || '',
