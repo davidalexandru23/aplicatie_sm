@@ -238,7 +238,7 @@ model Employee {
   
   startDateOnJob  DateTime? // Data începerii pe post/punct
   hireDate        DateTime? // Data angajării
-  status          String   @default("ACTIV") // ACTIV / PLECAT
+  status          String   @default("ACTIV") // ACTIV | INCETAT (sau PLECAT) | Suspendat/CM
   leaveDate       DateTime? // Data plecării
 
   // Solicitare curs igienă

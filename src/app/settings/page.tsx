@@ -1181,8 +1181,8 @@ export default function SettingsProviderPage() {
       {/* Modal: Adăugare / Editare Specialist */}
       {isSpecialistModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
               <h3 className="text-sm font-bold flex items-center gap-2">
                 <Users className="w-4 h-4 text-blue-400" />
                 <span>{editingSpecialist ? 'Editează Date Specialist SSM' : 'Adaugă Specialist Desemnat'}</span>
@@ -1196,7 +1196,7 @@ export default function SettingsProviderPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveSpecialist} className="p-6 space-y-4 text-xs">
+            <form onSubmit={handleSaveSpecialist} className="p-6 space-y-4 text-xs overflow-y-auto">
               {specialistError && (
                 <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />

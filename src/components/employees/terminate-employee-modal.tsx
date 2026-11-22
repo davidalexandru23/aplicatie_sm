@@ -117,9 +117,9 @@ export function TerminateEmployeeModal({
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 bg-rose-900 text-white">
+            <div className="flex items-center justify-between px-6 py-4 bg-rose-900 text-white shrink-0">
               <div className="flex items-center gap-2">
                 <UserMinus className="w-5 h-5 text-rose-300" />
                 <div>
@@ -139,7 +139,7 @@ export function TerminateEmployeeModal({
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
               {/* Alert Warning */}
               <div className="flex items-start gap-2.5 p-3 text-xs text-rose-800 bg-rose-50 border border-rose-200 rounded-lg">
                 <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />

@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
       phone,
       email,
       hireDate,
+      status = 'ACTIV',
       currentJobId,
       currentWorksiteId,
       cimNumber,
@@ -237,7 +238,7 @@ export async function POST(request: NextRequest) {
           clothingSize: clothingSize?.trim() || null,
           gloveSize: gloveSize?.trim() || null,
           adminNotes: adminNotes?.trim() || null,
-          status: 'ACTIV',
+          status: status || 'ACTIV',
         },
       });
 

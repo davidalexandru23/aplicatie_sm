@@ -12,6 +12,8 @@ import {
   Download,
   Edit3,
   CheckCircle2,
+  Check,
+  Plus,
   AlertCircle,
   RefreshCw,
   Clock,
@@ -500,7 +502,10 @@ export function OrganizationalDecisionsCard({
                                 : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                             }`}
                           >
-                            {isIncluded ? `✓ ${emp.fullName}` : `+ ${emp.fullName}`}
+                            <span className="inline-flex items-center gap-1">
+                              {isIncluded ? <Check className="w-3 h-3 text-indigo-600" /> : <Plus className="w-3 h-3 text-slate-400" />}
+                              <span>{emp.fullName}</span>
+                            </span>
                           </button>
                         );
                       })}

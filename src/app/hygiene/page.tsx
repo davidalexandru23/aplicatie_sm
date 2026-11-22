@@ -711,7 +711,7 @@ export default function HygienePage() {
         <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg flex items-center gap-2 text-sm text-rose-800">
           <AlertTriangle className="w-4 h-4 flex-shrink-0 text-rose-600" />
           <span>{error}</span>
-          <button onClick={() => setError(null)} className="ml-auto text-rose-500 hover:text-rose-700 text-xs font-medium">✕</button>
+          <button onClick={() => setError(null)} className="ml-auto text-rose-500 hover:text-rose-700 p-0.5" aria-label="Închide"><X className="w-4 h-4" /></button>
         </div>
       )}
 
@@ -892,7 +892,7 @@ export default function HygienePage() {
                 )}
               </div>
             ) : (
-              <div className="max-h-64 overflow-y-auto">
+              <div className="max-h-64 overflow-y-auto overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead className="bg-slate-100 border-b border-slate-200 sticky top-0">
                     <tr>
@@ -992,9 +992,10 @@ export default function HygienePage() {
             </h2>
             <button
               onClick={() => { setAddParticipantsSessionId(null); setAddSelectedEmpIds([]); }}
-              className="text-slate-400 hover:text-slate-600 text-xs"
+              className="text-slate-400 hover:text-slate-600 p-0.5"
+              aria-label="Închide"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
           </div>
 
@@ -1021,7 +1022,7 @@ export default function HygienePage() {
             </select>
           </div>
 
-          <div className="max-h-56 overflow-y-auto border border-slate-200 rounded-lg">
+          <div className="max-h-56 overflow-y-auto overflow-x-auto border border-slate-200 rounded-lg">
             <table className="w-full text-xs">
               <thead className="bg-slate-50 border-b border-slate-200 sticky top-0">
                 <tr>
@@ -1381,8 +1382,8 @@ export default function HygienePage() {
       {/* Modal Editare Cursant & Emitere Retroactivă BIS */}
       {editingParticipant && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 space-y-4 border border-slate-200">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] flex flex-col p-6 border border-slate-200">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
               <div className="flex items-center gap-2">
                 <Award className="w-5 h-5 text-blue-600" />
                 <h3 className="text-sm font-bold text-slate-900">
@@ -1398,20 +1399,21 @@ export default function HygienePage() {
               </button>
             </div>
 
-            <div className="bg-slate-50 p-3 rounded-lg text-xs space-y-1 text-slate-700">
-              <p><span className="font-semibold">Cursant:</span> {editingParticipant.participant.lastName} {editingParticipant.participant.firstName}</p>
-              <p><span className="font-semibold">Angajator:</span> {editingParticipant.participant.clientName}</p>
-              <p><span className="font-semibold">CNP:</span> <span className="font-mono">{editingParticipant.participant.cnp}</span></p>
-              <p><span className="font-semibold">Sesiune:</span> {new Date(editingParticipant.session.sessionDate).toLocaleDateString('ro-RO')} (Examen: {new Date(editingParticipant.session.examDate).toLocaleDateString('ro-RO')})</p>
-            </div>
-
-            {editError && (
-              <div className="p-2.5 bg-rose-50 border border-rose-200 rounded text-xs text-rose-700">
-                {editError}
+            <div className="overflow-y-auto space-y-4 pt-4 pr-1 flex-1">
+              <div className="bg-slate-50 p-3 rounded-lg text-xs space-y-1 text-slate-700">
+                <p><span className="font-semibold">Cursant:</span> {editingParticipant.participant.lastName} {editingParticipant.participant.firstName}</p>
+                <p><span className="font-semibold">Angajator:</span> {editingParticipant.participant.clientName}</p>
+                <p><span className="font-semibold">CNP:</span> <span className="font-mono">{editingParticipant.participant.cnp}</span></p>
+                <p><span className="font-semibold">Sesiune:</span> {new Date(editingParticipant.session.sessionDate).toLocaleDateString('ro-RO')} (Examen: {new Date(editingParticipant.session.examDate).toLocaleDateString('ro-RO')})</p>
               </div>
-            )}
 
-            <form onSubmit={handleSaveParticipant} className="space-y-4">
+              {editError && (
+                <div className="p-2.5 bg-rose-50 border border-rose-200 rounded text-xs text-rose-700">
+                  {editError}
+                </div>
+              )}
+
+              <form onSubmit={handleSaveParticipant} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-700 mb-1">
@@ -1673,6 +1675,7 @@ export default function HygienePage() {
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}

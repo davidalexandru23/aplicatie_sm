@@ -71,6 +71,7 @@ export function AddEmployeeModal({
     // Contract
     currentJobId: '',
     currentWorksiteId: '',
+    status: 'ACTIV',
     hireDate: todayStr,
     cimNumber: '',
     cimDate: todayStr,
@@ -142,6 +143,7 @@ export function AddEmployeeModal({
         email: formData.email.trim() || undefined,
         currentJobId: formData.currentJobId || undefined,
         currentWorksiteId: formData.currentWorksiteId || undefined,
+        status: formData.status || 'ACTIV',
         hireDate: formData.hireDate || undefined,
         cimNumber: formData.cimNumber.trim() || undefined,
         cimDate: formData.cimDate || undefined,
@@ -535,7 +537,7 @@ export function AddEmployeeModal({
               {/* TAB 2: CIM & Încadrare / Încadrare & Post */}
               {activeTab === 'contract' && (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-1">Funcție / Post (COR)</label>
                       <select
@@ -567,6 +569,20 @@ export function AddEmployeeModal({
                             {w.name}
                           </option>
                         ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Stare Salariat</label>
+                      <select
+                        name="status"
+                        value={formData.status}
+                        onChange={handleChange}
+                        className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      >
+                        <option value="ACTIV">ACTIV</option>
+                        <option value="Suspendat/CM">Suspendat/CM</option>
+                        <option value="INCETAT">INCETAT</option>
                       </select>
                     </div>
                   </div>

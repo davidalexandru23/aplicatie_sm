@@ -72,7 +72,7 @@ export interface EmployeeRegistryClientProps {
   userRole?: UserRole;
 }
 
-type TabType = 'ALL' | 'VALID' | 'UPCOMING' | 'OVERDUE' | 'MISSING' | 'PLECAT';
+type TabType = 'ALL' | 'VALID' | 'UPCOMING' | 'OVERDUE' | 'MISSING' | 'PLECAT' | 'SUSPENDAT';
 
 function EmployeeRegistryInner({
   employees,
@@ -90,7 +90,8 @@ function EmployeeRegistryInner({
     if (param === 'UPCOMING') return 'UPCOMING';
     if (param === 'MISSING') return 'MISSING';
     if (param === 'VALID') return 'VALID';
-    if (param === 'PLECAT') return 'PLECAT';
+    if (param === 'PLECAT' || param === 'INCETAT') return 'PLECAT';
+    if (param === 'SUSPENDAT' || param === 'SUSPENDAT/CM' || param === 'CM') return 'SUSPENDAT';
     return 'ALL';
   };
 
@@ -101,7 +102,7 @@ function EmployeeRegistryInner({
   // Sync if URL searchParams changes
   useEffect(() => {
     const param = (searchParams?.get('status') || searchParams?.get('filter') || '').toUpperCase();
-    if (param === 'OVERDUE' || param === 'UPCOMING' || param === 'MISSING' || param === 'VALID') {
+    if (param === 'OVERDUE' || param === 'UPCOMING' || param === 'MISSING' || param === 'VALID' || param === 'SUSPENDAT' || param === 'PLECAT') {
       setActiveTab(param as TabType);
     }
   }, [searchParams]);
@@ -121,10 +122,11 @@ function EmployeeRegistryInner({
     }
   };
 
-  // Counts for tabs (excluding PLECAT from active compliance tabs)
+  // Counts for tabs (excluding PLECAT / SUSPENDAT from active compliance tabs)
   const tabCounts = useMemo(() => {
-    const activeEmps = employees.filter((e) => e.status !== 'PLECAT');
-    const plecatEmps = employees.filter((e) => e.status === 'PLECAT');
+    const activeEmps = employees.filter((e) => e.status !== 'PLECAT' && e.status !== 'INCETAT' && e.status !== 'Suspendat/CM');
+    const suspendatEmps = employees.filter((e) => e.status === 'Suspendat/CM');
+    const plecatEmps = employees.filter((e) => e.status === 'PLECAT' || e.status === 'INCETAT');
 
     const counts = {
       ALL: activeEmps.length,
@@ -132,6 +134,7 @@ function EmployeeRegistryInner({
       UPCOMING: 0,
       OVERDUE: 0,
       MISSING: 0,
+      SUSPENDAT: suspendatEmps.length,
       PLECAT: plecatEmps.length,
     };
 
@@ -151,9 +154,11 @@ function EmployeeRegistryInner({
     return employees.filter((emp) => {
       // 1. Tab filter & Status segregation
       if (activeTab === 'PLECAT') {
-        if (emp.status !== 'PLECAT') return false;
+        if (emp.status !== 'PLECAT' && emp.status !== 'INCETAT') return false;
+      } else if (activeTab === 'SUSPENDAT') {
+        if (emp.status !== 'Suspendat/CM') return false;
       } else {
-        if (emp.status === 'PLECAT') return false;
+        if (emp.status === 'PLECAT' || emp.status === 'INCETAT' || emp.status === 'Suspendat/CM') return false;
         if (activeTab !== 'ALL' && emp.compliance.overallStatus !== activeTab) {
           return false;
         }
@@ -379,6 +384,17 @@ function EmployeeRegistryInner({
             </button>
             <button
               type="button"
+              onClick={() => handleTabChange('SUSPENDAT')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
+                activeTab === 'SUSPENDAT'
+                  ? 'bg-amber-600 text-white shadow-sm'
+                  : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
+              }`}
+            >
+              <span>Suspendat/CM ({tabCounts.SUSPENDAT})</span>
+            </button>
+            <button
+              type="button"
               onClick={() => handleTabChange('PLECAT')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
                 activeTab === 'PLECAT'
@@ -488,6 +504,8 @@ function EmployeeRegistryInner({
                           <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
                             emp.status === 'ACTIV'
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : emp.status === 'Suspendat/CM'
+                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
                               : 'bg-rose-50 text-rose-700 border border-rose-200'
                           }`}>
                             {emp.status}
@@ -602,20 +620,19 @@ function EmployeeRegistryInner({
                                 </>
                               )}
                             </>
+                          ) : emp.status === 'Suspendat/CM' ? (
+                            <>
+                              <span className="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200">
+                                SUSPENDAT / CM
+                              </span>
+                              <EditEmployeeModal employeeId={emp.id} employeeName={emp.fullName} userRole={userRole} isSsmRole={userRole === 'SSM'} />
+                            </>
                           ) : (
                             <>
                               <span className="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200">
-                                PLECAT: {formatRoDate(emp.leaveDate)}
+                                ÎNCETAT: {formatRoDate(emp.leaveDate)}
                               </span>
                               <EditEmployeeModal employeeId={emp.id} employeeName={emp.fullName} userRole={userRole} isSsmRole={userRole === 'SSM'} />
-                              {userRole !== 'IGIENA' && userRole !== 'SSM' && (
-                                <span
-                                  className="inline-flex items-center gap-1 text-[11px] text-slate-400 bg-slate-100 font-medium px-2 py-1.5 rounded border border-slate-200 cursor-not-allowed"
-                                  title="Generarea este blocată pentru salariați cu contract încetat"
-                                >
-                                  Generare Blocată
-                                </span>
-                              )}
                             </>
                           )}
                         </div>

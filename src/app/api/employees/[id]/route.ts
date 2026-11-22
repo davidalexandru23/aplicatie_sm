@@ -119,6 +119,8 @@ export async function PUT(
       firstName,
       lastName,
       cnp,
+      status,
+      leaveDate,
       sex,
       birthDate,
       birthPlace,
@@ -248,6 +250,8 @@ export async function PUT(
         data: {
           firstName: firstName !== undefined ? firstName.trim() : undefined,
           lastName: lastName !== undefined ? lastName.trim() : undefined,
+          status: status !== undefined ? status : undefined,
+          leaveDate: leaveDate !== undefined ? (leaveDate ? new Date(leaveDate) : null) : undefined,
           cnp: finalCnp,
           sex: sex !== undefined ? sex : undefined,
           birthDate: birthDate !== undefined ? (birthDate ? new Date(birthDate) : null) : undefined,

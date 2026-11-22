@@ -456,9 +456,9 @@ export function calculateEmployeeCompliance(
   }
 
   const rawStatus = typeof (employee as any)?.status === 'string' && (employee as any).status
-    ? String((employee as any).status).trim().toUpperCase()
+    ? String((employee as any).status).trim()
     : 'ACTIV';
-  const isTerminated = rawStatus === 'PLECAT';
+  const isTerminated = rawStatus.toUpperCase() === 'PLECAT' || rawStatus.toUpperCase() === 'INCETAT';
 
   return {
     employeeId,
@@ -490,7 +490,7 @@ export function calculateCompanyMetrics(
         const st = typeof (emp as any)?.status === 'string'
           ? String((emp as any).status).trim().toUpperCase()
           : 'ACTIV';
-        return st !== 'PLECAT';
+        return st !== 'PLECAT' && st !== 'INCETAT';
       });
 
   const totalEmployees = targetEmployees.length;

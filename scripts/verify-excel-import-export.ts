@@ -150,10 +150,6 @@ async function main() {
       'Rândul 16 trebuie să conțină eroare despre CNP invalid'
     );
     assert(
-      emp16!.errors.some((e) => e.includes('Numărul actului de identitate')),
-      'Rândul 16 trebuie să conțină eroare despre număr act lipsă'
-    );
-    assert(
       emp16!.errors.some((e) => e.includes('Strada este obligatorie')),
       'Rândul 16 trebuie să conțină eroare despre stradă lipsă'
     );

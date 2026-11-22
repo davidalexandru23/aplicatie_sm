@@ -49,7 +49,7 @@ export interface ParsedEmployee {
   worksiteName: string;
   startDateOnJob?: Date;
   hireDate?: Date;
-  status: 'ACTIV' | 'PLECAT';
+  status: 'ACTIV' | 'PLECAT' | 'INCETAT' | 'Suspendat/CM';
   leaveDate?: Date;
   // Curs igiena
   hygieneRequested: boolean;
@@ -501,11 +501,20 @@ export function parseClientWorkbook(buffer: Buffer): ParsedWorkbook {
     const hireDate = parseExcelDate(sFirm[XLSX.utils.encode_cell({ r, c: colIndex('hireDate') })]?.v);
     if (!hireDate) errors.push('Data angajării este obligatorie.');
 
-    const statusRaw = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('status') })).toUpperCase();
-    const status = statusRaw === 'PLECAT' ? 'PLECAT' : 'ACTIV';
+    const statusRaw = getCellValue(sFirm, XLSX.utils.encode_cell({ r, c: colIndex('status') })).trim().toUpperCase();
+    let status: 'ACTIV' | 'PLECAT' | 'INCETAT' | 'Suspendat/CM' = 'ACTIV';
+    if (statusRaw === 'SUSPENDAT/CM' || statusRaw === 'SUSPENDAT' || statusRaw === 'CM') {
+      status = 'Suspendat/CM';
+    } else if (statusRaw === 'INCETAT') {
+      status = 'INCETAT';
+    } else if (statusRaw === 'PLECAT') {
+      status = 'PLECAT';
+    } else {
+      status = 'ACTIV';
+    }
     const leaveDate = parseExcelDate(sFirm[XLSX.utils.encode_cell({ r, c: colIndex('leaveDate') })]?.v);
 
-    if (status === 'PLECAT' && !leaveDate) {
+    if ((status === 'PLECAT' || status === 'INCETAT') && !leaveDate) {
       errors.push('Pentru statusul PLECAT este necesară data plecării.');
     }
 
@@ -687,9 +696,19 @@ export function revalidateParsedWorkbook(
     const hireDate = parseDateSafe(raw.hireDate);
     if (!hireDate) errors.push('Data angajării este obligatorie.');
 
-    const status: 'ACTIV' | 'PLECAT' = raw.status === 'PLECAT' ? 'PLECAT' : 'ACTIV';
+    const statusRaw = (raw.status || '').trim().toUpperCase();
+    let status: 'ACTIV' | 'PLECAT' | 'INCETAT' | 'Suspendat/CM' = 'ACTIV';
+    if (statusRaw === 'SUSPENDAT/CM' || statusRaw === 'SUSPENDAT' || statusRaw === 'CM') {
+      status = 'Suspendat/CM';
+    } else if (statusRaw === 'INCETAT') {
+      status = 'INCETAT';
+    } else if (statusRaw === 'PLECAT') {
+      status = 'PLECAT';
+    } else {
+      status = 'ACTIV';
+    }
     const leaveDate = parseDateSafe(raw.leaveDate);
-    if (status === 'PLECAT' && !leaveDate) {
+    if ((status === 'PLECAT' || status === 'INCETAT') && !leaveDate) {
       errors.push('Pentru statusul PLECAT este necesară data plecării.');
     }
 

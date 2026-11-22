@@ -2654,13 +2654,25 @@ export async function resolveTemplateData(
         const hireDateVal = emp?.hireDate
           ? formatDateRo(emp.hireDate)
           : (p?.hireDate ? formatDateRo(p.hireDate) : '-');
+
+        const idDoc = emp?.identityDocument;
+        let actIdentitate = '-';
+        if (idDoc) {
+          const docType = idDoc.docType || 'CI';
+          const series = idDoc.series ? `seria ${idDoc.series}` : '';
+          const num = idDoc.number ? `nr. ${idDoc.number}` : '';
+          actIdentitate = [docType, series, num].filter(Boolean).join(' ').trim();
+        } else if (p?.identityDocument) {
+          actIdentitate = String(p.identityDocument);
+        }
+
         const rez = p.result || 'admis';
         return {
           nr: idx + 1,
           numeComplet: empName,
           functie: func,
+          actIdentitate,
           dataAngajarii: hireDateVal,
-          cnp: hireDateVal,
           rezultat: rez,
           semnatura: '',
         };

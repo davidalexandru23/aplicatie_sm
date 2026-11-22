@@ -6,7 +6,7 @@ Centralizează registrul clienților, permite importul registrului [`Model_date_
 
 ---
 
-## 🚀 Tehnologii & Arhitectură
+## Tehnologii & Arhitectură
 
 - **Backend & Frontend:** Next.js 16 (App Router, Server Actions, Server Components) + TypeScript + Tailwind CSS.
 - **Bază de date & ORM:** PostgreSQL 16 + Prisma ORM cu migrații și tipizare strictă.
@@ -19,7 +19,7 @@ Centralizează registrul clienților, permite importul registrului [`Model_date_
 
 ---
 
-## 📋 Inventar 25 / 25 Șabloane Acoperite
+## Inventar 25 / 25 Șabloane Acoperite
 
 1. `ipssm-opis`: OPIS Instrucțiuni Proprii SSM (`.docx`)
 2. `ipssm-universale`: IPSSM 01-10 Generale / Universale (`.docx`)
@@ -49,7 +49,7 @@ Centralizează registrul clienților, permite importul registrului [`Model_date_
 
 ---
 
-## 🛠️ Pornire Rapidă (Local Development)
+## Pornire Rapidă (Local Development)
 
 ### 1. Dependințe & Baza de date
 Asigură-te că ai **Node.js 20+** și **PostgreSQL 14+** pornit.
@@ -78,7 +78,7 @@ Aplicația rulează la: **`http://localhost:3000`**
 
 ---
 
-## 🧪 Rulare Test End-to-End
+## Rulare Test End-to-End
 Verifică întregul flux (parsare Excel, creare client, reconciliere diferențe, generare DOCX/PDF/XLSX și audit privacy):
 
 ```bash
@@ -87,7 +87,7 @@ npx tsx scripts/test-e2e.ts
 
 ---
 
-## 🐳 Rulare cu Docker Compose
+## Rulare cu Docker Compose
 ```bash
 docker compose up -d
 ```

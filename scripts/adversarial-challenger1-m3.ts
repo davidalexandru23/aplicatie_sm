@@ -698,9 +698,9 @@ async function main() {
         assert(xml.includes('Ionescu Ion') || xml.includes('Ion Ionescu'), 'Participant 1 (Ion Ionescu) must be listed in document');
         assert(xml.includes('Popescu Elena') || xml.includes('Elena Popescu'), 'Participant 2 (Elena Popescu) must be listed in document');
 
-        // 2. Verify CNP is present in full and clear
-        assert(xml.includes(empCnp1), `Full clear CNP 1 (${empCnp1}) must be in document`);
-        assert(xml.includes(empCnp2), `Full clear CNP 2 (${empCnp2}) must be in document`);
+        // 2. Verify CNP is excluded from minutes (R4 GDPR statutory compliance)
+        assert(!xml.includes(empCnp1), `CNP 1 (${empCnp1}) must NOT be in document (R4 compliance)`);
+        assert(!xml.includes(empCnp2), `CNP 2 (${empCnp2}) must NOT be in document (R4 compliance)`);
 
         // 4. Verify date matches eventDate in Romanian format
         assert(xml.includes(sessionDateRo), `Session date (${sessionDateRo}) must appear in document`);

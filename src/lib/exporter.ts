@@ -395,7 +395,7 @@ export function buildStyledClientWorkbook(data?: ClientDataForWorkbook | null): 
     'Punct de lucru*',
     'Data numire post',
     'Data angajării',
-    'Stare (ACTIV/INCETAT)',
+    'Stare (ACTIV/INCETAT/Suspendat/CM)',
     'Data încetării',
     'Curs igienă solicitat (DA/NU)',
     'Modul solicitat',

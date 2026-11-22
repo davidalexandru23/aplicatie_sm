@@ -575,6 +575,8 @@ export default async function ClientDetailPage({
                           className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                             emp.status === 'ACTIV'
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : emp.status === 'Suspendat/CM'
+                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
                               : 'bg-rose-50 text-rose-700 border border-rose-200'
                           }`}
                         >
@@ -627,20 +629,19 @@ export default async function ClientDetailPage({
                                 </>
                               )}
                             </>
+                          ) : emp.status === 'Suspendat/CM' ? (
+                            <>
+                              <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200">
+                                SUSPENDAT / CM
+                              </span>
+                              <EditEmployeeModal employeeId={emp.id} employeeName={`${emp.lastName} ${emp.firstName}`} jobs={client.jobs} worksites={client.worksites} userRole={userRole} isSsmRole={isSsmRole} />
+                            </>
                           ) : (
                             <>
                               <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-1 rounded border border-rose-200">
-                                PLECAT: {formatRoDate(emp.leaveDate)}
+                                ÎNCETAT: {formatRoDate(emp.leaveDate)}
                               </span>
                               <EditEmployeeModal employeeId={emp.id} employeeName={`${emp.lastName} ${emp.firstName}`} jobs={client.jobs} worksites={client.worksites} userRole={userRole} isSsmRole={isSsmRole} />
-                              {!isSsmRole && userRole !== 'IGIENA' && (
-                                <span
-                                  className="text-[11px] text-slate-400 bg-slate-100 px-2 py-1 rounded border border-slate-200 cursor-not-allowed"
-                                  title="Generarea documentelor este interzisă pentru salariați plecați"
-                                >
-                                  Generare Blocată
-                                </span>
-                              )}
                             </>
                           )}
                         </div>

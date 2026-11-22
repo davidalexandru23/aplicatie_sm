@@ -60,6 +60,7 @@ export function EditEmployeeModal({
     email: '',
     currentJobId: '',
     currentWorksiteId: '',
+    status: 'ACTIV',
     hireDate: '',
     cimNumber: '',
     cimDate: '',
@@ -124,6 +125,7 @@ export function EditEmployeeModal({
         email: emp.email || '',
         currentJobId: emp.currentJobId || '',
         currentWorksiteId: emp.currentWorksiteId || '',
+        status: emp.status || 'ACTIV',
         hireDate: emp.hireDate ? emp.hireDate.slice(0, 10) : '',
         cimNumber: emp.cimNumber || '',
         cimDate: emp.cimDate ? emp.cimDate.slice(0, 10) : '',
@@ -196,6 +198,7 @@ export function EditEmployeeModal({
         email: formData.email.trim() || null,
         currentJobId: formData.currentJobId || null,
         currentWorksiteId: formData.currentWorksiteId || null,
+        status: formData.status || 'ACTIV',
         hireDate: formData.hireDate || null,
         cimNumber: formData.cimNumber.trim() || null,
         cimDate: formData.cimDate || null,
@@ -567,7 +570,7 @@ export function EditEmployeeModal({
                 {/* TAB 2: CIM & Încadrare / Încadrare & Post */}
                 {activeTab === 'contract' && (
                   <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div>
                         <label className="block text-xs font-semibold text-slate-700 mb-1">Funcție / Post (COR)</label>
                         <select
@@ -599,6 +602,20 @@ export function EditEmployeeModal({
                               {w.name}
                             </option>
                           ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Stare Salariat</label>
+                        <select
+                          name="status"
+                          value={formData.status}
+                          onChange={handleChange}
+                          className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                        >
+                          <option value="ACTIV">ACTIV</option>
+                          <option value="Suspendat/CM">Suspendat/CM</option>
+                          <option value="INCETAT">INCETAT</option>
                         </select>
                       </div>
                     </div>
