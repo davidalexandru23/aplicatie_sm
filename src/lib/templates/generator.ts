@@ -466,6 +466,15 @@ export async function renderTemplateBuffer(
         let text = file.asText();
         let changed = false;
 
+        // Automatically remove any disclaimer paragraphs (e.g. "Verifică datele înainte de semnare; pentru situații complexe cere sfatul unui avocat.")
+        if (relativePath.startsWith('word/') && relativePath.endsWith('.xml')) {
+          const disclaimerRegex = /<w:p\b[^>]*>(?:(?!<\/w:p>)[\s\S])*?(?:avocat|situații complexe cere sfatul|situatii complexe cere sfatul|înainte de semnare[\s\S]*?avocat)(?:(?!<\/w:p>)[\s\S])*?<\/w:p>/gi;
+          if (disclaimerRegex.test(text)) {
+            text = text.replace(disclaimerRegex, '');
+            changed = true;
+          }
+        }
+
         for (const [k, v] of Object.entries(data)) {
           if (v !== undefined && v !== null) {
             const strVal = String(v);
