@@ -417,13 +417,13 @@ export function ComplianceAlertBanner({
 
   if (hasOverdue) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-        <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-        <div className="text-xs text-red-900">
-          <div className="font-bold text-sm text-red-800">
+      <div className="bg-red-50 dark:bg-rose-950/40 border border-red-200 dark:border-rose-900/60 rounded-xl p-4 flex items-start gap-3">
+        <AlertTriangle className="w-5 h-5 text-red-600 dark:text-rose-400 flex-shrink-0 mt-0.5" />
+        <div className="text-xs text-red-900 dark:text-rose-200">
+          <div className="font-bold text-sm text-red-800 dark:text-rose-300">
             Atenție: {metrics.overdueCount} cerințe legale cu termen depășit!
           </div>
-          <p className="mt-1 text-red-700 leading-relaxed">
+          <p className="mt-1 text-red-700 dark:text-rose-300/90 leading-relaxed">
             Firma {clientName} înregistrează scadențe expirate pentru medicina muncii sau instruiri periodice SSM/PSI. 
             Conform Legii 319/2006 și HG 355/2007, activitatea fără aviz medical valabil constituie contravenție. 
             Planificați de urgență reexaminarea medicală sau re-instruirea salariaților afectați.
@@ -435,13 +435,13 @@ export function ComplianceAlertBanner({
 
   if (hasMissing) {
     return (
-      <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-start gap-3">
-        <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
-        <div className="text-xs text-rose-900">
-          <div className="font-bold text-sm text-rose-800">
+      <div className="bg-rose-50 dark:bg-amber-950/30 border border-rose-200 dark:border-amber-900/50 rounded-xl p-4 flex items-start gap-3">
+        <AlertCircle className="w-5 h-5 text-rose-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+        <div className="text-xs text-rose-900 dark:text-amber-200">
+          <div className="font-bold text-sm text-rose-800 dark:text-amber-300">
             Date incomplete: {metrics.missingCount} elemente neînregistrate
           </div>
-          <p className="mt-1 text-rose-700 leading-relaxed">
+          <p className="mt-1 text-rose-700 dark:text-amber-300/90 leading-relaxed">
             Pentru anumiți salariați nu au fost consemnate datele ultimului examen medical sau ale instruirii SSM. 
             Completați datele prin import Excel sau editarea fișei salariatului.
           </p>
@@ -451,10 +451,10 @@ export function ComplianceAlertBanner({
   }
 
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3">
-      <Clock className="w-5 h-5 text-amber-600 flex-shrink-0" />
-      <div className="text-xs text-amber-900">
-        <span className="font-bold">Scadențe în următoarele 30 de zile:</span> Există {metrics.upcomingCount} examinări sau instruiri care expiră curând. Recomandăm programarea din timp.
+    <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-xl p-4 flex items-center gap-3">
+      <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+      <div className="text-xs text-amber-900 dark:text-amber-200">
+        <span className="font-bold text-amber-800 dark:text-amber-300">Scadențe în următoarele 30 de zile:</span> Există {metrics.upcomingCount} examinări sau instruiri care expiră curând. Recomandăm programarea din timp.
       </div>
     </div>
   );

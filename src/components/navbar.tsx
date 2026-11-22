@@ -180,7 +180,7 @@ export function Navbar({ currentUser }: NavbarProps) {
   ];
 
   return (
-    <header className="bg-slate-900 text-white shadow-md sticky top-0 z-50 border-b border-slate-800">
+    <header className="bg-zinc-950 text-white shadow-md sticky top-0 z-50 border-b border-zinc-800/80">
       <div className="max-w-[1920px] 2xl:max-w-[98vw] mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between h-16">
         {/* Left Side: Mobile/Tablet Hamburger + Brand */}
         <div className="flex items-center gap-3">
@@ -188,7 +188,7 @@ export function Navbar({ currentUser }: NavbarProps) {
           <button
             type="button"
             onClick={() => setIsMobileDrawerOpen(true)}
-            className="xl:hidden p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="xl:hidden p-2 rounded-lg text-zinc-300 hover:text-white hover:bg-zinc-800 transition focus:outline-none focus:ring-2 focus:ring-blue-500"
             aria-label="Deschide meniul principal"
           >
             <Menu className="w-5 h-5" />
@@ -196,12 +196,13 @@ export function Navbar({ currentUser }: NavbarProps) {
 
           {/* Logo & Platform Name */}
           <Link href={role === 'IGIENA' ? '/hygiene' : '/'} className="flex items-center gap-2.5 group select-none">
-            <div className="flex items-center justify-center h-7 px-2.5 rounded-md bg-blue-700 text-white font-bold text-xs tracking-wider border border-blue-600/50 shadow-2xs group-hover:bg-blue-600 transition">
-              SSM
+            <div className="flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-zinc-800 hover:bg-zinc-700/90 text-white font-semibold text-xs tracking-wider border border-zinc-700/80 shadow-xs group-hover:border-blue-500/50 transition">
+              <Shield className="w-3.5 h-3.5 text-blue-400" />
+              <span>SSM</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-sm text-slate-100 tracking-tight">Platformă Internă</span>
-              <span className="hidden sm:inline text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+              <span className="font-semibold text-sm text-zinc-100 tracking-tight">Platformă Internă</span>
+              <span className="hidden sm:inline text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-zinc-800">
                 SEPP
               </span>
             </div>

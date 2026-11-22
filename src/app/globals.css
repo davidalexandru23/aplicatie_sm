@@ -13,8 +13,8 @@ html {
 }
 
 html.dark {
-  --background: #090d16;
-  --foreground: #f1f5f9;
+  --background: #09090b;
+  --foreground: #f4f4f5;
   color-scheme: dark;
 }
 
@@ -30,160 +30,232 @@ body {
 }
 
 /* ==========================================================================
-   ENTERPRISE DARK THEME GLOBAL INTEGRATION
-   Asigură adaptarea uniformă și estetică a tuturor suprafețelor, tabelelor,
-   modalelor, formularelor și ecusoanelor în modul Dark fără regresii.
+   ENTERPRISE OBSIDIAN & ZINC DARK PALETTE (Linear / GitHub / Vercel Standard)
+   - Zero murky navy/slate wash.
+   - Canvas: #09090b (Deep obsidian).
+   - Carduri / Tabele / Modale: #121215 cu contur fin #27272a.
+   - Sub-blocuri / Inset-uri: #0c0c0e cu contur #222227 (elimină blocurile alb-lăptoase).
+   - Text contrast înalt WCAG AAA (>= 7:1) cu labels argintii clare (#a1a1aa).
    ========================================================================== */
 
-/* 1. Suprafețe & Carduri Principale */
+/* 1. Nivel 1: Suprafețe, Carduri Principale, Tabele & Modale */
 .dark .bg-white {
-  background-color: #0f172a !important;
-  color: #f1f5f9;
+  background-color: #121215 !important;
+  color: #f4f4f5 !important;
+  border-color: #27272a !important;
 }
 
-.dark .bg-slate-50,
-.dark .bg-slate-50\/70,
-.dark .bg-slate-50\/75,
-.dark .bg-slate-50\/80 {
-  background-color: #090e1a !important;
+/* 2. Nivel 2: Inset-uri, Carduri Secundare & Sub-blocuri (CAEN, SEPP, Factori de Risc) */
+.dark [class*="bg-slate-50"],
+.dark [class*="bg-slate-100"] {
+  background-color: #0c0c0e !important;
+  border-color: #222227 !important;
 }
 
-.dark .bg-slate-100 {
-  background-color: #1e293b !important;
-  color: #cbd5e1;
-}
-
-/* 2. Margini & Separatoare */
-.dark .border-slate-200,
-.dark .border-slate-200\/80,
-.dark .border-slate-200\/90,
-.dark .border-slate-100 {
-  border-color: #1e293b !important;
-}
-
-.dark .border-slate-300 {
-  border-color: #334155 !important;
-}
-
-.dark .divide-slate-100 > * + * {
-  border-color: #1e293b !important;
-}
-
+/* 3. Margini & Linii Separatoare cu Contur Clar */
+.dark [class*="border-slate-100"],
+.dark [class*="border-slate-200"],
+.dark .divide-slate-100 > * + *,
 .dark .divide-slate-200 > * + * {
-  border-color: #1e293b !important;
+  border-color: #222227 !important;
 }
 
-/* 3. Tipografie & Ierarhie Text */
+.dark [class*="border-slate-300"] {
+  border-color: #2e2e35 !important;
+}
+
+/* 4. Ierarhie Tipografică de Contrast Înalt */
 .dark .text-slate-900 {
-  color: #f8fafc !important;
+  color: #ffffff !important;
 }
 
 .dark .text-slate-800 {
-  color: #f1f5f9 !important;
+  color: #f4f4f5 !important;
 }
 
 .dark .text-slate-700 {
-  color: #cbd5e1 !important;
+  color: #e4e4e7 !important;
 }
 
 .dark .text-slate-600 {
-  color: #94a3b8 !important;
+  color: #d4d4d8 !important;
 }
 
 .dark .text-slate-500 {
-  color: #94a3b8 !important;
+  color: #a1a1aa !important;
 }
 
 .dark .text-slate-400 {
-  color: #64748b !important;
+  color: #82828e !important;
 }
 
-/* 4. Formulare, Inputuri, Selecturi & Textarea */
+/* 5. Câmpuri de Formular (Input, Select, Textarea) */
 .dark input:not([type="checkbox"]):not([type="radio"]),
 .dark select,
 .dark textarea {
-  background-color: #0b0f19 !important;
-  color: #f8fafc !important;
-  border-color: #334155 !important;
+  background-color: #09090b !important;
+  color: #ffffff !important;
+  border-color: #27272a !important;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: #3b82f6 !important;
+  background-color: #0c0c0e !important;
+  box-shadow: 0 0 0 1px #3b82f6 !important;
 }
 
 .dark input::placeholder,
 .dark textarea::placeholder {
-  color: #64748b !important;
+  color: #71717a !important;
 }
 
 .dark select option {
-  background-color: #0f172a !important;
-  color: #f8fafc !important;
+  background-color: #121215 !important;
+  color: #f4f4f5 !important;
 }
 
-/* 5. Tabele de Date & Coloane Sticky */
+/* 6. Tabele de Date & Coloane Sticky la Scroll Orizontal */
 .dark table thead {
-  background-color: #0b0f19 !important;
+  background-color: #0c0c0e !important;
 }
 
 .dark table thead th {
-  background-color: #0b0f19 !important;
-  color: #94a3b8 !important;
-  border-color: #1e293b !important;
+  background-color: #0c0c0e !important;
+  color: #a1a1aa !important;
+  border-color: #222227 !important;
 }
 
 .dark table tbody tr {
-  border-color: #1e293b !important;
+  border-color: #222227 !important;
 }
 
 .dark table tbody tr:hover {
-  background-color: rgba(30, 41, 59, 0.45) !important;
+  background-color: #18181c !important;
 }
 
 .dark td.sticky,
 .dark th.sticky {
-  background-color: #0f172a !important;
-  box-shadow: 2px 0 6px -2px rgba(0, 0, 0, 0.6) !important;
+  background-color: #121215 !important;
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.6) !important;
 }
 
 .dark table thead th.sticky {
-  background-color: #0b0f19 !important;
+  background-color: #0c0c0e !important;
 }
 
-/* 6. Modale & Dialoguri */
+/* 7. Modale & Fundal Întunecat */
 .dark .fixed.inset-0.bg-black\/50,
 .dark .fixed.inset-0.bg-black\/60 {
-  background-color: rgba(0, 0, 0, 0.75) !important;
+  background-color: rgba(0, 0, 0, 0.8) !important;
 }
 
-/* 7. Ecusoane Semantice de Conformitate & Butoane Tactile */
-.dark .bg-emerald-50 {
-  background-color: rgba(6, 78, 59, 0.35) !important;
-  color: #6ee7b7 !important;
-  border-color: rgba(5, 150, 105, 0.4) !important;
+/* 8. Bannere & Ecusoane Semantice de Mare Claritate (Zero Muddy Maroon) */
+.dark .bg-emerald-50,
+.dark .bg-emerald-100 {
+  background-color: rgba(16, 185, 129, 0.08) !important;
+  border-color: rgba(16, 185, 129, 0.28) !important;
+}
+.dark .bg-emerald-50 *,
+.dark .bg-emerald-100 * {
+  color: #a7f3d0 !important;
+}
+.dark .bg-emerald-50 .font-bold,
+.dark .bg-emerald-100 .font-bold,
+.dark .bg-emerald-50 strong,
+.dark .bg-emerald-100 strong {
+  color: #34d399 !important;
+}
+.dark .bg-emerald-50 svg,
+.dark .bg-emerald-100 svg {
+  color: #10b981 !important;
 }
 
-.dark .bg-amber-50 {
-  background-color: rgba(120, 53, 15, 0.35) !important;
-  color: #fcd34d !important;
-  border-color: rgba(217, 119, 6, 0.4) !important;
+.dark .bg-amber-50,
+.dark .bg-amber-100,
+.dark .bg-yellow-50,
+.dark .bg-yellow-100 {
+  background-color: rgba(245, 158, 11, 0.08) !important;
+  border-color: rgba(245, 158, 11, 0.28) !important;
+}
+.dark .bg-amber-50 *,
+.dark .bg-amber-100 *,
+.dark .bg-yellow-50 *,
+.dark .bg-yellow-100 * {
+  color: #fef08a !important;
+}
+.dark .bg-amber-50 .font-bold,
+.dark .bg-amber-100 .font-bold,
+.dark .bg-amber-50 strong,
+.dark .bg-amber-100 strong,
+.dark .bg-yellow-50 .font-bold,
+.dark .bg-yellow-100 .font-bold {
+  color: #fbbf24 !important;
+}
+.dark .bg-amber-50 svg,
+.dark .bg-amber-100 svg,
+.dark .bg-yellow-50 svg,
+.dark .bg-yellow-100 svg {
+  color: #f59e0b !important;
 }
 
+.dark .bg-red-50,
+.dark .bg-red-100,
 .dark .bg-rose-50,
-.dark .bg-red-50 {
-  background-color: rgba(136, 19, 55, 0.35) !important;
-  color: #fda4af !important;
-  border-color: rgba(225, 29, 72, 0.4) !important;
+.dark .bg-rose-100 {
+  background-color: rgba(244, 63, 94, 0.08) !important;
+  border-color: rgba(244, 63, 94, 0.3) !important;
+}
+.dark .bg-red-50 *,
+.dark .bg-red-100 *,
+.dark .bg-rose-50 *,
+.dark .bg-rose-100 * {
+  color: #fecdd3 !important;
+}
+.dark .bg-red-50 .font-bold,
+.dark .bg-red-100 .font-bold,
+.dark .bg-rose-50 .font-bold,
+.dark .bg-rose-100 .font-bold,
+.dark .bg-red-50 strong,
+.dark .bg-red-100 strong,
+.dark .bg-rose-50 strong,
+.dark .bg-rose-100 strong {
+  color: #fb7185 !important;
+}
+.dark .bg-red-50 svg,
+.dark .bg-red-100 svg,
+.dark .bg-rose-50 svg,
+.dark .bg-rose-100 svg {
+  color: #f43f5e !important;
 }
 
-.dark .bg-blue-50 {
-  background-color: rgba(30, 58, 138, 0.35) !important;
-  color: #93c5fd !important;
-  border-color: rgba(37, 99, 235, 0.4) !important;
+.dark .bg-blue-50,
+.dark .bg-blue-100 {
+  background-color: rgba(59, 130, 246, 0.08) !important;
+  border-color: rgba(59, 130, 246, 0.28) !important;
+}
+.dark .bg-blue-50 *,
+.dark .bg-blue-100 * {
+  color: #bfdbfe !important;
+}
+.dark .bg-blue-50 .font-bold,
+.dark .bg-blue-100 .font-bold,
+.dark .bg-blue-50 strong,
+.dark .bg-blue-100 strong {
+  color: #60a5fa !important;
+}
+.dark .bg-blue-50 svg,
+.dark .bg-blue-100 svg {
+  color: #3b82f6 !important;
 }
 
 .dark .hover\:bg-slate-50:hover {
-  background-color: #1e293b !important;
+  background-color: #18181c !important;
 }
 
 .dark .hover\:bg-slate-100:hover {
-  background-color: #334155 !important;
+  background-color: #202026 !important;
 }
 
 /* Utilitar no-scrollbar pentru carusele și taburi orizontale pe tabletă/mobil */
@@ -212,8 +284,8 @@ body {
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #27272a;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #3f3f46;
 }

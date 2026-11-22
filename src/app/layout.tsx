@@ -17,7 +17,7 @@ export const viewport: Viewport = {
   maximumScale: 5,
   userScalable: true,
   viewportFit: 'cover',
-  themeColor: '#0f172a',
+  themeColor: '#09090b',
 };
 
 export const metadata: Metadata = {
@@ -49,7 +49,7 @@ export default async function RootLayout({
       };
 
   return (
-    <html lang="ro" className="h-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100" suppressHydrationWarning>
+    <html lang="ro" className="h-full bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
