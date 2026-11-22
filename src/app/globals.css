@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
@@ -10,6 +12,12 @@ html {
   text-size-adjust: 100%;
 }
 
+html.dark {
+  --background: #090d16;
+  --foreground: #f1f5f9;
+  color-scheme: dark;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -18,6 +26,164 @@ body {
   overflow-x: hidden;
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'tnum';
   font-variant-numeric: tabular-nums;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* ==========================================================================
+   ENTERPRISE DARK THEME GLOBAL INTEGRATION
+   Asigură adaptarea uniformă și estetică a tuturor suprafețelor, tabelelor,
+   modalelor, formularelor și ecusoanelor în modul Dark fără regresii.
+   ========================================================================== */
+
+/* 1. Suprafețe & Carduri Principale */
+.dark .bg-white {
+  background-color: #0f172a !important;
+  color: #f1f5f9;
+}
+
+.dark .bg-slate-50,
+.dark .bg-slate-50\/70,
+.dark .bg-slate-50\/75,
+.dark .bg-slate-50\/80 {
+  background-color: #090e1a !important;
+}
+
+.dark .bg-slate-100 {
+  background-color: #1e293b !important;
+  color: #cbd5e1;
+}
+
+/* 2. Margini & Separatoare */
+.dark .border-slate-200,
+.dark .border-slate-200\/80,
+.dark .border-slate-200\/90,
+.dark .border-slate-100 {
+  border-color: #1e293b !important;
+}
+
+.dark .border-slate-300 {
+  border-color: #334155 !important;
+}
+
+.dark .divide-slate-100 > * + * {
+  border-color: #1e293b !important;
+}
+
+.dark .divide-slate-200 > * + * {
+  border-color: #1e293b !important;
+}
+
+/* 3. Tipografie & Ierarhie Text */
+.dark .text-slate-900 {
+  color: #f8fafc !important;
+}
+
+.dark .text-slate-800 {
+  color: #f1f5f9 !important;
+}
+
+.dark .text-slate-700 {
+  color: #cbd5e1 !important;
+}
+
+.dark .text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+.dark .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+.dark .text-slate-400 {
+  color: #64748b !important;
+}
+
+/* 4. Formulare, Inputuri, Selecturi & Textarea */
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark select,
+.dark textarea {
+  background-color: #0b0f19 !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+.dark select option {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+/* 5. Tabele de Date & Coloane Sticky */
+.dark table thead {
+  background-color: #0b0f19 !important;
+}
+
+.dark table thead th {
+  background-color: #0b0f19 !important;
+  color: #94a3b8 !important;
+  border-color: #1e293b !important;
+}
+
+.dark table tbody tr {
+  border-color: #1e293b !important;
+}
+
+.dark table tbody tr:hover {
+  background-color: rgba(30, 41, 59, 0.45) !important;
+}
+
+.dark td.sticky,
+.dark th.sticky {
+  background-color: #0f172a !important;
+  box-shadow: 2px 0 6px -2px rgba(0, 0, 0, 0.6) !important;
+}
+
+.dark table thead th.sticky {
+  background-color: #0b0f19 !important;
+}
+
+/* 6. Modale & Dialoguri */
+.dark .fixed.inset-0.bg-black\/50,
+.dark .fixed.inset-0.bg-black\/60 {
+  background-color: rgba(0, 0, 0, 0.75) !important;
+}
+
+/* 7. Ecusoane Semantice de Conformitate & Butoane Tactile */
+.dark .bg-emerald-50 {
+  background-color: rgba(6, 78, 59, 0.35) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(5, 150, 105, 0.4) !important;
+}
+
+.dark .bg-amber-50 {
+  background-color: rgba(120, 53, 15, 0.35) !important;
+  color: #fcd34d !important;
+  border-color: rgba(217, 119, 6, 0.4) !important;
+}
+
+.dark .bg-rose-50,
+.dark .bg-red-50 {
+  background-color: rgba(136, 19, 55, 0.35) !important;
+  color: #fda4af !important;
+  border-color: rgba(225, 29, 72, 0.4) !important;
+}
+
+.dark .bg-blue-50 {
+  background-color: rgba(30, 58, 138, 0.35) !important;
+  color: #93c5fd !important;
+  border-color: rgba(37, 99, 235, 0.4) !important;
+}
+
+.dark .hover\:bg-slate-50:hover {
+  background-color: #1e293b !important;
+}
+
+.dark .hover\:bg-slate-100:hover {
+  background-color: #334155 !important;
 }
 
 /* Utilitar no-scrollbar pentru carusele și taburi orizontale pe tabletă/mobil */
@@ -43,4 +209,11 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
 }

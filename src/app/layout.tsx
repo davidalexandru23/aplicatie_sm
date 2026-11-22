@@ -49,7 +49,14 @@ export default async function RootLayout({
       };
 
   return (
-    <html lang="ro" className="h-full bg-slate-50 text-slate-900">
+    <html lang="ro" className="h-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');var d=window.matchMedia('(prefers-color-scheme: dark)').matches;if(t==='dark'||(!t&&d)){document.documentElement.classList.add('dark');}else{document.documentElement.classList.remove('dark');}}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className={`${inter.className} min-h-full flex flex-col`}>
         {/* Dynamic RBAC Navbar */}
         <Navbar currentUser={currentUser} />

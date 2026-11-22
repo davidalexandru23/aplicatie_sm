@@ -20,6 +20,8 @@ import {
   Building2,
   BookOpen,
   ShieldAlert,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { UserRole } from '@/lib/auth';
 import { ROLE_CONFIG, RoleMeta } from '@/lib/rbac';
@@ -41,6 +43,27 @@ export function Navbar({ currentUser }: NavbarProps) {
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isSwitching, setIsSwitching] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    setIsDark(document.documentElement.classList.contains('dark'));
+  }, []);
+
+  const toggleTheme = () => {
+    const nextDark = !isDark;
+    setIsDark(nextDark);
+    if (nextDark) {
+      document.documentElement.classList.add('dark');
+      try {
+        localStorage.setItem('theme', 'dark');
+      } catch (e) {}
+    } else {
+      document.documentElement.classList.remove('dark');
+      try {
+        localStorage.setItem('theme', 'light');
+      } catch (e) {}
+    }
+  };
 
   // Închide drawer-ul la schimbarea rutei
   useEffect(() => {
@@ -212,6 +235,21 @@ export function Navbar({ currentUser }: NavbarProps) {
 
         {/* Right Side: Quick Action & Role Switcher */}
         <div className="flex items-center space-x-2 sm:space-x-3">
+          {/* Theme Toggle Button (Desktop & Tablet) */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="p-1.5 sm:p-2 rounded-lg bg-slate-800 hover:bg-slate-700/80 border border-slate-700 text-slate-300 hover:text-white transition focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+            title={isDark ? 'Comută pe tema luminoasă (Light Mode)' : 'Comută pe tema întunecată (Dark Mode)'}
+            aria-label="Comutator temă Dark/Light"
+          >
+            {isDark ? (
+              <Sun className="w-4 h-4 text-amber-400" />
+            ) : (
+              <Moon className="w-4 h-4 text-slate-300" />
+            )}
+          </button>
+
           {/* Buton Import Excel (vizibil pentru HR și ADMIN pe sm+) */}
           {(role === 'ADMIN' || role === 'HR') && (
             <Link
@@ -351,6 +389,21 @@ export function Navbar({ currentUser }: NavbarProps) {
               <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${roleMeta.bgColor} ${roleMeta.color} ${roleMeta.borderColor}`}>
                 {roleMeta.badge}
               </span>
+            </div>
+
+            {/* Theme Switcher in Mobile Drawer */}
+            <div className="px-4 py-2.5 bg-slate-950/40 border-b border-slate-800 flex items-center justify-between">
+              <span className="text-xs font-medium text-slate-400 flex items-center gap-2">
+                {isDark ? <Moon className="w-3.5 h-3.5 text-blue-400" /> : <Sun className="w-3.5 h-3.5 text-amber-400" />}
+                <span>Temă interfață</span>
+              </span>
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-750 border border-slate-700 text-xs font-medium text-slate-200 transition"
+              >
+                {isDark ? 'Întunecat (Dark)' : 'Luminos (Light)'}
+              </button>
             </div>
 
             {/* Drawer Nav Links */}
