@@ -24,6 +24,7 @@ export default async function EmployeesPage({
 
   const [employeesRaw, clients] = await Promise.all([
     prisma.employee.findMany({
+      where: { client: { isActive: true } },
       orderBy: [{ status: 'asc' }, { lastName: 'asc' }],
       include: {
         client: { select: { id: true, name: true } },
@@ -34,6 +35,7 @@ export default async function EmployeesPage({
       },
     }),
     prisma.client.findMany({
+      where: { isActive: true },
       select: {
         id: true,
         name: true,

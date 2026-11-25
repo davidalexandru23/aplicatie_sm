@@ -18,6 +18,7 @@ import {
   ComplianceAlertBanner,
 } from '@/components/compliance-badge';
 import { ClientEditModal } from '@/components/client-edit-modal';
+import { ClientDeleteModal } from '@/components/client-delete-modal';
 import { OrganizationalDecisionsCard } from '@/components/organizational-decisions-card';
 import { ClientEmployeesTable } from '@/components/clients/client-employees-table';
 import {
@@ -59,6 +60,7 @@ export default async function ClientDetailPage({
   const sessionCookie = cookieStore.get('ssm_session')?.value;
   const session = sessionCookie ? parseSessionFromCookieHeader(`ssm_session=${sessionCookie}`) : null;
   const userRole = session?.role || 'ADMIN';
+  const isAdmin = session?.role === 'ADMIN';
   const isSsmRole = userRole === 'SSM';
 
   const [client, eipCatalog] = await Promise.all([
@@ -115,7 +117,7 @@ export default async function ClientDetailPage({
     }),
   ]);
 
-  if (!client) {
+  if (!client || !client.isActive) {
     notFound();
   }
 
@@ -239,6 +241,17 @@ export default async function ClientDetailPage({
             <FileText className="w-4 h-4 text-slate-500 dark:text-slate-400" />
             <span>Generează Document</span>
           </Link>
+          {isAdmin && (
+            <ClientDeleteModal
+              client={{
+                id: client.id,
+                name: client.name,
+                cui: client.cui,
+                employeesCount: client.employees.length,
+              }}
+              redirectToClients
+            />
+          )}
         </div>
       </div>
 

@@ -19,6 +19,7 @@ export async function GET(
     // Base WHERE clause
     const where: Prisma.EmployeeWhereInput = {
       clientId: id,
+      client: { isActive: true },
     };
 
     // Status filtering rules

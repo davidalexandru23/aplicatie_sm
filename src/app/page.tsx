@@ -51,17 +51,19 @@ export default async function DashboardPage() {
     recentImports,
     clientsWithEmployees,
   ] = await Promise.all([
-    prisma.client.count(),
-    prisma.employee.count(),
-    prisma.employee.count({ where: { status: 'ACTIV' } }),
+    prisma.client.count({ where: { isActive: true } }),
+    prisma.employee.count({ where: { client: { isActive: true } } }),
+    prisma.employee.count({ where: { status: 'ACTIV', client: { isActive: true } } }),
     prisma.template.count(),
-    prisma.generatedDocument.count(),
+    prisma.generatedDocument.count({ where: { client: { isActive: true } } }),
     prisma.generatedDocument.findMany({
+      where: { client: { isActive: true } },
       take: 6,
       orderBy: { createdAt: 'desc' },
       include: { client: true, template: true },
     }),
     prisma.importBatch.findMany({
+      where: { client: { isActive: true } },
       take: 4,
       orderBy: { createdAt: 'desc' },
       include: { client: true },

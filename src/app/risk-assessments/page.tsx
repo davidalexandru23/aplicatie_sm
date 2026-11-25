@@ -10,6 +10,7 @@ export const dynamic = 'force-dynamic';
 export default async function RiskAssessmentsPage() {
   const [assessments, clients] = await Promise.all([
     prisma.riskAssessment.findMany({
+      where: { client: { isActive: true } },
       orderBy: { createdAt: 'desc' },
       include: {
         client: true,

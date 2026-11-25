@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const worksiteId = searchParams.get('worksiteId');
     const status = searchParams.get('status');
 
-    const where: any = {};
+    const where: any = { client: { isActive: true } };
     if (clientId) where.clientId = clientId;
     if (jobId) where.jobId = jobId;
     if (worksiteId) where.worksiteId = worksiteId;
@@ -61,8 +61,11 @@ export async function POST(request: NextRequest) {
     }
 
     const client = await prisma.client.findUnique({ where: { id: clientId } });
-    if (!client) {
-      return NextResponse.json({ error: 'Clientul nu a fost găsit.' }, { status: 404 });
+    if (!client || !client.isActive) {
+      return NextResponse.json(
+        { error: 'Clientul nu a fost găsit sau este inactiv.' },
+        { status: 404 }
+      );
     }
 
     if (jobId) {

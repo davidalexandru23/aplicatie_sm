@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const clientId = searchParams.get('clientId');
     const search = searchParams.get('search');
 
-    const where: any = {};
+    const where: any = { client: { isActive: true } };
     if (status) {
       where.status = status;
     }
@@ -126,10 +126,13 @@ export async function POST(request: NextRequest) {
     // CNP este opțional
     const cleanCnp = cnp && String(cnp).trim() ? String(cnp).trim() : null;
 
-    // Verify client exists
+    // Verify client exists and is active
     const client = await prisma.client.findUnique({ where: { id: clientId } });
-    if (!client) {
-      return NextResponse.json({ error: 'Compania specificată nu a fost găsită.' }, { status: 404 });
+    if (!client || !client.isActive) {
+      return NextResponse.json(
+        { error: 'Compania specificată nu a fost găsită sau este inactivă.' },
+        { status: 404 }
+      );
     }
 
     // 2. CNP Validation (dacă a fost completat)

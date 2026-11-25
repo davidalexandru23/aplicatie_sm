@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { normalizeCaenCode, getCaenEntry } from '@/lib/caen-catalog';
 import { logAuditEvent } from '@/lib/security';
+import { parseSessionFromCookieHeader, verifyPassword } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
@@ -27,7 +28,7 @@ export async function GET(
       },
     });
 
-    if (!client) {
+    if (!client || !client.isActive) {
       return NextResponse.json({ error: 'Clientul nu a fost găsit.' }, { status: 404 });
     }
 
@@ -49,7 +50,7 @@ export async function PATCH(
     const body = await request.json();
 
     const existingClient = await prisma.client.findUnique({ where: { id } });
-    if (!existingClient) {
+    if (!existingClient || !existingClient.isActive) {
       return NextResponse.json({ error: 'Clientul nu a fost găsit.' }, { status: 404 });
     }
 
@@ -62,7 +63,6 @@ export async function PATCH(
       contactPerson,
       contactEmail,
       contactPhone,
-      isActive,
       caenCode,
       caenActivity,
       foundedYear,
@@ -204,7 +204,6 @@ export async function PATCH(
         ...(contactPhone !== undefined && {
           contactPhone: contactPhone ? String(contactPhone).trim() : null,
         }),
-        ...(isActive !== undefined && { isActive: Boolean(isActive) }),
 
         // CAEN & Profiling
         ...(normalizedCaen !== undefined && { caenCode: normalizedCaen }),
@@ -265,6 +264,93 @@ export async function PATCH(
     console.error('PATCH /api/clients/[id] error:', err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Eroare la actualizarea clientului.' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = parseSessionFromCookieHeader(request.headers.get('cookie'));
+    if (!session) {
+      return NextResponse.json({ error: 'Autentificare necesară.' }, { status: 401 });
+    }
+    if (session.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Doar rolul Administrator poate șterge (dezactiva) un client.' },
+        { status: 403 }
+      );
+    }
+
+    let body: { password?: unknown } = {};
+    try {
+      body = await request.json();
+    } catch {
+      body = {};
+    }
+
+    const password = typeof body.password === 'string' ? body.password : '';
+    if (!password) {
+      return NextResponse.json(
+        { error: 'Introduceți parola de Administrator pentru confirmare.' },
+        { status: 400 }
+      );
+    }
+
+    const adminUser = await prisma.user.findUnique({
+      where: { role: 'ADMIN' },
+    });
+
+    if (!adminUser || !adminUser.isActive || !verifyPassword(password, adminUser.passwordHash)) {
+      return NextResponse.json(
+        { error: 'Parolă de Administrator incorectă. Ștergerea a fost anulată.' },
+        { status: 401 }
+      );
+    }
+
+    const { id } = await params;
+    const existingClient = await prisma.client.findUnique({ where: { id } });
+    if (!existingClient || !existingClient.isActive) {
+      return NextResponse.json(
+        { error: 'Clientul nu a fost găsit sau este deja dezactivat.' },
+        { status: 404 }
+      );
+    }
+
+    await prisma.client.update({
+      where: { id },
+      data: { isActive: false },
+    });
+
+    try {
+      await logAuditEvent({
+        actorName: session.name,
+        action: 'delete',
+        entityType: 'Client',
+        entityId: id,
+        details: {
+          message: 'Dezactivare client (soft delete) cu confirmare parolă ADMIN',
+          softDelete: true,
+          clientName: existingClient.name,
+          cui: existingClient.cui,
+        },
+      });
+    } catch (auditErr) {
+      console.warn('Could not record audit event:', auditErr);
+    }
+
+    return NextResponse.json({
+      success: true,
+      id,
+      message: `Clientul "${existingClient.name}" a fost dezactivat și arhivat în baza de date.`,
+    });
+  } catch (err: unknown) {
+    console.error('DELETE /api/clients/[id] error:', err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Eroare la dezactivarea clientului.' },
       { status: 500 }
     );
   }

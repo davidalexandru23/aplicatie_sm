@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic';
 export default async function TrainingsPage() {
   const [events, clients] = await Promise.all([
     prisma.trainingEvent.findMany({
+      where: { client: { isActive: true } },
       orderBy: { eventDate: 'desc' },
       include: {
         client: true,

@@ -6,6 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function DocumentsPage() {
   const documents = await prisma.generatedDocument.findMany({
+    where: { client: { isActive: true } },
     orderBy: { createdAt: 'desc' },
     include: {
       client: true,

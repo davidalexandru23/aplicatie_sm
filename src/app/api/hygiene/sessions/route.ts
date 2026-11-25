@@ -15,14 +15,23 @@ export async function GET(request?: NextRequest) {
     }
   }
 
+  const activeClientFilter = {
+    OR: [{ clientId: null }, { client: { isActive: true } }],
+  };
+
   const whereClause = clientId
     ? {
-        OR: [
-          { clientId },
-          { participants: { some: { employee: { clientId } } } },
+        AND: [
+          activeClientFilter,
+          {
+            OR: [
+              { clientId },
+              { participants: { some: { employee: { clientId, client: { isActive: true } } } } },
+            ],
+          },
         ],
       }
-    : {};
+    : activeClientFilter;
 
   const sessions = await prisma.hygieneSession.findMany({
     where: whereClause,
@@ -137,12 +146,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (clientId) {
+      const targetClient = await prisma.client.findUnique({
+        where: { id: clientId },
+        select: { id: true, isActive: true },
+      });
+      if (!targetClient || !targetClient.isActive) {
+        return NextResponse.json(
+          { error: 'Compania specificată nu a fost găsită sau este inactivă.' },
+          { status: 404 }
+        );
+      }
+    }
+
     // Build participants either from employeeIds (portfolio employees) or from participants array
     let participants: ParticipantPayload[] = [];
 
     if (Array.isArray(employeeIds) && employeeIds.length > 0) {
       const selectedEmployees = await prisma.employee.findMany({
-        where: { id: { in: employeeIds } },
+        where: { id: { in: employeeIds }, client: { isActive: true } },
         include: {
           client: { select: { id: true, name: true } },
           currentJob: { select: { title: true } },
@@ -199,7 +221,7 @@ export async function POST(request: NextRequest) {
       const firstClientName = participants[0]?.clientName?.trim();
       if (firstClientName) {
         const found = await prisma.client.findFirst({
-          where: { name: { equals: firstClientName, mode: 'insensitive' } },
+          where: { name: { equals: firstClientName, mode: 'insensitive' }, isActive: true },
           select: { id: true },
         });
         if (found) resolvedClientId = found.id;

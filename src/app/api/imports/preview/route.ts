@@ -15,12 +15,33 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const parsed = parseClientWorkbook(buffer);
 
+    if (clientId) {
+      const selectedClient = await prisma.client.findUnique({
+        where: { id: clientId },
+        select: { id: true, isActive: true },
+      });
+      if (!selectedClient || !selectedClient.isActive) {
+        return NextResponse.json(
+          { error: 'Firma selectată nu a fost găsită sau este dezactivată (arhivată).' },
+          { status: 404 }
+        );
+      }
+    }
+
     // Dacă clientId nu este selectat manual, căutăm după CUI din foaia de calcul
     if (!clientId && parsed.company.cui) {
       const existingClient = await prisma.client.findUnique({
         where: { cui: parsed.company.cui.trim() },
       });
       if (existingClient) {
+        if (!existingClient.isActive) {
+          return NextResponse.json(
+            {
+              error: `Firma "${existingClient.name}" (CUI: ${existingClient.cui}) este dezactivată (arhivată) în baza de date. Restaurați-o din Coolify înainte de a importa date noi.`,
+            },
+            { status: 409 }
+          );
+        }
         clientId = existingClient.id;
       }
     }

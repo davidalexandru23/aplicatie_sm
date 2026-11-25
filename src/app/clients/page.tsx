@@ -1,12 +1,21 @@
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { verifySessionToken, SESSION_COOKIE_NAME } from '@/lib/auth';
 import { Building2, Users, Briefcase, MapPin, ArrowRight, UploadCloud, Download, ShieldCheck } from 'lucide-react';
 import { ClientIntakeModal } from '@/components/client-intake-modal';
+import { ClientDeleteModal } from '@/components/client-delete-modal';
 
 export const dynamic = 'force-dynamic';
 
 export default async function ClientsPage() {
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const session = sessionToken ? verifySessionToken(sessionToken) : null;
+  const isAdmin = session?.role === 'ADMIN';
+
   const clients = await prisma.client.findMany({
+    where: { isActive: true },
     orderBy: { name: 'asc' },
     include: {
       _count: {
@@ -169,6 +178,17 @@ export default async function ClientsPage() {
                   >
                     Import
                   </Link>
+                  {isAdmin && (
+                    <ClientDeleteModal
+                      client={{
+                        id: c.id,
+                        name: c.name,
+                        cui: c.cui,
+                        employeesCount: c._count.employees,
+                      }}
+                      variant="icon"
+                    />
+                  )}
                 </div>
               </div>
             </div>

@@ -46,6 +46,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (clientId) {
+      const selectedClient = await prisma.client.findUnique({
+        where: { id: clientId },
+        select: { id: true, isActive: true },
+      });
+      if (!selectedClient || !selectedClient.isActive) {
+        return NextResponse.json(
+          { error: 'Firma selectată nu a fost găsită sau este dezactivată (arhivată).' },
+          { status: 404 }
+        );
+      }
+    }
+
     // 2. Dacă clientul nu există încă în DB, îl creăm din antetul Excelului
     if (!clientId) {
       if (!revalidatedData.company.cui || !revalidatedData.company.name) {
@@ -55,29 +68,49 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const newClient = await prisma.client.upsert({
-        where: { cui: revalidatedData.company.cui.trim() },
-        update: {
-          name: revalidatedData.company.name,
-          address: revalidatedData.company.address || 'Conform registru',
-          regCom: revalidatedData.company.regCom,
-          legalRepresentative: revalidatedData.company.legalRepresentative,
-          contactPerson: revalidatedData.company.contactPerson,
-          contactEmail: revalidatedData.company.contactEmail,
-          contactPhone: revalidatedData.company.contactPhone,
-        },
-        create: {
-          name: revalidatedData.company.name,
-          cui: revalidatedData.company.cui.trim(),
-          address: revalidatedData.company.address || 'Conform registru',
-          regCom: revalidatedData.company.regCom,
-          legalRepresentative: revalidatedData.company.legalRepresentative,
-          contactPerson: revalidatedData.company.contactPerson,
-          contactEmail: revalidatedData.company.contactEmail,
-          contactPhone: revalidatedData.company.contactPhone,
-        },
+      const cleanCui = revalidatedData.company.cui.trim();
+      const existingClient = await prisma.client.findUnique({
+        where: { cui: cleanCui },
       });
-      clientId = newClient.id;
+
+      if (existingClient) {
+        if (!existingClient.isActive) {
+          return NextResponse.json(
+            {
+              error: `Firma "${existingClient.name}" (CUI: ${existingClient.cui}) este dezactivată (arhivată) în baza de date. Restaurați-o din Coolify înainte de a importa date noi.`,
+            },
+            { status: 409 }
+          );
+        }
+
+        const updatedClient = await prisma.client.update({
+          where: { id: existingClient.id },
+          data: {
+            name: revalidatedData.company.name,
+            address: revalidatedData.company.address || 'Conform registru',
+            regCom: revalidatedData.company.regCom,
+            legalRepresentative: revalidatedData.company.legalRepresentative,
+            contactPerson: revalidatedData.company.contactPerson,
+            contactEmail: revalidatedData.company.contactEmail,
+            contactPhone: revalidatedData.company.contactPhone,
+          },
+        });
+        clientId = updatedClient.id;
+      } else {
+        const newClient = await prisma.client.create({
+          data: {
+            name: revalidatedData.company.name,
+            cui: cleanCui,
+            address: revalidatedData.company.address || 'Conform registru',
+            regCom: revalidatedData.company.regCom,
+            legalRepresentative: revalidatedData.company.legalRepresentative,
+            contactPerson: revalidatedData.company.contactPerson,
+            contactEmail: revalidatedData.company.contactEmail,
+            contactPhone: revalidatedData.company.contactPhone,
+          },
+        });
+        clientId = newClient.id;
+      }
     }
 
     // 3. Calcul diferențe reale cu baza de date pentru generarea raportului diff forensic

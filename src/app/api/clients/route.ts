@@ -5,6 +5,7 @@ import { normalizeCaenCode, getCaenEntry } from '@/lib/caen-catalog';
 export async function GET() {
   try {
     const clients = await prisma.client.findMany({
+      where: { isActive: true },
       orderBy: { name: 'asc' },
       select: {
         id: true,
@@ -85,7 +86,6 @@ export async function POST(request: NextRequest) {
       contactPerson,
       contactEmail,
       contactPhone,
-      isActive,
       caenCode,
       caenActivity,
       foundedYear,
@@ -117,6 +117,14 @@ export async function POST(request: NextRequest) {
     });
 
     if (existing) {
+      if (!existing.isActive) {
+        return NextResponse.json(
+          {
+            error: `Există deja o firmă dezactivată/arhivată cu CUI-ul ${cleanCui} (${existing.name}). Poate fi restaurată din baza de date (Coolify).`,
+          },
+          { status: 409 }
+        );
+      }
       return NextResponse.json(
         { error: `Există deja o firmă înregistrată cu acest CUI/CIF (${existing.name}).` },
         { status: 409 }
@@ -193,7 +201,7 @@ export async function POST(request: NextRequest) {
         contactPerson: contactPerson ? String(contactPerson).trim() : null,
         contactEmail: contactEmail ? String(contactEmail).trim() : null,
         contactPhone: contactPhone ? String(contactPhone).trim() : null,
-        isActive: isActive !== undefined ? Boolean(isActive) : true,
+        isActive: true,
 
         // CAEN & Profiling
         caenCode: normalizedCaen,
