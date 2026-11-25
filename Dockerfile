@@ -1,6 +1,6 @@
 FROM node:22-alpine AS builder
 
-RUN apk add --no-cache openssl
+RUN apk update && apk upgrade --no-cache && apk add --no-cache openssl
 
 WORKDIR /app
 
@@ -14,10 +14,21 @@ COPY . .
 RUN npx prisma generate
 RUN npm run build
 RUN npx tsc --outDir dist-bootstrap --module commonjs --moduleResolution node --target es2022 --esModuleInterop --skipLibCheck --rootDir . prisma/bootstrap.ts
+RUN npm prune --omit=dev && ./node_modules/.bin/prisma generate
 
 FROM node:22-alpine AS runner
 
-RUN apk add --no-cache openssl
+RUN apk update \
+    && apk upgrade --no-cache \
+    && apk add --no-cache openssl \
+    && rm -rf /usr/local/lib/node_modules/npm \
+              /usr/local/lib/node_modules/corepack \
+              /usr/local/bin/npm \
+              /usr/local/bin/npx \
+              /usr/local/bin/corepack \
+              /opt/yarn* \
+              /usr/local/bin/yarn \
+              /usr/local/bin/yarnpkg
 
 WORKDIR /app
 
@@ -25,7 +36,7 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public

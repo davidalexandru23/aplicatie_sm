@@ -1,0 +1,8 @@
+FROM postgres:16-alpine
+
+RUN apk update \
+    && apk upgrade --no-cache \
+    && apk add --no-cache su-exec \
+    && rm -f /usr/local/bin/gosu /usr/local/bin/su-exec \
+    && ln -s /sbin/su-exec /usr/local/bin/gosu \
+    && ln -s /sbin/su-exec /usr/local/bin/su-exec
