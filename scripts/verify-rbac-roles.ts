@@ -38,28 +38,26 @@ async function main() {
   console.log('\n--- 2. Semnare & Validare Sesiune JWT HMAC-SHA256 ---');
   const token = signSessionToken({
     userId: 'usr_test_123',
-    email: 'ssm@ssm.ro',
     role: 'SSM',
     name: 'Specialist SSM',
   });
   const decoded = verifySessionToken(token);
   assert(decoded !== null, 'Tokenul de sesiune este valid');
   assert(decoded?.role === 'SSM', 'Rolul din token este corect (SSM)');
-  assert(decoded?.email === 'ssm@ssm.ro', 'Emailul din token este corect');
+  assert(decoded?.name === 'Specialist SSM', 'Numele din token este corect');
 
-  // TEST 3: Utilizatori în Baza de Date
-  console.log('\n--- 3. Verificare Utilizatori Pre-configurați în DB ---');
+  // TEST 3: Roluri în Baza de Date
+  console.log('\n--- 3. Verificare Roluri Pre-configurate în DB ---');
   const users = await prisma.user.findMany();
-  const emails = users.map((u) => u.email);
-  assert(emails.includes('admin@ssm.ro'), 'Utilizatorul admin@ssm.ro există în DB');
-  assert(emails.includes('ssm@ssm.ro'), 'Utilizatorul ssm@ssm.ro există în DB');
-  assert(emails.includes('hr@ssm.ro'), 'Utilizatorul hr@ssm.ro există în DB');
-  assert(emails.includes('igiena@ssm.ro'), 'Utilizatorul igiena@ssm.ro există în DB');
+  const roles = users.map((u) => u.role);
+  assert(roles.includes('ADMIN'), 'Rolul ADMIN există în DB');
+  assert(roles.includes('SSM'), 'Rolul SSM există în DB');
+  assert(roles.includes('HR'), 'Rolul HR există în DB');
+  assert(roles.includes('IGIENA'), 'Rolul IGIENA există în DB');
 
   for (const user of users) {
-    assert(user.isActive === true, `Utilizatorul ${user.email} (${user.role}) este activ`);
-    assert(user.username === 'dev', `Utilizatorul ${user.email} are username-ul 'dev'`);
-    assert(verifyPassword('1234', user.passwordHash), `Parola '1234' este validă pentru utilizatorul ${user.email} (${user.role})`);
+    assert(user.isActive === true, `Rolul ${user.role} este activ`);
+    assert(verifyPassword('123456', user.passwordHash), `Parola '123456' este validă pentru rolul ${user.role}`);
   }
 
   // TEST 4: Matrice de permisiuni rute per rol

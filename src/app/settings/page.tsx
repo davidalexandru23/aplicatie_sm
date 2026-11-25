@@ -104,8 +104,8 @@ export default function SettingsProviderPage() {
       setPasswordError('Noua parolă și confirmarea parolei nu coincid.');
       return;
     }
-    if (newPassword.length < 4) {
-      setPasswordError('Noua parolă trebuie să conțină cel puțin 4 caractere.');
+    if (newPassword.length < 6) {
+      setPasswordError('Noua parolă trebuie să conțină cel puțin 6 caractere.');
       return;
     }
 
@@ -1394,7 +1394,7 @@ export default function SettingsProviderPage() {
               <span>Securitate Cont &amp; Schimbare Parolă</span>
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Actualizați parola contului curent (nume utilizator: <strong className="text-slate-800 font-mono">dev</strong>).
+              Actualizați parola de acces pentru rolul activ curent.
             </p>
           </div>
           <span className="text-xs font-semibold px-2.5 py-1 rounded bg-slate-100 text-slate-700 border border-slate-200">
@@ -1440,7 +1440,7 @@ export default function SettingsProviderPage() {
               required
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Minim 4 caractere"
+              placeholder="Minim 6 caractere"
               className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>

@@ -61,85 +61,32 @@ const STATUTORY_EIP_CATALOG = [
   },
 ] as const;
 
-interface InitialUserSpec {
+const ROLE_SPECS: Array<{
   role: UserRole;
-  username: string;
-  email: string;
-  name: string;
-  password: string;
-}
-
-function resolveInitialUsers(): InitialUserSpec[] {
-  const defaultPassword = process.env.INIT_DEFAULT_PASSWORD?.trim() || '';
-
-  const specs: Array<{
-    role: UserRole;
-    envPrefix: string;
-    defaultUsername: string;
-    defaultEmail: string;
-    defaultName: string;
-  }> = [
-    {
-      role: 'ADMIN',
-      envPrefix: 'INIT_ADMIN',
-      defaultUsername: 'admin',
-      defaultEmail: 'admin@ssm.ro',
-      defaultName: 'Administrator',
-    },
-    {
-      role: 'SSM',
-      envPrefix: 'INIT_SSM',
-      defaultUsername: 'ssm',
-      defaultEmail: 'ssm@ssm.ro',
-      defaultName: 'Specialist SSM',
-    },
-    {
-      role: 'HR',
-      envPrefix: 'INIT_HR',
-      defaultUsername: 'hr',
-      defaultEmail: 'hr@ssm.ro',
-      defaultName: 'Resurse Umane',
-    },
-    {
-      role: 'IGIENA',
-      envPrefix: 'INIT_IGIENA',
-      defaultUsername: 'igiena',
-      defaultEmail: 'igiena@ssm.ro',
-      defaultName: 'Inspector Igienă',
-    },
-  ];
-
-  const missingOrWeak: string[] = [];
-  const resolved: InitialUserSpec[] = [];
-
-  for (const spec of specs) {
-    const username = process.env[`${spec.envPrefix}_USERNAME`]?.trim() || spec.defaultUsername;
-    const email = (process.env[`${spec.envPrefix}_EMAIL`]?.trim() || spec.defaultEmail).toLowerCase();
-    const name = process.env[`${spec.envPrefix}_NAME`]?.trim() || spec.defaultName;
-    const password = process.env[`${spec.envPrefix}_PASSWORD`]?.trim() || defaultPassword;
-
-    if (!password || password.length < 6) {
-      missingOrWeak.push(`${spec.role} (${spec.envPrefix}_PASSWORD sau INIT_DEFAULT_PASSWORD)`);
-    }
-
-    resolved.push({
-      role: spec.role,
-      username,
-      email,
-      name,
-      password,
-    });
-  }
-
-  if (missingOrWeak.length > 0) {
-    throw new Error(
-      `[bootstrap] Lipsesc parolele inițiale sau au sub 6 caractere pentru rolurile: ${missingOrWeak.join(', ')}. ` +
-        'Setează INIT_DEFAULT_PASSWORD (minim 6 caractere) sau parolele specifice INIT_*_PASSWORD în variabilele de mediu Coolify înainte de prima pornire.'
-    );
-  }
-
-  return resolved;
-}
+  envPrefix: string;
+  defaultName: string;
+}> = [
+  {
+    role: 'ADMIN',
+    envPrefix: 'INIT_ADMIN',
+    defaultName: 'Administrator',
+  },
+  {
+    role: 'SSM',
+    envPrefix: 'INIT_SSM',
+    defaultName: 'Specialist SSM',
+  },
+  {
+    role: 'HR',
+    envPrefix: 'INIT_HR',
+    defaultName: 'Resurse Umane',
+  },
+  {
+    role: 'IGIENA',
+    envPrefix: 'INIT_IGIENA',
+    defaultName: 'Inspector Igienă',
+  },
+];
 
 async function syncTemplates(prisma: PrismaClient): Promise<number> {
   for (const tpl of TEMPLATE_CATALOG) {
@@ -208,28 +155,59 @@ async function seedInitialEipCatalog(prisma: PrismaClient): Promise<number> {
 }
 
 async function seedInitialUsers(prisma: PrismaClient): Promise<number> {
-  const existingUsers = await prisma.user.count();
-  if (existingUsers > 0) {
-    console.log(`[bootstrap] Utilizatorii există deja (${existingUsers}), parolele existente nu sunt modificate.`);
-    return existingUsers;
+  const defaultPassword = process.env.INIT_DEFAULT_PASSWORD?.trim() || '';
+  const missingRoles: typeof ROLE_SPECS = [];
+
+  for (const spec of ROLE_SPECS) {
+    const existing = await prisma.user.findUnique({
+      where: { role: spec.role },
+      select: { id: true },
+    });
+    if (!existing) {
+      missingRoles.push(spec);
+    }
   }
 
-  const users = resolveInitialUsers();
-  for (const user of users) {
+  if (missingRoles.length === 0) {
+    const count = await prisma.user.count();
+    console.log(`[bootstrap] Toate cele ${count} roluri există deja; parolele existente nu sunt modificate.`);
+    return count;
+  }
+
+  const missingOrWeak: string[] = [];
+  const toCreate: Array<{ role: UserRole; name: string; password: string }> = [];
+
+  for (const spec of missingRoles) {
+    const name = process.env[`${spec.envPrefix}_NAME`]?.trim() || spec.defaultName;
+    const password = process.env[`${spec.envPrefix}_PASSWORD`]?.trim() || defaultPassword;
+
+    if (!password || password.length < 6) {
+      missingOrWeak.push(`${spec.role} (${spec.envPrefix}_PASSWORD sau INIT_DEFAULT_PASSWORD)`);
+    } else {
+      toCreate.push({ role: spec.role, name, password });
+    }
+  }
+
+  if (missingOrWeak.length > 0) {
+    throw new Error(
+      `[bootstrap] Lipsesc parolele inițiale sau au sub 6 caractere pentru rolurile: ${missingOrWeak.join(', ')}. ` +
+        'Setează INIT_DEFAULT_PASSWORD (minim 6 caractere) sau parolele specifice INIT_*_PASSWORD în variabilele de mediu Coolify.'
+    );
+  }
+
+  for (const entry of toCreate) {
     await prisma.user.create({
       data: {
-        username: user.username,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        passwordHash: hashPassword(user.password),
+        role: entry.role,
+        name: entry.name,
+        passwordHash: hashPassword(entry.password),
         isActive: true,
       },
     });
   }
 
   const count = await prisma.user.count();
-  console.log(`[bootstrap] Inițializați ${count} utilizatori RBAC din variabilele de mediu.`);
+  console.log(`[bootstrap] Inițializate ${toCreate.length} roluri noi (total roluri active: ${count}).`);
   return count;
 }
 

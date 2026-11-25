@@ -6,8 +6,6 @@ export type UserRole = 'ADMIN' | 'SSM' | 'HR' | 'IGIENA';
 
 export interface SessionPayload {
   userId: string;
-  username?: string | null;
-  email: string;
   name: string;
   role: UserRole;
   iat: number;

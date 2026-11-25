@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import {
   parseSessionFromCookieHeader,
+  verifyPassword,
   signSessionToken,
   SESSION_COOKIE_NAME,
   UserRole,
 } from '@/lib/auth';
+
+const VALID_ROLES: UserRole[] = ['ADMIN', 'SSM', 'HR', 'IGIENA'];
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,47 +21,51 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { targetRole } = body as { targetRole: UserRole };
+    const { targetRole, password } = body as { targetRole: UserRole; password?: string };
 
-    if (!['ADMIN', 'SSM', 'HR', 'IGIENA'].includes(targetRole)) {
+    if (!VALID_ROLES.includes(targetRole)) {
       return NextResponse.json(
         { error: 'Rol invalid.' },
         { status: 400 }
       );
     }
 
-    // Găsim utilizatorul asociat rolului respectiv
-    const targetUser =
-      (await prisma.user.findFirst({
-        where: { role: targetRole, isActive: true },
-      })) ||
-      (await prisma.user.findFirst({
-        where: { isActive: true },
-      }));
+    const targetUser = await prisma.user.findUnique({
+      where: { role: targetRole },
+    });
 
-    if (!targetUser) {
+    if (!targetUser || !targetUser.isActive) {
       return NextResponse.json(
         { error: 'Nu a fost găsit un cont activ pentru acest rol.' },
         { status: 404 }
       );
     }
 
+    // ADMIN poate comuta direct; celelalte roluri necesită parola rolului țintă
+    if (session.role !== 'ADMIN') {
+      if (!password || !verifyPassword(String(password), targetUser.passwordHash)) {
+        return NextResponse.json(
+          {
+            error: 'Parola pentru rolul selectat este incorectă.',
+            requiresPassword: true,
+          },
+          { status: 401 }
+        );
+      }
+    }
+
     const token = signSessionToken({
       userId: targetUser.id,
-      username: targetUser.username,
-      email: targetUser.email,
       name: targetUser.name,
-      role: targetRole,
+      role: targetUser.role,
     });
 
     const response = NextResponse.json({
       success: true,
       user: {
         id: targetUser.id,
-        username: targetUser.username,
-        email: targetUser.email,
         name: targetUser.name,
-        role: targetRole,
+        role: targetUser.role,
       },
     });
 

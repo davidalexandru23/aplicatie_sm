@@ -31,9 +31,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (String(newPassword).length < 4) {
+    if (String(newPassword).length < 6) {
       return NextResponse.json(
-        { error: 'Noua parolă trebuie să conțină cel puțin 4 caractere.' },
+        { error: 'Noua parolă trebuie să conțină cel puțin 6 caractere.' },
         { status: 400 }
       );
     }
@@ -72,8 +72,6 @@ export async function POST(request: NextRequest) {
         entityId: user.id,
         details: JSON.stringify({
           role: user.role,
-          username: user.username,
-          email: user.email,
         }),
       },
     });

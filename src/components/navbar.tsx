@@ -30,8 +30,6 @@ import { ChangePasswordModal } from '@/components/change-password-modal';
 interface NavbarProps {
   currentUser?: {
     id: string;
-    username?: string | null;
-    email: string;
     name: string;
     role: UserRole;
   } | null;
@@ -44,6 +42,9 @@ export function Navbar({ currentUser }: NavbarProps) {
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isSwitching, setIsSwitching] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [pendingSwitchRole, setPendingSwitchRole] = useState<UserRole | null>(null);
+  const [switchPassword, setSwitchPassword] = useState('');
+  const [switchError, setSwitchError] = useState<string | null>(null);
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -80,34 +81,65 @@ export function Navbar({ currentUser }: NavbarProps) {
   const role: UserRole = currentUser?.role || 'ADMIN';
   const roleMeta: RoleMeta = ROLE_CONFIG[role];
 
+  const executeRoleSwitch = async (targetRole: UserRole, password?: string) => {
+    setIsSwitching(true);
+    setSwitchError(null);
+    try {
+      const res = await fetch('/api/auth/switch-role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetRole, ...(password !== undefined ? { password } : {}) }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (pendingSwitchRole) {
+          setSwitchError(data.error || 'Parolă incorectă.');
+        } else {
+          setPendingSwitchRole(targetRole);
+          setSwitchPassword('');
+          setSwitchError(data.error || null);
+        }
+        return;
+      }
+
+      setIsDropdownOpen(false);
+      setIsMobileDrawerOpen(false);
+      setPendingSwitchRole(null);
+      setSwitchPassword('');
+      setSwitchError(null);
+      if (targetRole === 'IGIENA') {
+        router.push('/hygiene');
+      } else if (targetRole === 'HR') {
+        router.push('/employees');
+      } else {
+        router.push('/');
+      }
+      router.refresh();
+    } catch (err) {
+      console.error('Error switching role:', err);
+      setSwitchError('Eroare de conexiune la comutarea rolului.');
+    } finally {
+      setIsSwitching(false);
+    }
+  };
+
   const handleRoleSwitch = async (targetRole: UserRole) => {
     if (targetRole === role) {
       setIsDropdownOpen(false);
       setIsMobileDrawerOpen(false);
       return;
     }
-    setIsSwitching(true);
-    try {
-      const res = await fetch('/api/auth/switch-role', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetRole }),
-      });
-      if (res.ok) {
-        setIsDropdownOpen(false);
-        setIsMobileDrawerOpen(false);
-        if (targetRole === 'IGIENA') {
-          router.push('/hygiene');
-        } else {
-          router.push('/');
-        }
-        router.refresh();
-      }
-    } catch (err) {
-      console.error('Error switching role:', err);
-    } finally {
-      setIsSwitching(false);
+
+    if (role === 'ADMIN') {
+      await executeRoleSwitch(targetRole);
+      return;
     }
+
+    setIsDropdownOpen(false);
+    setIsMobileDrawerOpen(false);
+    setSwitchPassword('');
+    setSwitchError(null);
+    setPendingSwitchRole(targetRole);
   };
 
   const handleLogout = async () => {
@@ -288,10 +320,8 @@ export function Navbar({ currentUser }: NavbarProps) {
                   <div className="text-xs text-slate-200 font-bold mt-0.5 truncate">
                     {currentUser?.name || 'Utilizator Conectat'}
                   </div>
-                  <div className="text-[11px] text-slate-400 font-mono truncate">
-                    {currentUser?.username
-                      ? `utilizator: ${currentUser.username}`
-                      : currentUser?.email || ''}
+                  <div className="text-[11px] text-slate-400 truncate">
+                    Rol activ: {roleMeta.label}
                   </div>
                 </div>
 
@@ -387,7 +417,7 @@ export function Navbar({ currentUser }: NavbarProps) {
                   {currentUser?.name || 'Utilizator'}
                 </div>
                 <div className="text-[11px] text-slate-400">
-                  {currentUser?.email || 'admin@ssm.ro'}
+                  Rol activ: {roleMeta.label}
                 </div>
               </div>
               <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${roleMeta.bgColor} ${roleMeta.color} ${roleMeta.borderColor}`}>
@@ -480,6 +510,86 @@ export function Navbar({ currentUser }: NavbarProps) {
         userName={currentUser?.name}
         userRole={roleMeta.label}
       />
+
+      {pendingSwitchRole && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-sm w-full overflow-hidden">
+            <div className="px-5 py-3.5 bg-slate-900 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <KeyRound className="w-4 h-4 text-blue-400" />
+                <h3 className="text-sm font-semibold">Comutare Rol de Acces</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setPendingSwitchRole(null);
+                  setSwitchPassword('');
+                  setSwitchError(null);
+                }}
+                className="text-slate-400 hover:text-white transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                executeRoleSwitch(pendingSwitchRole, switchPassword);
+              }}
+              className="p-5 space-y-4 text-slate-900"
+            >
+              <p className="text-xs text-slate-600">
+                Introduceți parola pentru rolul{' '}
+                <strong className="text-slate-900">{ROLE_CONFIG[pendingSwitchRole].label}</strong>.
+              </p>
+
+              {switchError && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-700 p-2.5 rounded-lg text-xs">
+                  {switchError}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Parolă *
+                </label>
+                <input
+                  type="password"
+                  required
+                  autoFocus
+                  value={switchPassword}
+                  onChange={(e) => setSwitchPassword(e.target.value)}
+                  placeholder="Introduceți parola rolului țintă"
+                  className="w-full min-h-[42px] px-3 py-2 text-sm border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  disabled={isSwitching}
+                  onClick={() => {
+                    setPendingSwitchRole(null);
+                    setSwitchPassword('');
+                    setSwitchError(null);
+                  }}
+                  className="px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition"
+                >
+                  Anulează
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSwitching}
+                  className="px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition disabled:opacity-50"
+                >
+                  {isSwitching ? 'Se verifică...' : 'Confirmă Comutarea'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

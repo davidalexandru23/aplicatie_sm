@@ -37,8 +37,6 @@ export default async function RootLayout({
   const currentUser = session
     ? {
         id: session.userId,
-        username: session.username || null,
-        email: session.email,
         name: session.name,
         role: session.role,
       }

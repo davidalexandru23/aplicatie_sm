@@ -2,50 +2,27 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyPassword, signSessionToken, SESSION_COOKIE_NAME, UserRole } from '@/lib/auth';
 
+const VALID_ROLES: UserRole[] = ['ADMIN', 'SSM', 'HR', 'IGIENA'];
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { username, email, password, role } = body;
+    const { role, password } = body as { role?: string; password?: string };
 
-    const identifier = String(username || email || '').trim();
-    if (!identifier || !password) {
+    if (!role || !VALID_ROLES.includes(role as UserRole) || !password) {
       return NextResponse.json(
-        { error: 'Utilizatorul și parola sunt obligatorii.' },
+        { error: 'Rolul și parola sunt obligatorii.' },
         { status: 400 }
       );
     }
 
-    // Găsim utilizatorul după username/email și rol (dacă este specificat)
-    let user = null;
-    if (role) {
-      user = await prisma.user.findFirst({
-        where: {
-          role: role as UserRole,
-          OR: [
-            { username: identifier },
-            { email: identifier.toLowerCase() },
-          ],
-          isActive: true,
-        },
-      });
-    }
-
-    if (!user) {
-      user = await prisma.user.findFirst({
-        where: {
-          OR: [
-            { username: identifier },
-            { email: identifier.toLowerCase() },
-          ],
-          isActive: true,
-        },
-        orderBy: { role: 'asc' },
-      });
-    }
+    const user = await prisma.user.findUnique({
+      where: { role: role as UserRole },
+    });
 
     if (!user || !user.isActive) {
       return NextResponse.json(
-        { error: 'Utilizator sau parolă incorectă.' },
+        { error: 'Rolul selectat nu este configurat sau este inactiv.' },
         { status: 401 }
       );
     }
@@ -53,12 +30,11 @@ export async function POST(request: NextRequest) {
     const isValid = verifyPassword(String(password), user.passwordHash);
     if (!isValid) {
       return NextResponse.json(
-        { error: 'Utilizatorul sau parola introdusă este incorectă.' },
+        { error: 'Parola introdusă este incorectă.' },
         { status: 401 }
       );
     }
 
-    // Actualizăm data ultimei logări
     await prisma.user.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
@@ -66,8 +42,6 @@ export async function POST(request: NextRequest) {
 
     const token = signSessionToken({
       userId: user.id,
-      username: user.username,
-      email: user.email,
       name: user.name,
       role: user.role,
     });
@@ -76,8 +50,6 @@ export async function POST(request: NextRequest) {
       success: true,
       user: {
         id: user.id,
-        username: user.username,
-        email: user.email,
         name: user.name,
         role: user.role,
       },
@@ -87,7 +59,6 @@ export async function POST(request: NextRequest) {
       request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim() === 'https' ||
       request.nextUrl.protocol === 'https:';
 
-    // Setăm cookie-ul de sesiune
     response.cookies.set({
       name: SESSION_COOKIE_NAME,
       value: token,

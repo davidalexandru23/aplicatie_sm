@@ -718,16 +718,11 @@ enum UserRole {
 
 model User {
   id           String    @id @default(uuid())
-  username     String?   @default("dev")
-  email        String    @unique
-  name         String    // Nume afișat (ex: "Administrator", "Specialist SSM")
+  role         UserRole  @unique
+  name         String    // Nume afișat rol (ex: "Administrator", "Specialist SSM")
   passwordHash String    // Hash securizat (scrypt)
-  role         UserRole  @default(ADMIN)
   isActive     Boolean   @default(true)
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
-
-  @@index([role])
-  @@index([username])
 }

@@ -35,8 +35,8 @@ export function ChangePasswordModal({
       return;
     }
 
-    if (newPassword.length < 4) {
-      setError('Noua parolă trebuie să aibă minim 4 caractere.');
+    if (newPassword.length < 6) {
+      setError('Noua parolă trebuie să aibă minim 6 caractere.');
       return;
     }
 
@@ -91,10 +91,10 @@ export function ChangePasswordModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {userName && (
+          {userRole && (
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs text-slate-600 flex justify-between items-center">
-              <span>Utilizator: <strong className="text-slate-900 font-mono">dev</strong></span>
-              {userRole && <span className="font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">{userRole}</span>}
+              <span>Rol activ:</span>
+              <span className="font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">{userRole}</span>
             </div>
           )}
 
@@ -135,7 +135,7 @@ export function ChangePasswordModal({
               required
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Minim 4 caractere"
+              placeholder="Minim 6 caractere"
               className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>

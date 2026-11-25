@@ -11,7 +11,8 @@ La pornirea containerului `app`, scriptul `docker-entrypoint.sh` execută automa
 2. `prisma/bootstrap.ts` — populează **exclusiv** cataloagele de sistem:
    - **34 șabloane oficiale** (`Template`) din `src/lib/templates/definitions.ts`
    - **8 articole standard EIP** (`EipItem`, doar dacă tabelul este gol)
-   - **4 conturi RBAC** (`ADMIN`, `SSM`, `HR`, `IGIENA`) din variabilele ENV (doar dacă tabelul `User` este gol, astfel încât parolele schimbate ulterior de client nu vor fi suprascrise la restart/redeploy)
+   - **4 roluri RBAC** (`ADMIN`, `SSM`, `HR`, `IGIENA`), autentificate strict prin **Rol + Parolă** (fără email sau username), inițializate din variabilele ENV (doar pentru rolurile care nu există încă în DB — parolele schimbate ulterior de client nu sunt suprascrise la restart/redeploy).
+   - La actualizări peste o bază de date Coolify deja existentă, `docker-entrypoint.sh` elimină automat coloanele vechi `email` / `username` din tabela `"User"` păstrând parolele și toate datele firmelor intacte.
    - **Zero date de business**: 0 firme (`Client`), 0 angajați (`Employee`), 0 prestatori (`SsmProvider`), 0 evaluări, 0 sesiuni igienă, 0 documente generate.
 
 > **Notă**: `docker-compose.yml` original rămâne neatins pentru dezvoltare locală (`ssm_postgres:5432`, `3005`). Coolify folosește dedicat **`docker-compose.coolify.yml`**, fără conflict de porturi.
@@ -62,7 +63,8 @@ La pornirea containerului `app`, scriptul `docker-entrypoint.sh` execută automa
    ```
    Trebuie să returneze `{"status":"ok","database":"connected",...}`.
 2. **Conectare pe domeniul public** (`https://ssm.davidab.ro/login`):
-   - Autentifică-te cu `admin` și parola configurată în `INIT_ADMIN_PASSWORD` / `INIT_DEFAULT_PASSWORD`.
+   - Selectează rolul dorit din dropdown (`Admin Master`, `Specialist SSM`, `Resurse Umane (HR)` sau `Inspector Igienă`) și introdu parola configurată în `INIT_ADMIN_PASSWORD` / `INIT_DEFAULT_PASSWORD`.
+   - Din sesiunea **ADMIN**, poți comuta direct pe celelalte roluri din meniul de sus; din **SSM / HR / IGIENA**, comutarea către un alt rol solicită parola rolului țintă.
    - Confirmă că dashboard-ul afișează **0 companii**, **0 salariați**, **34 șabloane**.
 3. **Configurare inițială pentru client**:
    - Mergi la **Setări SEPP** (`/settings`) și completează datele reale ale firmei prestatoare SSM (CUI, certificat ITM, specialiști desemnați) -> acestea se vor pre-selecta automat la crearea primului client.

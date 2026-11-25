@@ -4,7 +4,7 @@ async function testGen() {
   const loginRes = await fetch('http://localhost:3005/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: 'dev', password: '1234', role: 'IGIENA' })
+    body: JSON.stringify({ role: 'IGIENA', password: process.env.TEST_PASSWORD || '123456' })
   });
   const cookie = loginRes.headers.get('set-cookie');
   console.log('Login Igiena status:', loginRes.status);
