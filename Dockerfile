@@ -46,6 +46,7 @@ COPY --from=builder /app/templates_registry ./templates_registry
 COPY --from=builder /app/outputs ./outputs
 COPY --from=builder /app/Test_Client_3_Angajati.xlsx ./Test_Client_3_Angajati.xlsx
 COPY --from=builder /app/docker-entrypoint.sh /app/docker-entrypoint.sh
+COPY --from=builder /app/prisma-studio-server.mjs /app/prisma-studio-server.mjs
 
 RUN mkdir -p /app/sabloane_ssm /app/storage/documents /app/storage/uploads \
     && chmod +x /app/docker-entrypoint.sh

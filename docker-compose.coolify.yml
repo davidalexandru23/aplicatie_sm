@@ -55,6 +55,32 @@ services:
       retries: 5
       start_period: 30s
 
+  prisma-studio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: ["node", "/app/prisma-studio-server.mjs"]
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${PRISMA_STUDIO_BIND_HOST:-192.168.50.128}:${PRISMA_STUDIO_PORT:-5555}:5556"
+    environment:
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-ssm_user}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-ssm_db}?schema=public"
+      STUDIO_INTERNAL_PORT: "5555"
+      STUDIO_PROXY_PORT: "5556"
+      PRISMA_STUDIO_USER: ${PRISMA_STUDIO_USER:-admin}
+      PRISMA_STUDIO_PASSWORD: ${PRISMA_STUDIO_PASSWORD:-${POSTGRES_PASSWORD}}
+    networks:
+      - ssm_internal
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5556/__healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+
 volumes:
   ssm_postgres_data:
   ssm_app_storage:
