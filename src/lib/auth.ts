@@ -6,6 +6,7 @@ export type UserRole = 'ADMIN' | 'SSM' | 'HR' | 'IGIENA';
 
 export interface SessionPayload {
   userId: string;
+  username?: string | null;
   email: string;
   name: string;
   role: UserRole;
@@ -13,7 +14,21 @@ export interface SessionPayload {
   exp: number;
 }
 
-const SECRET_KEY = process.env.SECRET_KEY || 'ssm-secret-key-internal-development';
+let warnedMissingSecret = false;
+
+function getSecretKey(): string {
+  const envSecret = process.env.SECRET_KEY?.trim();
+  if (envSecret) {
+    return envSecret;
+  }
+  if (process.env.NODE_ENV === 'production' && !warnedMissingSecret) {
+    warnedMissingSecret = true;
+    console.warn(
+      '[auth] WARNING: SECRET_KEY is not set in production! Configure SECRET_KEY in environment variables.'
+    );
+  }
+  return 'ssm-secret-key-internal-development';
+}
 
 /**
  * Hash-uire sigură a parolei folosind scrypt din crypto nativ Node.js
@@ -78,7 +93,7 @@ export function signSessionToken(payload: Omit<SessionPayload, 'iat' | 'exp'>, e
 
   const dataToSign = `${encodedHeader}.${encodedPayload}`;
   const signature = crypto
-    .createHmac('sha256', SECRET_KEY)
+    .createHmac('sha256', getSecretKey())
     .update(dataToSign)
     .digest('base64')
     .replace(/=/g, '')
@@ -100,7 +115,7 @@ export function verifySessionToken(token: string): SessionPayload | null {
     const dataToSign = `${encodedHeader}.${encodedPayload}`;
 
     const expectedSignature = crypto
-      .createHmac('sha256', SECRET_KEY)
+      .createHmac('sha256', getSecretKey())
       .update(dataToSign)
       .digest('base64')
       .replace(/=/g, '')

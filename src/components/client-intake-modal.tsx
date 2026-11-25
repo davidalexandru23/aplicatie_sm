@@ -50,9 +50,9 @@ export function ClientIntakeModal() {
     contactPerson: '',
     contactPhone: '',
     contactEmail: '',
-    ssmProviderName: 'EXPERT SSM & SITUAȚII DE URGENȚĂ S.R.L.',
-    ssmSpecialistName: 'Ing. Mihai Popescu',
-    ssmSpecialistCert: 'Certificat seria EV nr. 10452/2018',
+    ssmProviderName: '',
+    ssmSpecialistName: '',
+    ssmSpecialistCert: '',
   });
 
   // Fetch providers and preselect default when modal opens

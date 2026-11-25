@@ -66,6 +66,7 @@ export async function POST(request: NextRequest) {
 
     const token = signSessionToken({
       userId: user.id,
+      username: user.username,
       email: user.email,
       name: user.name,
       role: user.role,
@@ -82,12 +83,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    const isHttps =
+      request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim() === 'https' ||
+      request.nextUrl.protocol === 'https:';
+
     // Setăm cookie-ul de sesiune
     response.cookies.set({
       name: SESSION_COOKIE_NAME,
       value: token,
       httpOnly: true,
       sameSite: 'lax',
+      secure: isHttps,
       path: '/',
       maxAge: 60 * 60 * 24 * 7, // 7 zile
     });

@@ -37,16 +37,12 @@ export default async function RootLayout({
   const currentUser = session
     ? {
         id: session.userId,
+        username: session.username || null,
         email: session.email,
         name: session.name,
         role: session.role,
       }
-    : {
-        id: 'default',
-        email: 'admin@ssm.ro',
-        name: 'Administrator Master',
-        role: 'ADMIN' as UserRole,
-      };
+    : null;
 
   return (
     <html lang="ro" className="h-full bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100" suppressHydrationWarning>

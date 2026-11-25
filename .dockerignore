@@ -1,0 +1,46 @@
+# Version control
+.git
+.gitignore
+
+# Build artifacts & dependencies
+node_modules
+.next
+dist-bootstrap
+out
+build
+*.tsbuildinfo
+
+# Local env files
+.env
+.env*
+!.env.coolify.example
+
+# Logs & docs
+*.log
+npm-debug.log*
+yarn-debug.log*
+*.md
+
+# Dev scripts, documentation & agent artifacts
+scripts
+documentatie
+handoff
+.agents
+EXCELURI_EXEMPLU_IMPORT
+modele_import_excel
+
+# Sample/test files at repo root
+01_*.xlsx
+02_*.xlsx
+Exemplu_*.xlsx
+template-mapping-audit.json
+
+# Runtime storage (excluded from image; mounted via persistent Docker volume)
+storage/*
+
+# Legacy .doc templates not needed at runtime, keeping only the 3 runtime PDFs
+sabloane_ssm/*
+!sabloane_ssm/Cerere angajare.pdf
+!sabloane_ssm/Declaratie luat la cunost. Regulament Intern.pdf
+!sabloane_ssm/Declaratie pe propie raspundere contract de munca.pdf
+!Test_Client_3_Angajati.xlsx

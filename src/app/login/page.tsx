@@ -1,19 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { 
-  ShieldCheck, 
-  Shield, 
-  Users, 
-  Award, 
-  Lock, 
-  ArrowRight, 
+import {
+  ShieldCheck,
+  Shield,
+  Users,
+  Award,
+  Lock,
+  Check,
   AlertCircle,
   Building2,
-  KeyRound
+  KeyRound,
 } from 'lucide-react';
-import { UserRole } from '@/lib/auth';
+import type { UserRole } from '@/lib/auth';
 
 interface RoleCard {
   role: UserRole;
@@ -64,37 +64,30 @@ const ROLES: RoleCard[] = [
   },
 ];
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectPath = searchParams.get('redirect') || '/';
 
   const [selectedRole, setSelectedRole] = useState<UserRole>('ADMIN');
-  const [username, setUsername] = useState('dev');
-  const [password, setPassword] = useState('1234');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = async (
-    e?: React.FormEvent,
-    customCreds?: { role: UserRole; user?: string; pass?: string }
-  ) => {
-    if (e) e.preventDefault();
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
     setError(null);
-
-    const loginRole = customCreds ? customCreds.role : selectedRole;
-    const loginUsername = customCreds?.user || username;
-    const loginPassword = customCreds?.pass || password;
 
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          username: loginUsername,
-          password: loginPassword,
-          role: loginRole,
+          username: username.trim(),
+          password,
+          role: selectedRole,
         }),
       });
 
@@ -130,7 +123,7 @@ export default function LoginPage() {
           Autentificare în Sistem
         </h1>
         <p className="text-sm text-slate-500 max-w-lg mx-auto">
-          Selectați rolul dorit pentru conectare directă sau introduceți datele de acces în formularul de mai jos.
+          Selectați profilul de acces și introduceți utilizatorul și parola primite de la administrator.
         </p>
       </div>
 
@@ -141,21 +134,32 @@ export default function LoginPage() {
         </div>
       )}
 
-      {/* Role Selection Grid */}
+      {/* Role Selector Grid (fără autentificare 1-click) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {ROLES.map((r) => {
           const IconComp = r.icon;
+          const isSelected = selectedRole === r.role;
           return (
             <button
               key={r.role}
               type="button"
-              onClick={() => handleLogin(undefined, { role: r.role, user: 'dev', pass: '1234' })}
+              onClick={() => setSelectedRole(r.role)}
               disabled={isLoading}
-              className="text-left p-6 rounded-xl bg-white border border-slate-200 hover:border-blue-500 hover:shadow-md transition duration-150 flex flex-col justify-between group cursor-pointer"
+              className={`text-left p-6 rounded-xl bg-white border transition duration-150 flex flex-col justify-between group cursor-pointer ${
+                isSelected
+                  ? 'border-blue-600 ring-2 ring-blue-500/20 shadow-md'
+                  : 'border-slate-200 hover:border-blue-400 hover:shadow-sm'
+              }`}
             >
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 text-blue-600 group-hover:bg-blue-50 transition">
+                  <div
+                    className={`p-2.5 rounded-lg border transition ${
+                      isSelected
+                        ? 'bg-blue-50 border-blue-200 text-blue-600'
+                        : 'bg-slate-50 border-slate-100 text-slate-600 group-hover:bg-blue-50 group-hover:text-blue-600'
+                    }`}
+                  >
                     <IconComp className="w-5 h-5" />
                   </div>
                   <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${r.badgeColor}`}>
@@ -174,21 +178,27 @@ export default function LoginPage() {
               </div>
 
               <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className="font-mono text-slate-400">utilizator: dev</span>
-                <span className="inline-flex items-center gap-1 font-semibold text-blue-600 group-hover:text-blue-700">
-                  Conectare {r.badge} <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
-                </span>
+                <span className="text-slate-400">Profil rol: {r.role}</span>
+                {isSelected ? (
+                  <span className="inline-flex items-center gap-1 font-semibold text-blue-600">
+                    <Check className="w-3.5 h-3.5" /> Selectat
+                  </span>
+                ) : (
+                  <span className="font-medium text-slate-500 group-hover:text-blue-600">
+                    Selectează rolul
+                  </span>
+                )}
               </div>
             </button>
           );
         })}
       </div>
 
-      {/* Formular Manual de Conectare */}
+      {/* Formular Conectare */}
       <div className="max-w-md mx-auto w-full bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
         <div className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
           <KeyRound className="w-4 h-4 text-blue-600" />
-          <span>Formular Conectare Manuală</span>
+          <span>Date de Autentificare</span>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
@@ -204,19 +214,20 @@ export default function LoginPage() {
               <option value="ADMIN">Admin Master</option>
               <option value="SSM">Specialist SSM</option>
               <option value="HR">Resurse Umane (HR)</option>
-              <option value="IGIENA">Inspector Igienă (Cursuri & Adeverințe)</option>
+              <option value="IGIENA">Inspector Igienă (Cursuri &amp; Adeverințe)</option>
             </select>
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Nume Utilizator *
+              Utilizator sau Email *
             </label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="dev"
+              placeholder="ex: admin sau admin@ssm.ro"
+              autoComplete="username"
               required
               className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
@@ -230,7 +241,8 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••"
+              placeholder="Introduceți parola"
+              autoComplete="current-password"
               required
               className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
@@ -247,5 +259,19 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full max-w-md mx-auto py-16 text-center text-sm text-slate-500">
+          Se încarcă pagina de autentificare...
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

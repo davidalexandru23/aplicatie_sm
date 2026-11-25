@@ -92,6 +92,7 @@ export function isRouteAllowedForRole(pathname: string, role: UserRole): boolean
   // Căi publice comune
   if (
     pathname === '/login' ||
+    pathname === '/api/health' ||
     pathname.startsWith('/api/auth') ||
     pathname.startsWith('/_next') ||
     pathname === '/favicon.ico'

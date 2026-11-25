@@ -1,0 +1,70 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ssm_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      POSTGRES_DB: ${POSTGRES_DB:-ssm_db}
+    volumes:
+      - ssm_postgres_data:/var/lib/postgresql/data
+    networks:
+      - ssm_internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ssm_user} -d ${POSTGRES_DB:-ssm_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${APP_BIND_HOST:-127.0.0.1}:${APP_PORT:-3015}:3000"
+    environment:
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-ssm_user}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-ssm_db}?schema=public"
+      NODE_ENV: production
+      PORT: "3000"
+      STORAGE_DIR: "/app/storage"
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set}
+      INIT_DEFAULT_PASSWORD: ${INIT_DEFAULT_PASSWORD:-}
+      INIT_ADMIN_USERNAME: ${INIT_ADMIN_USERNAME:-admin}
+      INIT_ADMIN_EMAIL: ${INIT_ADMIN_EMAIL:-admin@ssm.ro}
+      INIT_ADMIN_NAME: ${INIT_ADMIN_NAME:-Administrator}
+      INIT_ADMIN_PASSWORD: ${INIT_ADMIN_PASSWORD:-}
+      INIT_SSM_USERNAME: ${INIT_SSM_USERNAME:-ssm}
+      INIT_SSM_EMAIL: ${INIT_SSM_EMAIL:-ssm@ssm.ro}
+      INIT_SSM_NAME: ${INIT_SSM_NAME:-Specialist SSM}
+      INIT_SSM_PASSWORD: ${INIT_SSM_PASSWORD:-}
+      INIT_HR_USERNAME: ${INIT_HR_USERNAME:-hr}
+      INIT_HR_EMAIL: ${INIT_HR_EMAIL:-hr@ssm.ro}
+      INIT_HR_NAME: ${INIT_HR_NAME:-Resurse Umane}
+      INIT_HR_PASSWORD: ${INIT_HR_PASSWORD:-}
+      INIT_IGIENA_USERNAME: ${INIT_IGIENA_USERNAME:-igiena}
+      INIT_IGIENA_EMAIL: ${INIT_IGIENA_EMAIL:-igiena@ssm.ro}
+      INIT_IGIENA_NAME: ${INIT_IGIENA_NAME:-Inspector Igienă}
+      INIT_IGIENA_PASSWORD: ${INIT_IGIENA_PASSWORD:-}
+    volumes:
+      - ssm_app_storage:/app/storage
+    networks:
+      - ssm_internal
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  ssm_postgres_data:
+  ssm_app_storage:
+
+networks:
+  ssm_internal:
+    driver: bridge

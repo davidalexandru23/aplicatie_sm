@@ -23,13 +23,14 @@ import {
   Sun,
   Moon,
 } from 'lucide-react';
-import { UserRole } from '@/lib/auth';
+import type { UserRole } from '@/lib/auth';
 import { ROLE_CONFIG, RoleMeta } from '@/lib/rbac';
 import { ChangePasswordModal } from '@/components/change-password-modal';
 
 interface NavbarProps {
   currentUser?: {
     id: string;
+    username?: string | null;
     email: string;
     name: string;
     role: UserRole;
@@ -287,8 +288,10 @@ export function Navbar({ currentUser }: NavbarProps) {
                   <div className="text-xs text-slate-200 font-bold mt-0.5 truncate">
                     {currentUser?.name || 'Utilizator Conectat'}
                   </div>
-                  <div className="text-[11px] text-slate-400 font-mono">
-                    utilizator: dev
+                  <div className="text-[11px] text-slate-400 font-mono truncate">
+                    {currentUser?.username
+                      ? `utilizator: ${currentUser.username}`
+                      : currentUser?.email || ''}
                   </div>
                 </div>
 
