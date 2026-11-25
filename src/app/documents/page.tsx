@@ -50,7 +50,7 @@ export default async function DocumentsPage() {
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto overscroll-x-contain touch-pan-x">
             <table className="min-w-full divide-y divide-slate-100 text-left text-xs">
               <thead className="bg-slate-50/75 text-slate-400 font-semibold uppercase tracking-wider">
                 <tr>
@@ -103,7 +103,7 @@ export default async function DocumentsPage() {
                     <td className="px-4 py-3.5 text-right">
                       <a
                         href={`/api/documents/${doc.id}/download`}
-                        className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-semibold px-2.5 py-1 bg-blue-50 hover:bg-blue-100 rounded transition"
+                        className="min-h-[34px] inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-semibold px-3 py-1.5 bg-blue-50 hover:bg-blue-100 rounded transition"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>Descarcă</span>

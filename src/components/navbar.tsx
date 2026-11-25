@@ -213,7 +213,7 @@ export function Navbar({ currentUser }: NavbarProps) {
   ];
 
   return (
-    <header className="bg-zinc-950 text-white shadow-md sticky top-0 z-50 border-b border-zinc-800/80">
+    <header className="bg-[#0b1120]/95 backdrop-blur-md text-white shadow-md sticky top-0 z-40 border-b border-slate-800/90">
       <div className="max-w-[1920px] 2xl:max-w-[98vw] mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between h-16">
         {/* Left Side: Mobile/Tablet Hamburger + Brand */}
         <div className="flex items-center gap-3">
@@ -221,7 +221,7 @@ export function Navbar({ currentUser }: NavbarProps) {
           <button
             type="button"
             onClick={() => setIsMobileDrawerOpen(true)}
-            className="xl:hidden p-2 rounded-lg text-zinc-300 hover:text-white hover:bg-zinc-800 transition focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="xl:hidden min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition focus:outline-none focus:ring-2 focus:ring-sky-500"
             aria-label="Deschide meniul principal"
           >
             <Menu className="w-5 h-5" />
@@ -229,13 +229,13 @@ export function Navbar({ currentUser }: NavbarProps) {
 
           {/* Logo & Platform Name */}
           <Link href={role === 'IGIENA' ? '/hygiene' : '/'} className="flex items-center gap-2.5 group select-none">
-            <div className="flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-zinc-800 hover:bg-zinc-700/90 text-white font-semibold text-xs tracking-wider border border-zinc-700/80 shadow-xs group-hover:border-blue-500/50 transition">
+            <div className="flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-slate-800 hover:bg-slate-700/90 text-white font-semibold text-xs tracking-wider border border-slate-700/80 shadow-xs group-hover:border-blue-500/50 transition">
               <Shield className="w-3.5 h-3.5 text-blue-400" />
               <span>SSM</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-sm text-zinc-100 tracking-tight">Platformă Internă</span>
-              <span className="hidden sm:inline text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-zinc-800">
+              <span className="font-semibold text-sm text-slate-100 tracking-tight">Platformă Internă</span>
+              <span className="hidden sm:inline text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800">
                 SEPP
               </span>
             </div>
@@ -273,7 +273,7 @@ export function Navbar({ currentUser }: NavbarProps) {
           <button
             type="button"
             onClick={toggleTheme}
-            className="p-1.5 sm:p-2 rounded-lg bg-slate-800 hover:bg-slate-700/80 border border-slate-700 text-slate-300 hover:text-white transition focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+            className="min-w-[38px] min-h-[38px] flex items-center justify-center p-1.5 sm:p-2 rounded-lg bg-slate-800 hover:bg-slate-700/80 border border-slate-700 text-slate-300 hover:text-white transition focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
             title={isDark ? 'Comută pe tema luminoasă (Light Mode)' : 'Comută pe tema întunecată (Dark Mode)'}
             aria-label="Comutator temă Dark/Light"
           >
@@ -288,7 +288,7 @@ export function Navbar({ currentUser }: NavbarProps) {
           {(role === 'ADMIN' || role === 'HR') && (
             <Link
               href="/imports/new"
-              className="hidden sm:inline-flex bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-1.5 2xl:py-2 rounded-lg shadow transition items-center gap-1.5"
+              className="hidden sm:inline-flex min-h-[38px] bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-1.5 2xl:py-2 rounded-lg shadow transition items-center gap-1.5"
             >
               <UploadCloud className="w-3.5 h-3.5" />
               <span>+ Import Excel</span>
@@ -298,8 +298,9 @@ export function Navbar({ currentUser }: NavbarProps) {
           {/* Quick Role Switcher Dropdown */}
           <div className="relative">
             <button
+              type="button"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700/80 border border-slate-700 transition text-xs font-semibold text-slate-200"
+              className="min-h-[38px] flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700/80 border border-slate-700 transition text-xs font-semibold text-slate-200 cursor-pointer"
               title="Click pentru schimbare rapidă rol (RBAC)"
             >
               <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-semibold border ${roleMeta.bgColor} ${roleMeta.color} ${roleMeta.borderColor}`}>
@@ -312,67 +313,76 @@ export function Navbar({ currentUser }: NavbarProps) {
             </button>
 
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-72 max-w-[calc(100vw-2rem)] bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-2 z-50 text-xs animate-in fade-in duration-100">
-                <div className="px-3 py-2 border-b border-slate-800">
-                  <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                    Comutare Rol de Acces
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setIsDropdownOpen(false)}
+                />
+                <div className="absolute right-0 mt-2 w-72 max-w-[calc(100vw-2rem)] bg-[#111a2e] border border-slate-700/80 rounded-xl shadow-2xl py-2 z-50 text-xs animate-in fade-in duration-100">
+                  <div className="px-3 py-2 border-b border-slate-800">
+                    <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                      Comutare Rol de Acces
+                    </div>
+                    <div className="text-xs text-slate-200 font-bold mt-0.5 truncate">
+                      {currentUser?.name || 'Utilizator Conectat'}
+                    </div>
+                    <div className="text-[11px] text-slate-400 truncate">
+                      Rol activ: {roleMeta.label}
+                    </div>
                   </div>
-                  <div className="text-xs text-slate-200 font-bold mt-0.5 truncate">
-                    {currentUser?.name || 'Utilizator Conectat'}
+
+                  <div className="p-1.5 space-y-1">
+                    {(['ADMIN', 'SSM', 'HR', 'IGIENA'] as UserRole[]).map((r) => {
+                      const isSelected = r === role;
+                      const meta = ROLE_CONFIG[r];
+                      return (
+                        <button
+                          key={r}
+                          type="button"
+                          onClick={() => handleRoleSwitch(r)}
+                          disabled={isSwitching}
+                          className={`w-full min-h-[40px] flex items-center justify-between p-2 rounded-lg text-left transition ${
+                            isSelected
+                              ? 'bg-slate-800 text-white font-semibold'
+                              : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${meta.bgColor} ${meta.color}`}>
+                              {meta.badge}
+                            </span>
+                            <span>{meta.label}</span>
+                          </div>
+                          {isSelected && <Check className="w-4 h-4 text-emerald-400" />}
+                        </button>
+                      );
+                    })}
                   </div>
-                  <div className="text-[11px] text-slate-400 truncate">
-                    Rol activ: {roleMeta.label}
+
+                  <div className="p-1.5 border-t border-slate-800 space-y-0.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        setIsPasswordModalOpen(true);
+                      }}
+                      className="w-full min-h-[40px] flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition text-left font-medium"
+                    >
+                      <KeyRound className="w-3.5 h-3.5 text-blue-400" />
+                      <span>Schimbă Parola</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="w-full min-h-[40px] flex items-center gap-2 px-3 py-2 rounded-lg text-red-400 hover:bg-red-950/40 hover:text-red-300 transition text-left font-medium"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Deconectare</span>
+                    </button>
                   </div>
                 </div>
-
-                <div className="p-1.5 space-y-1">
-                  {(['ADMIN', 'SSM', 'HR', 'IGIENA'] as UserRole[]).map((r) => {
-                    const isSelected = r === role;
-                    const meta = ROLE_CONFIG[r];
-                    return (
-                      <button
-                        key={r}
-                        onClick={() => handleRoleSwitch(r)}
-                        disabled={isSwitching}
-                        className={`w-full flex items-center justify-between p-2 rounded-lg text-left transition ${
-                          isSelected
-                            ? 'bg-slate-800 text-white font-semibold'
-                            : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${meta.bgColor} ${meta.color}`}>
-                            {meta.badge}
-                          </span>
-                          <span>{meta.label}</span>
-                        </div>
-                        {isSelected && <Check className="w-4 h-4 text-emerald-400" />}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="p-1.5 border-t border-slate-800 space-y-0.5">
-                  <button
-                    onClick={() => {
-                      setIsDropdownOpen(false);
-                      setIsPasswordModalOpen(true);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition text-left font-medium"
-                  >
-                    <KeyRound className="w-3.5 h-3.5 text-blue-400" />
-                    <span>Schimbă Parola</span>
-                  </button>
-
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-400 hover:bg-red-950/40 hover:text-red-300 transition text-left font-medium"
-                  >
-                    <LogOut className="w-3.5 h-3.5" />
-                    <span>Deconectare</span>
-                  </button>
-                </div>
-              </div>
+              </>
             )}
           </div>
         </div>
@@ -380,15 +390,15 @@ export function Navbar({ currentUser }: NavbarProps) {
 
       {/* Mobile & Tablet Slide-over Drawer (< xl) */}
       {isMobileDrawerOpen && (
-        <div className="fixed inset-0 z-50 xl:hidden">
+        <div className="fixed inset-0 z-[60] xl:hidden">
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-slate-950/75 backdrop-blur-xs transition-opacity"
             onClick={() => setIsMobileDrawerOpen(false)}
           />
 
           {/* Drawer Panel */}
-          <div className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-slate-900 border-r border-slate-800 shadow-2xl flex flex-col z-50">
+          <div className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-[#0f172a] border-r border-slate-800 shadow-2xl flex flex-col z-[60]">
             {/* Drawer Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950/40">
               <Link
@@ -404,29 +414,30 @@ export function Navbar({ currentUser }: NavbarProps) {
               <button
                 type="button"
                 onClick={() => setIsMobileDrawerOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                className="min-w-[38px] min-h-[38px] flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                aria-label="Închide meniul"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Current User Summary in Drawer */}
-            <div className="px-4 py-3 bg-slate-800/40 border-b border-slate-800 flex items-center justify-between">
-              <div>
-                <div className="text-xs font-bold text-slate-200">
+            <div className="px-4 py-3 bg-slate-800/40 border-b border-slate-800 flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-slate-200 truncate">
                   {currentUser?.name || 'Utilizator'}
                 </div>
-                <div className="text-[11px] text-slate-400">
+                <div className="text-[11px] text-slate-400 truncate">
                   Rol activ: {roleMeta.label}
                 </div>
               </div>
-              <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${roleMeta.bgColor} ${roleMeta.color} ${roleMeta.borderColor}`}>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border shrink-0 ${roleMeta.bgColor} ${roleMeta.color} ${roleMeta.borderColor}`}>
                 {roleMeta.badge}
               </span>
             </div>
 
             {/* Theme Switcher in Mobile Drawer */}
-            <div className="px-4 py-2.5 bg-slate-950/40 border-b border-slate-800 flex items-center justify-between">
+            <div className="px-4 py-2.5 bg-slate-950/40 border-b border-slate-800 flex items-center justify-between gap-2">
               <span className="text-xs font-medium text-slate-400 flex items-center gap-2">
                 {isDark ? <Moon className="w-3.5 h-3.5 text-blue-400" /> : <Sun className="w-3.5 h-3.5 text-amber-400" />}
                 <span>Temă interfață</span>
@@ -434,7 +445,7 @@ export function Navbar({ currentUser }: NavbarProps) {
               <button
                 type="button"
                 onClick={toggleTheme}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-750 border border-slate-700 text-xs font-medium text-slate-200 transition"
+                className="min-h-[36px] flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition"
               >
                 {isDark ? 'Întunecat (Dark)' : 'Luminos (Light)'}
               </button>
@@ -452,13 +463,13 @@ export function Navbar({ currentUser }: NavbarProps) {
                     key={link.href}
                     href={link.href}
                     onClick={() => setIsMobileDrawerOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${
+                    className={`min-h-[44px] flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${
                       link.active
                         ? 'bg-blue-600 text-white font-semibold shadow-sm'
                         : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                     }`}
                   >
-                    <Icon className="w-4 h-4 shrink-0 text-slate-400 group-hover:text-white" />
+                    <Icon className={`w-4 h-4 shrink-0 ${link.active ? 'text-white' : 'text-slate-400'}`} />
                     <span>{link.label}</span>
                   </Link>
                 );
@@ -469,9 +480,9 @@ export function Navbar({ currentUser }: NavbarProps) {
                   <Link
                     href="/imports/new"
                     onClick={() => setIsMobileDrawerOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium bg-blue-600/20 text-blue-300 hover:bg-blue-600/30 border border-blue-500/30 transition"
+                    className="min-h-[44px] flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium bg-blue-600/20 text-blue-300 hover:bg-blue-600/30 border border-blue-500/30 transition"
                   >
-                    <UploadCloud className="w-4 h-4 text-blue-400" />
+                    <UploadCloud className="w-4 h-4 text-blue-400 shrink-0" />
                     <span>+ Import Registru Excel</span>
                   </Link>
                 </div>
@@ -486,7 +497,7 @@ export function Navbar({ currentUser }: NavbarProps) {
                   setIsMobileDrawerOpen(false);
                   setIsPasswordModalOpen(true);
                 }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 transition text-left"
+                className="w-full min-h-[44px] flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 transition text-left"
               >
                 <KeyRound className="w-3.5 h-3.5 text-blue-400" />
                 <span>Schimbă Parola</span>
@@ -494,7 +505,7 @@ export function Navbar({ currentUser }: NavbarProps) {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-red-400 hover:bg-red-950/40 transition text-left"
+                className="w-full min-h-[44px] flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-red-400 hover:bg-red-950/40 transition text-left"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Deconectare</span>
@@ -512,8 +523,8 @@ export function Navbar({ currentUser }: NavbarProps) {
       />
 
       {pendingSwitchRole && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-sm w-full overflow-hidden">
+        <div className="fixed inset-0 z-[70] bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-sm w-full max-h-[92dvh] overflow-y-auto">
             <div className="px-5 py-3.5 bg-slate-900 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <KeyRound className="w-4 h-4 text-blue-400" />

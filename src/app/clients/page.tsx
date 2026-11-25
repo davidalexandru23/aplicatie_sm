@@ -32,11 +32,11 @@ export default async function ClientsPage() {
             Gestiunea dosarului complet per firmă: profil CAEN, numiri statutare, angajați, evaluări de risc și documente emise.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <ClientIntakeModal />
           <Link
             href="/imports/new"
-            className="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-3.5 py-2 rounded-lg transition"
+            className="min-h-[38px] inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-3.5 py-2 rounded-lg transition"
           >
             <UploadCloud className="w-4 h-4 text-slate-600" />
             <span>Import din Excel</span>
@@ -51,7 +51,7 @@ export default async function ClientsPage() {
           <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
             Înregistrează un client nou prin formularul dedicat sau importă un fișier Excel cu registrul de salariați.
           </p>
-          <div className="mt-4 flex items-center justify-center gap-2">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
             <ClientIntakeModal />
             <Link
               href="/imports/new"
@@ -144,10 +144,10 @@ export default async function ClientsPage() {
                 </div>
               </div>
 
-              <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+              <div className="mt-5 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
                 <Link
                   href={`/clients/${c.id}`}
-                  className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                  className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 py-1"
                 >
                   <span>Deschide Dosar</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -155,7 +155,7 @@ export default async function ClientsPage() {
                 <div className="flex items-center gap-1.5">
                   <a
                     href={`/api/clients/${c.id}/export`}
-                    className="text-[11px] text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded border border-emerald-200 inline-flex items-center gap-1 font-medium transition"
+                    className="text-[11px] text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1.5 rounded border border-emerald-200 inline-flex items-center gap-1 font-medium transition"
                     download
                     title="Exportă registrul complet în Excel"
                   >
@@ -164,7 +164,7 @@ export default async function ClientsPage() {
                   </a>
                   <Link
                     href={`/imports/new?clientId=${c.id}`}
-                    className="text-[11px] text-slate-500 hover:text-slate-800 bg-slate-50 hover:bg-slate-100 px-2 py-1 rounded border border-slate-200"
+                    className="text-[11px] text-slate-500 hover:text-slate-800 bg-slate-50 hover:bg-slate-100 px-2.5 py-1.5 rounded border border-slate-200 transition"
                     title="Actualizează datele firmei prin import Excel"
                   >
                     Import

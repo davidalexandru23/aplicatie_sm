@@ -242,19 +242,19 @@ export function TrainingPlannerModal({
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-4xl overflow-hidden my-4 sm:my-8 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-4xl max-h-[92dvh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             {/* Modal Header */}
-            <div className="px-4 sm:px-6 py-3.5 sm:py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+            <div className="px-4 sm:px-6 py-3.5 sm:py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-xl shrink-0">
                   <BookOpenCheck className="w-5 h-5" />
                 </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-slate-900 truncate">
                     Planifică / Consemnează Sesiune de Instruire SSM / PSI
                   </h3>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-slate-500 truncate">
                     Înregistrează instruirea și resetează automat scadențele legale ale salariaților conform Legii 319/2006 și HG 1425/2006.
                   </p>
                 </div>
@@ -262,7 +262,7 @@ export function TrainingPlannerModal({
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg transition"
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg transition shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -270,27 +270,27 @@ export function TrainingPlannerModal({
 
             {/* Error & Success Banners */}
             {errorMessage && (
-              <div className="p-3.5 bg-rose-50 border-b border-rose-200 text-xs text-rose-800 flex items-center gap-2">
+              <div className="p-3.5 bg-rose-50 border-b border-rose-200 text-xs text-rose-800 flex items-center gap-2 shrink-0">
                 <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
                 <span>{errorMessage}</span>
               </div>
             )}
             {successMessage && (
-              <div className="p-3.5 bg-emerald-50 border-b border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
+              <div className="p-3.5 bg-emerald-50 border-b border-emerald-200 text-xs text-emerald-800 flex items-center gap-2 shrink-0">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                 <span>{successMessage}</span>
               </div>
             )}
 
             {/* Modal Form */}
-            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-5 max-h-[80dvh] sm:max-h-[75vh] overflow-y-auto">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-5 flex-1 overflow-y-auto">
               {/* 1. Client Selection */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Companie / Client Partener *
                 </label>
                 <div className="relative">
-                  <Building2 className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                  <Building2 className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <select
                     value={selectedClientId}
                     onChange={(e) => handleClientChange(e.target.value)}

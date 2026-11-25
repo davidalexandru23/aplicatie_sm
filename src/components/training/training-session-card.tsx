@@ -98,7 +98,7 @@ export function TrainingSessionCard({ event }: TrainingSessionCardProps) {
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4 hover:shadow-md transition">
       {/* Header */}
-      <div className="flex justify-between items-start gap-2">
+      <div className="flex flex-wrap justify-between items-start gap-2">
         <div className="space-y-1">
           <h2 className="text-sm font-bold text-slate-900 leading-snug">{event.materialOrTopic}</h2>
           <div className="text-xs text-slate-500 flex items-center gap-1.5">
@@ -173,7 +173,7 @@ export function TrainingSessionCard({ event }: TrainingSessionCardProps) {
 
       {/* Action shortcuts toolbar */}
       <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* PV Instruire download */}
           <button
             type="button"
@@ -242,8 +242,8 @@ export function TrainingSessionCard({ event }: TrainingSessionCardProps) {
               const docKey = `emp-${p.employeeId}`;
 
               return (
-                <div key={p.id} className="pt-1.5 first:pt-0 flex items-center justify-between text-xs">
-                  <div>
+                <div key={p.id} className="pt-1.5 first:pt-0 flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <div className="min-w-0">
                     <span className="font-semibold text-slate-900">{fullName}</span>
                     <span className="text-slate-400 ml-1.5 text-[11px]">({jobTitle})</span>
                   </div>
@@ -259,7 +259,7 @@ export function TrainingSessionCard({ event }: TrainingSessionCardProps) {
                       })
                     }
                     disabled={downloadingDoc === docKey}
-                    className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition disabled:opacity-50"
+                    className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition disabled:opacity-50"
                     title={`Descarcă Fișă Individuală pentru ${fullName}`}
                   >
                     {downloadingDoc === docKey ? (

@@ -39,7 +39,7 @@ export default async function TemplatesPage() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-xl font-bold text-slate-900">
               Catalogul Oficial al celor 25 de Șabloane SSM
             </h1>
@@ -72,7 +72,7 @@ export default async function TemplatesPage() {
             </span>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto overscroll-x-contain touch-pan-x">
             <table className="min-w-full divide-y divide-slate-100 text-left text-xs">
               <thead className="bg-white text-slate-400 font-semibold uppercase tracking-wider">
                 <tr>

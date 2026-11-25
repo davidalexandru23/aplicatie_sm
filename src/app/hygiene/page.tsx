@@ -738,7 +738,7 @@ export default function HygienePage() {
           </div>
 
           {/* Date generale sesiune (pre-populate din Setări SEPP) */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
             <div>
               <label className="block text-[11px] font-bold text-slate-700 mb-1">Data Cursului *</label>
               <input type="date" name="sessionDate" required className="w-full text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
@@ -814,22 +814,22 @@ export default function HygienePage() {
                 Selectează Salariații Participanți din Portofoliu:
               </span>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="relative">
-                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <div className="relative flex-1 sm:flex-initial">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
                     value={createSearchTerm}
                     onChange={(e) => setCreateSearchTerm(e.target.value)}
                     placeholder="Caută nume, CNP, firmă..."
-                    className="text-xs pl-8 pr-3 py-1.5 border border-slate-300 rounded-lg w-48 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="text-xs pl-8 pr-3 py-2 min-h-[38px] border border-slate-300 rounded-lg w-full sm:w-56 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
 
                 <select
                   value={createCompanyFilter}
                   onChange={(e) => setCreateCompanyFilter(e.target.value)}
-                  className="text-xs border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                  className="text-xs min-h-[38px] border border-slate-300 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
                 >
                   <option value="">Toate firmele ({availableCompanies.length})</option>
                   {availableCompanies.map((c) => (
@@ -848,7 +848,7 @@ export default function HygienePage() {
                       setCreateSelectedEmpIds((prev) => Array.from(new Set([...prev, ...ids])));
                     }
                   }}
-                  className="text-[11px] font-semibold bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg transition"
+                  className="min-h-[38px] text-[11px] font-semibold bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-100 px-3 py-1.5 rounded-lg transition"
                 >
                   Bifează / Debifează filtrați ({filteredCreateEmployees.length})
                 </button>
@@ -1001,20 +1001,20 @@ export default function HygienePage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
+            <div className="relative flex-1 sm:flex-initial">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={addSearchTerm}
                 onChange={(e) => setAddSearchTerm(e.target.value)}
                 placeholder="Caută în portofoliu..."
-                className="text-xs pl-8 pr-3 py-1.5 border border-slate-300 rounded-lg w-52 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-xs pl-8 pr-3 py-2 min-h-[38px] border border-slate-300 rounded-lg w-full sm:w-56 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <select
               value={addCompanyFilter}
               onChange={(e) => setAddCompanyFilter(e.target.value)}
-              className="text-xs border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="text-xs min-h-[38px] border border-slate-300 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Toate firmele ({availableCompanies.length})</option>
               {availableCompanies.map((c) => (
@@ -1113,10 +1113,10 @@ export default function HygienePage() {
             return (
               <div key={session.id} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 {/* Session Header */}
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
+                <div className="p-4 sm:p-5">
+                  <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
                         <h2 className="text-sm font-bold text-slate-900">{session.providerName}</h2>
                         {session.hygieneModule && (
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -1150,7 +1150,7 @@ export default function HygienePage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2 shrink-0">
                       {/* Add participants from portfolio */}
                       {session.status === 'programata' && (
                         <button
@@ -1158,7 +1158,7 @@ export default function HygienePage() {
                             setAddParticipantsSessionId(session.id === addParticipantsSessionId ? null : session.id);
                             loadPortfolioEmployees();
                           }}
-                          className="inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition border border-blue-200"
+                          className="min-h-[34px] inline-flex items-center gap-1 text-[11px] font-semibold px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition border border-blue-200"
                         >
                           <Plus className="w-3 h-3" />
                           + Cursanți
@@ -1170,7 +1170,7 @@ export default function HygienePage() {
                         <button
                           onClick={() => handleAdvanceStatus(session.id)}
                           disabled={actionLoading === session.id}
-                          className="inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition border border-emerald-200"
+                          className="min-h-[34px] inline-flex items-center gap-1 text-[11px] font-semibold px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition border border-emerald-200"
                         >
                           {actionLoading === session.id ? <RefreshCw className="w-3 h-3 animate-spin" /> : <ArrowRight className="w-3 h-3" />}
                           {STATUS_ACTION_LABELS[session.status]}
@@ -1180,15 +1180,17 @@ export default function HygienePage() {
                       {/* Delete */}
                       <button
                         onClick={() => handleDeleteSession(session.id)}
-                        className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition"
+                        className="min-h-[34px] min-w-[34px] inline-flex items-center justify-center gap-1 text-[11px] font-semibold px-2.5 py-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition"
+                        aria-label="Șterge sesiunea"
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
 
                       {/* Expand */}
                       <button
                         onClick={() => setExpandedSessionId(isExpanded ? null : session.id)}
-                        className="text-slate-400 hover:text-slate-600 p-1"
+                        className="min-h-[34px] min-w-[34px] inline-flex items-center justify-center text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition"
+                        aria-label="Extinde sau restrânge tabelul de cursanți"
                       >
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </button>
@@ -1224,9 +1226,9 @@ export default function HygienePage() {
                             {session.participants.map((p, idx) => {
                               const isBisNumber = p.certificateNumber?.toUpperCase().includes('BIS');
                               return (
-                                <tr key={p.id} className="border-b border-slate-100 hover:bg-white">
+                                <tr key={p.id} className="group border-b border-slate-100 hover:bg-white">
                                   <td className="px-3 py-2 text-slate-400">{idx + 1}</td>
-                                  <td className="sticky left-0 z-10 bg-slate-50 hover:bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] px-3 py-2 font-bold text-slate-900">
+                                  <td className="sticky left-0 z-10 min-w-[160px] bg-slate-50 group-hover:bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] px-3 py-2 font-bold text-slate-900">
                                     {p.lastName} {p.firstName}
                                   </td>
                                   <td className="px-3 py-2 text-slate-700">{p.clientName}</td>
@@ -1260,7 +1262,8 @@ export default function HygienePage() {
                                       <span className="text-slate-400">—</span>
                                     )}
                                   </td>
-                                  <td className="px-3 py-2 text-right space-x-1.5 whitespace-nowrap">
+                                  <td className="px-3 py-2 text-right whitespace-nowrap">
+                                    <div className="inline-flex items-center justify-end gap-1.5 whitespace-nowrap">
                                     <button
                                       type="button"
                                       title="Editează note, prezență, adeverință BIS sau data predării diplomei"
@@ -1319,6 +1322,7 @@ export default function HygienePage() {
                                       )}
                                       Adeverință
                                     </button>
+                                    </div>
                                   </td>
                                 </tr>
                               );
@@ -1382,8 +1386,8 @@ export default function HygienePage() {
 
       {/* Modal Editare Cursant & Emitere Retroactivă BIS */}
       {editingParticipant && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] flex flex-col p-6 border border-slate-200">
+        <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[92dvh] flex flex-col p-4 sm:p-6 border border-slate-200">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
               <div className="flex items-center gap-2">
                 <Award className="w-5 h-5 text-blue-600" />
@@ -1517,7 +1521,7 @@ export default function HygienePage() {
               {/* Număr Adeverință DSP (Fără Serie!) */}
               <div className="pt-2 border-t border-slate-100 space-y-2">
                 <div>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
                     <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                       Număr Adeverință DSP (Fără Serie)
                     </label>
@@ -1526,7 +1530,7 @@ export default function HygienePage() {
                     </span>
                   </div>
                   <div className="relative">
-                    <Hash className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                    <Hash className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type="text"
                       disabled={editFormData.attendance === 'absent' || editFormData.examResult === 'respins'}
@@ -1608,7 +1612,7 @@ export default function HygienePage() {
 
               {/* Predare Diplomă DSP către Angajat */}
               <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-lg space-y-2.5">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-emerald-950">
                     <input
                       type="checkbox"

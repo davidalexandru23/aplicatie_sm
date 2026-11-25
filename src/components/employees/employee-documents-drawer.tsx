@@ -96,7 +96,7 @@ export function EmployeeDocumentsDrawer({
             {employee.lastName?.[0] || 'S'}{employee.firstName?.[0] || ''}
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="font-bold text-slate-900 text-sm">{employee.fullName}</span>
               <span
                 className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase ${
@@ -167,7 +167,7 @@ export function EmployeeDocumentsDrawer({
                     L319/2006 art. 30 • Navetă casă-muncă
                   </div>
                 </div>
-                <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-1 py-0.5 rounded border border-blue-100">
+                <span className="shrink-0 text-[9px] font-bold text-blue-600 bg-blue-50 px-1 py-0.5 rounded border border-blue-100">
                   DOCX
                 </span>
               </Link>
@@ -192,7 +192,7 @@ export function EmployeeDocumentsDrawer({
                     Dosar complet angajare (11 DOCX)
                   </div>
                 </div>
-                <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded border border-emerald-100">
+                <span className="shrink-0 text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded border border-emerald-100">
                   ZIP
                 </span>
               </a>
@@ -216,7 +216,7 @@ export function EmployeeDocumentsDrawer({
                     Model-cadru normat 2026
                   </div>
                 </div>
-                <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded border border-indigo-100">
+                <span className="shrink-0 text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded border border-indigo-100">
                   DOCX
                 </span>
               </Link>
@@ -240,7 +240,7 @@ export function EmployeeDocumentsDrawer({
                     Atribuții & răspunderi SSM pe post
                   </div>
                 </div>
-                <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-1 py-0.5 rounded border border-blue-100">
+                <span className="shrink-0 text-[9px] font-bold text-blue-600 bg-blue-50 px-1 py-0.5 rounded border border-blue-100">
                   DOCX
                 </span>
               </Link>
@@ -264,7 +264,7 @@ export function EmployeeDocumentsDrawer({
                     HG 1425/2006 • Introductiv / Periodic
                   </div>
                 </div>
-                <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-1 py-0.5 rounded border border-amber-100">
+                <span className="shrink-0 text-[9px] font-bold text-amber-600 bg-amber-50 px-1 py-0.5 rounded border border-amber-100">
                   DOCX
                 </span>
               </Link>
@@ -288,7 +288,7 @@ export function EmployeeDocumentsDrawer({
                     Formular de încadrare în muncă
                   </div>
                 </div>
-                <span className="text-[9px] font-bold text-slate-600 bg-slate-100 px-1 py-0.5 rounded border border-slate-200">
+                <span className="shrink-0 text-[9px] font-bold text-slate-600 bg-slate-100 px-1 py-0.5 rounded border border-slate-200">
                   DOCX
                 </span>
               </Link>
@@ -312,7 +312,7 @@ export function EmployeeDocumentsDrawer({
                     Ord. MS/ME 2209/4469/2022
                   </div>
                 </div>
-                <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded border border-emerald-100">
+                <span className="shrink-0 text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded border border-emerald-100">
                   DOCX
                 </span>
               </Link>

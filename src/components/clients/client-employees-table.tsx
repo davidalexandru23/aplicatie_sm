@@ -103,7 +103,7 @@ export function ClientEmployeesTable({
           <button
             type="button"
             onClick={() => setStatusFilter('ALL')}
-            className={`px-2.5 py-1 rounded text-xs font-semibold shrink-0 transition ${
+            className={`min-h-[36px] px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition ${
               statusFilter === 'ALL'
                 ? 'bg-blue-600 text-white shadow-2xs'
                 : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
@@ -114,7 +114,7 @@ export function ClientEmployeesTable({
           <button
             type="button"
             onClick={() => setStatusFilter('ACTIV')}
-            className={`px-2.5 py-1 rounded text-xs font-semibold shrink-0 transition ${
+            className={`min-h-[36px] px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition ${
               statusFilter === 'ACTIV'
                 ? 'bg-emerald-600 text-white shadow-2xs'
                 : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
@@ -126,7 +126,7 @@ export function ClientEmployeesTable({
             <button
               type="button"
               onClick={() => setStatusFilter('SUSPENDAT')}
-              className={`px-2.5 py-1 rounded text-xs font-semibold shrink-0 transition ${
+              className={`min-h-[36px] px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition ${
                 statusFilter === 'SUSPENDAT'
                   ? 'bg-amber-600 text-white shadow-2xs'
                   : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
@@ -139,7 +139,7 @@ export function ClientEmployeesTable({
             <button
               type="button"
               onClick={() => setStatusFilter('PLECAT')}
-              className={`px-2.5 py-1 rounded text-xs font-semibold shrink-0 transition ${
+              className={`min-h-[36px] px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition ${
                 statusFilter === 'PLECAT'
                   ? 'bg-slate-700 text-white shadow-2xs'
                   : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
@@ -151,13 +151,13 @@ export function ClientEmployeesTable({
         </div>
 
         <div className="relative w-full sm:w-auto min-w-[200px] max-w-xs">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Filtrează salariați..."
-            className="w-full text-xs pl-8 pr-3 py-1 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full min-h-[36px] text-xs pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
       </div>
@@ -204,9 +204,15 @@ export function ClientEmployeesTable({
 
               return (
                 <React.Fragment key={emp.id}>
-                  <tr className={`transition hover:bg-slate-50/70 ${isExpanded ? 'bg-blue-50/20' : ''}`}>
+                  <tr className={`group transition hover:bg-slate-50/70 ${isExpanded ? 'bg-blue-50/20' : ''}`}>
                     {/* Salariat & Detalii de bază (Sticky on tablet horizontal scroll) */}
-                    <td className="sticky left-0 z-10 bg-white group-hover:bg-slate-50/70 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] px-4 sm:px-5 py-3.5">
+                    <td
+                      className={`sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] px-4 sm:px-5 py-3.5 transition-colors ${
+                        isExpanded
+                          ? 'bg-blue-50 border-l-2 border-l-blue-500'
+                          : 'bg-white group-hover:bg-slate-50/70'
+                      }`}
+                    >
                       <div className="font-semibold text-slate-900">
                         {emp.lastName} {emp.firstName}
                       </div>
@@ -292,7 +298,7 @@ export function ClientEmployeesTable({
                         <button
                           type="button"
                           onClick={() => toggleExpand(emp.id)}
-                          className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition shadow-2xs cursor-pointer ${
+                          className={`min-h-[36px] inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition shadow-2xs cursor-pointer ${
                             isExpanded
                               ? 'bg-blue-600 text-white border-blue-600'
                               : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300 hover:border-slate-400'

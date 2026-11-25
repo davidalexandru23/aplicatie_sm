@@ -357,10 +357,10 @@ export default async function DashboardPage() {
 
       {/* 5. Company Compliance Portfolio (Situație per Firmă Client) */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/75">
+        <div className="p-5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 bg-slate-50/75">
           <div>
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-blue-600" />
+              <Building2 className="w-5 h-5 text-blue-600 shrink-0" />
               <span>Portofoliu Firme Cliente — Scoruri de Conformitate SSM</span>
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -369,13 +369,13 @@ export default async function DashboardPage() {
           </div>
           <Link
             href="/clients"
-            className="text-xs font-semibold text-blue-600 hover:text-blue-800"
+            className="text-xs font-semibold text-blue-600 hover:text-blue-800 shrink-0"
           >
             Vezi toți clienții ({clientCount}) &rarr;
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overscroll-x-contain touch-pan-x">
           <table className="min-w-full divide-y divide-slate-100 text-left text-xs">
             <thead className="bg-white text-slate-400 font-semibold uppercase tracking-wider">
               <tr>
@@ -478,18 +478,18 @@ export default async function DashboardPage() {
             ) : (
               <div className="divide-y divide-slate-100">
                 {recentDocs.map((doc) => (
-                  <div key={doc.id} className="py-3 flex items-center justify-between">
-                    <div className="min-w-0 pr-4">
+                  <div key={doc.id} className="py-3 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
+                    <div className="min-w-0 flex-1 pr-2">
                       <div className="text-sm font-medium text-slate-900 truncate">
                         {doc.title}
                       </div>
                       <div className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
-                        <span>{doc.client.name}</span>
+                        <span className="truncate">{doc.client.name}</span>
                         <span>•</span>
-                        <span>{new Date(doc.createdAt).toLocaleDateString('ro-RO')}</span>
+                        <span className="shrink-0">{new Date(doc.createdAt).toLocaleDateString('ro-RO')}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       <span className={`text-[10px] px-2 py-0.5 rounded font-semibold uppercase ${
                         doc.status === 'approved_for_print'
                           ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
@@ -532,16 +532,16 @@ export default async function DashboardPage() {
               ) : (
                 <div className="divide-y divide-slate-100">
                   {recentImports.map((imp) => (
-                    <div key={imp.id} className="py-3 flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-medium text-slate-900">
+                    <div key={imp.id} className="py-3 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1 pr-2">
+                        <div className="text-sm font-medium text-slate-900 truncate">
                           {imp.filename}
                         </div>
                         <div className="text-xs text-slate-500 mt-0.5">
                           {imp.client.name} • {imp.rowCount} rânduri • {imp.newCount} noi, {imp.updatedCount} actualizate
                         </div>
                       </div>
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs text-slate-500 shrink-0">
                         {new Date(imp.createdAt).toLocaleDateString('ro-RO')}
                       </span>
                     </div>
@@ -561,21 +561,21 @@ export default async function DashboardPage() {
                 <span className="text-xs text-slate-400 font-mono">Modul SSM</span>
               </div>
               <div className="space-y-3">
-                <div className="p-3.5 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between">
+                <div className="p-3.5 bg-slate-50 rounded-lg border border-slate-200 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
                   <div>
                     <h3 className="text-xs font-bold text-slate-800">Evaluare Riscuri Profesionale</h3>
                     <p className="text-[11px] text-slate-500">Fișe de evaluare riscuri pe locuri de muncă conform Legii 319/2006</p>
                   </div>
-                  <Link href="/risk-assessments" className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded border border-emerald-200 hover:bg-emerald-100">
+                  <Link href="/risk-assessments" className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded border border-emerald-200 hover:bg-emerald-100 shrink-0">
                     Deschide
                   </Link>
                 </div>
-                <div className="p-3.5 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between">
+                <div className="p-3.5 bg-slate-50 rounded-lg border border-slate-200 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
                   <div>
                     <h3 className="text-xs font-bold text-slate-800">Instruiri & Tematici SSM</h3>
                     <p className="text-[11px] text-slate-500">Fișe instruire individuală, tematici introductiv-generale și la locul de muncă</p>
                   </div>
-                  <Link href="/trainings" className="text-xs font-semibold text-blue-700 bg-blue-50 px-3 py-1.5 rounded border border-blue-200 hover:bg-blue-100">
+                  <Link href="/trainings" className="text-xs font-semibold text-blue-700 bg-blue-50 px-3 py-1.5 rounded border border-blue-200 hover:bg-blue-100 shrink-0">
                     Deschide
                   </Link>
                 </div>

@@ -162,7 +162,7 @@ export default function NewImportPage() {
             <select
               value={selectedClientId}
               onChange={(e) => setSelectedClientId(e.target.value)}
-              className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full min-h-[40px] text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">-- Detectare automată din CUI sau Firmă Nouă --</option>
               {clients.map((c) => (
@@ -185,7 +185,7 @@ export default function NewImportPage() {
               accept=".xlsx,.xls"
               onChange={handleFileChange}
               disabled={loading || committing}
-              className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-slate-300 rounded-lg cursor-pointer"
+              className="w-full min-h-[40px] text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-slate-300 rounded-lg cursor-pointer"
             />
           </div>
         </div>
@@ -327,7 +327,7 @@ export default function NewImportPage() {
 
           {/* Table Preview */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/75">
+            <div className="px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/75">
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <Users className="w-4 h-4 text-slate-500" />
                 <span>Previzualizare Angajați ({previewResult.previewReport.items.length})</span>
@@ -335,7 +335,7 @@ export default function NewImportPage() {
               <button
                 onClick={handleCommit}
                 disabled={committing || previewResult.previewReport.summary.newCount + previewResult.previewReport.summary.modifiedCount === 0}
-                className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5 cursor-pointer disabled:cursor-not-allowed"
+                className="min-h-[40px] bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer disabled:cursor-not-allowed"
               >
                 {committing ? (
                   <>
@@ -352,24 +352,26 @@ export default function NewImportPage() {
             </div>
 
             {/* Interactive Filter Tabs */}
-            <div className="flex items-center gap-1 border-b border-slate-200 px-6 py-2 bg-slate-50/50">
+            <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-200 px-6 py-2.5 bg-slate-50/50">
               <button
                 onClick={() => setActiveFilterTab('ALL')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 cursor-pointer ${
+                className={`min-h-[36px] px-3 py-1.5 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 cursor-pointer ${
                   activeFilterTab === 'ALL'
-                    ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
+                    ? 'bg-white dark:bg-[#2563eb] text-slate-900 dark:text-white shadow-sm border border-slate-200 dark:border-blue-400/50'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
                 <span>Toate</span>
-                <span className="px-1.5 py-0.2 bg-slate-100 rounded-full text-[10px] text-slate-600 font-mono">
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                  activeFilterTab === 'ALL' ? 'bg-slate-100 dark:bg-blue-700/60 text-slate-600 dark:text-white' : 'bg-slate-100 text-slate-600'
+                }`}>
                   {previewResult.previewReport.items.length}
                 </span>
               </button>
 
               <button
                 onClick={() => setActiveFilterTab('ERROR')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 cursor-pointer ${
+                className={`min-h-[36px] px-3 py-1.5 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 cursor-pointer ${
                   activeFilterTab === 'ERROR'
                     ? 'bg-rose-50 text-rose-800 shadow-sm border border-rose-200'
                     : 'text-slate-500 hover:text-slate-800'
@@ -385,7 +387,7 @@ export default function NewImportPage() {
 
               <button
                 onClick={() => setActiveFilterTab('NEW')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 cursor-pointer ${
+                className={`min-h-[36px] px-3 py-1.5 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 cursor-pointer ${
                   activeFilterTab === 'NEW'
                     ? 'bg-emerald-50 text-emerald-800 shadow-sm border border-emerald-200'
                     : 'text-slate-500 hover:text-slate-800'
@@ -399,7 +401,7 @@ export default function NewImportPage() {
 
               <button
                 onClick={() => setActiveFilterTab('MODIFIED')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 cursor-pointer ${
+                className={`min-h-[36px] px-3 py-1.5 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 cursor-pointer ${
                   activeFilterTab === 'MODIFIED'
                     ? 'bg-blue-50 text-blue-800 shadow-sm border border-blue-200'
                     : 'text-slate-500 hover:text-slate-800'
@@ -412,7 +414,7 @@ export default function NewImportPage() {
               </button>
             </div>
 
-            <div className="overflow-x-auto max-h-96">
+            <div className="overflow-x-auto overscroll-x-contain touch-pan-x max-h-96">
               <table className="min-w-full divide-y divide-slate-100 text-left text-xs">
                 <thead className="bg-white text-slate-400 font-semibold uppercase tracking-wider sticky top-0 shadow-sm">
                   <tr>

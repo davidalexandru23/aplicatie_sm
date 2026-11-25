@@ -695,7 +695,7 @@ export default function SettingsProviderPage() {
                   Telefon Contact
                 </label>
                 <div className="relative">
-                  <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
                     value={providerForm.phone}
@@ -710,7 +710,7 @@ export default function SettingsProviderPage() {
                   Email Contact
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="email"
                     value={providerForm.email}
@@ -725,7 +725,7 @@ export default function SettingsProviderPage() {
                   Website Oficial
                 </label>
                 <div className="relative">
-                  <Globe className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <Globe className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
                     value={providerForm.website}
@@ -758,7 +758,7 @@ export default function SettingsProviderPage() {
                   Număr Certificat Abilitare ITM *
                 </label>
                 <div className="relative">
-                  <Award className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <Award className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
                     required
@@ -818,7 +818,7 @@ export default function SettingsProviderPage() {
         <div className="bg-white border-2 border-emerald-200/80 rounded-xl p-6 shadow-sm space-y-6 col-span-full lg:col-span-3 w-full">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-emerald-100 pb-4">
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="p-1.5 bg-emerald-100 text-emerald-800 rounded-lg">
                   <Award className="w-5 h-5 text-emerald-700" />
                 </span>
@@ -1083,7 +1083,7 @@ export default function SettingsProviderPage() {
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto overscroll-x-contain touch-pan-x">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-slate-600 font-bold uppercase tracking-wider">
@@ -1179,8 +1179,8 @@ export default function SettingsProviderPage() {
 
       {/* Modal: Adăugare / Editare Specialist */}
       {isSpecialistModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-[60] bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-lg w-full max-h-[92dvh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
               <h3 className="text-sm font-bold flex items-center gap-2">
                 <Users className="w-4 h-4 text-blue-400" />
@@ -1195,7 +1195,7 @@ export default function SettingsProviderPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveSpecialist} className="p-6 space-y-4 text-xs overflow-y-auto">
+            <form onSubmit={handleSaveSpecialist} className="p-4 sm:p-6 space-y-4 text-xs flex-1 overflow-y-auto">
               {specialistError && (
                 <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
@@ -1230,7 +1230,7 @@ export default function SettingsProviderPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
                     Serie / Număr Certificat Atestare
@@ -1269,7 +1269,7 @@ export default function SettingsProviderPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
                     Telefon Contact
@@ -1296,7 +1296,7 @@ export default function SettingsProviderPage() {
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+              <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -1342,8 +1342,8 @@ export default function SettingsProviderPage() {
 
       {/* Modal: Confirmare Ștergere / Dezactivare Specialist */}
       {deletingSpecialist && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full p-6 space-y-4">
+        <div className="fixed inset-0 z-[60] bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full max-h-[92dvh] overflow-y-auto p-6 space-y-4">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
                 <AlertCircle className="w-5 h-5 text-rose-600" />
@@ -1387,7 +1387,7 @@ export default function SettingsProviderPage() {
 
       {/* SECȚIUNE: SECURITATE & SCHIMBARE PAROLĂ CONT (UNIVERSALĂ PENTRU TOATE ROLURILE) */}
       <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-5">
-        <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+        <div className="border-b border-slate-100 pb-3 flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <KeyRound className="w-5 h-5 text-blue-600" />

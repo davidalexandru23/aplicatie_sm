@@ -74,9 +74,9 @@ export function ChangePasswordModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-        <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+    <div className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full max-h-[92dvh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <KeyRound className="w-4 h-4 text-blue-400" />
             <h3 className="text-sm font-semibold text-white">Schimbare Parolă Cont</h3>
@@ -84,13 +84,13 @@ export function ChangePasswordModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-white transition"
+            className="text-slate-400 hover:text-white transition p-1 rounded-lg"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 flex-1 overflow-y-auto">
           {userRole && (
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs text-slate-600 flex justify-between items-center">
               <span>Rol activ:</span>

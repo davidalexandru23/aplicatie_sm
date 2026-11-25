@@ -84,10 +84,10 @@ export default async function RiskAssessmentsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {assessments.map((a) => (
               <div key={a.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
+                <div className="flex flex-wrap justify-between items-start gap-3">
+                  <div className="min-w-0">
                     <h3 className="text-base font-bold text-slate-900">{a.title}</h3>
-                    <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
+                    <div className="text-xs text-slate-500 mt-0.5 flex flex-wrap items-center gap-2">
                       <span>Client: <strong className="text-slate-700">{a.client.name}</strong></span>
                       {a.job && (
                         <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium text-[11px]">
@@ -96,7 +96,7 @@ export default async function RiskAssessmentsPage() {
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0">
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 uppercase">
                       Metoda {a.method} v{a.version}
                     </span>
@@ -119,7 +119,7 @@ export default async function RiskAssessmentsPage() {
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-slate-100 flex justify-between items-center text-xs">
+                <div className="pt-2 border-t border-slate-100 flex flex-wrap justify-between items-center gap-2 text-xs">
                   <span className="text-slate-400">Evaluator: {a.evaluatorName || 'Specialist SSM'}</span>
                   <div className="flex items-center gap-3">
                     <Link

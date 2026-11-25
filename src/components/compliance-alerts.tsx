@@ -68,7 +68,7 @@ export function ComplianceAlerts({
           <button
             type="button"
             onClick={() => setFilter('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition ${
+            className={`min-h-[36px] px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition ${
               filter === 'all'
                 ? 'bg-slate-900 text-white shadow-sm'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -79,7 +79,7 @@ export function ComplianceAlerts({
           <button
             type="button"
             onClick={() => setFilter('medical')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition ${
+            className={`min-h-[36px] px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition ${
               filter === 'medical'
                 ? 'bg-blue-600 text-white shadow-sm'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -90,7 +90,7 @@ export function ComplianceAlerts({
           <button
             type="button"
             onClick={() => setFilter('ssm')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition ${
+            className={`min-h-[36px] px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition ${
               filter === 'ssm'
                 ? 'bg-indigo-600 text-white shadow-sm'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -101,7 +101,7 @@ export function ComplianceAlerts({
           <button
             type="button"
             onClick={() => setFilter('psi')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+            className={`min-h-[36px] px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition ${
               filter === 'psi'
                 ? 'bg-amber-600 text-white shadow-sm'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -112,7 +112,7 @@ export function ComplianceAlerts({
           <button
             type="button"
             onClick={() => setFilter('hygiene')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+            className={`min-h-[36px] px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition ${
               filter === 'hygiene'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -129,15 +129,15 @@ export function ComplianceAlerts({
         {/* PANEL 1: CRITICAL OVERDUE ALERTS */}
         <div className="bg-white rounded-xl border border-red-200 shadow-sm overflow-hidden flex flex-col justify-between">
           <div>
-            <div className="p-4 bg-red-50/80 border-b border-red-100 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="p-1.5 bg-red-600 text-white rounded-lg shadow-sm">
+            <div className="p-4 bg-red-50/80 border-b border-red-100 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="p-1.5 bg-red-600 text-white rounded-lg shadow-sm shrink-0">
                   <AlertTriangle className="w-4 h-4" />
                 </div>
-                <div>
-                  <h2 className="text-sm font-bold text-red-950 flex items-center gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-sm font-bold text-red-950 flex flex-wrap items-center gap-2">
                     <span>Alerte Critice — Termene Depășite</span>
-                    <span className="text-xs bg-red-600 text-white font-mono px-2 py-0.5 rounded-full">
+                    <span className="text-xs bg-red-600 text-white font-mono px-2 py-0.5 rounded-full shrink-0">
                       {filteredOverdue.length}
                     </span>
                   </h2>
@@ -148,7 +148,7 @@ export function ComplianceAlerts({
               </div>
               <Link
                 href="/employees?status=OVERDUE"
-                className="text-xs text-red-700 hover:text-red-900 font-semibold flex items-center gap-1"
+                className="text-xs text-red-700 hover:text-red-900 font-semibold flex items-center gap-1 shrink-0"
               >
                 <span>Toți ({overdueAlerts.length})</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -167,12 +167,12 @@ export function ComplianceAlerts({
               <div className="divide-y divide-slate-100 max-h-[380px] overflow-y-auto">
                 {filteredOverdue.map((alert) => (
                   <div key={alert.id} className="p-3.5 hover:bg-red-50/30 transition flex flex-col gap-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <div className="text-xs font-bold text-slate-900">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-bold text-slate-900 truncate">
                           {alert.employeeName}
                         </div>
-                        <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+                        <div className="text-[11px] text-slate-500 flex flex-wrap items-center gap-1.5 mt-0.5">
                           <span className="font-medium text-slate-700">{alert.clientName}</span>
                           {alert.jobTitle && (
                             <>
@@ -182,12 +182,12 @@ export function ComplianceAlerts({
                           )}
                         </div>
                       </div>
-                      <span className="bg-red-100 text-red-800 border border-red-200 text-[10px] font-bold px-2 py-0.5 rounded uppercase font-mono">
+                      <span className="bg-red-100 text-red-800 border border-red-200 text-[10px] font-bold px-2 py-0.5 rounded uppercase font-mono shrink-0">
                         EXPIRAT ({Math.abs(alert.daysRemaining ?? 0)}z)
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] bg-slate-50 px-2.5 py-1.5 rounded border border-slate-100">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] bg-slate-50 px-2.5 py-1.5 rounded border border-slate-100">
                       <span className="font-medium text-slate-700">
                         {alert.label} <span className="text-slate-400 font-normal">({alert.legalRef})</span>
                       </span>
@@ -246,15 +246,15 @@ export function ComplianceAlerts({
         {/* PANEL 2: UPCOMING SCADENTE (<= 30 DAYS) */}
         <div className="bg-white rounded-xl border border-amber-200 shadow-sm overflow-hidden flex flex-col justify-between">
           <div>
-            <div className="p-4 bg-amber-50/80 border-b border-amber-100 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="p-1.5 bg-amber-500 text-white rounded-lg shadow-sm">
+            <div className="p-4 bg-amber-50/80 border-b border-amber-100 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="p-1.5 bg-amber-500 text-white rounded-lg shadow-sm shrink-0">
                   <Clock className="w-4 h-4" />
                 </div>
-                <div>
-                  <h2 className="text-sm font-bold text-amber-950 flex items-center gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-sm font-bold text-amber-950 flex flex-wrap items-center gap-2">
                     <span>Scadențe Iminente (&le; 30 Zile)</span>
-                    <span className="text-xs bg-amber-500 text-white font-mono px-2 py-0.5 rounded-full">
+                    <span className="text-xs bg-amber-500 text-white font-mono px-2 py-0.5 rounded-full shrink-0">
                       {filteredUpcoming.length}
                     </span>
                   </h2>
@@ -265,7 +265,7 @@ export function ComplianceAlerts({
               </div>
               <Link
                 href="/employees?status=UPCOMING"
-                className="text-xs text-amber-800 hover:text-amber-950 font-semibold flex items-center gap-1"
+                className="text-xs text-amber-800 hover:text-amber-950 font-semibold flex items-center gap-1 shrink-0"
               >
                 <span>Toți ({upcomingAlerts.length})</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -284,12 +284,12 @@ export function ComplianceAlerts({
               <div className="divide-y divide-slate-100 max-h-[380px] overflow-y-auto">
                 {filteredUpcoming.map((alert) => (
                   <div key={alert.id} className="p-3.5 hover:bg-amber-50/30 transition flex flex-col gap-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <div className="text-xs font-bold text-slate-900">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-bold text-slate-900 truncate">
                           {alert.employeeName}
                         </div>
-                        <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+                        <div className="text-[11px] text-slate-500 flex flex-wrap items-center gap-1.5 mt-0.5">
                           <span className="font-medium text-slate-700">{alert.clientName}</span>
                           {alert.jobTitle && (
                             <>
@@ -299,12 +299,12 @@ export function ComplianceAlerts({
                           )}
                         </div>
                       </div>
-                      <span className="bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-bold px-2 py-0.5 rounded uppercase font-mono">
+                      <span className="bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-bold px-2 py-0.5 rounded uppercase font-mono shrink-0">
                         {alert.daysRemaining === 0 ? 'AZI' : `${alert.daysRemaining} ZILE`}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] bg-slate-50 px-2.5 py-1.5 rounded border border-slate-100">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] bg-slate-50 px-2.5 py-1.5 rounded border border-slate-100">
                       <span className="font-medium text-slate-700">
                         {alert.label} <span className="text-slate-400 font-normal">({alert.legalRef})</span>
                       </span>

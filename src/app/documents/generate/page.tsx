@@ -856,7 +856,7 @@ function DocumentGeneratorContent() {
               <span className="text-slate-600 block sm:inline sm:ml-1.5">Generare și descărcare arhivă completă conform normelor legale în vigoare:</span>
             </div>
           </div>
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full lg:w-auto">
+          <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
             {(userRole === 'ADMIN' || userRole === 'SSM') && (
               <a
                 href={`/api/clients/${selectedClientId}/packages/dossier`}
@@ -1005,14 +1005,14 @@ function DocumentGeneratorContent() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg self-start sm:self-auto">
+              <div className="flex flex-wrap items-center gap-1 bg-slate-100 p-1 rounded-lg self-start sm:self-auto">
                 <button
                   type="button"
                   onClick={() => setGenerationMode('single')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                  className={`min-h-[38px] flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
                     generationMode === 'single'
-                      ? 'bg-white text-blue-700 shadow-sm font-semibold'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-white dark:bg-[#2563eb] text-blue-700 dark:text-white shadow-sm font-semibold'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
                   }`}
                 >
                   <Users className="w-3.5 h-3.5" />
@@ -1021,10 +1021,10 @@ function DocumentGeneratorContent() {
                 <button
                   type="button"
                   onClick={() => setGenerationMode('batch')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                  className={`min-h-[38px] flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition ${
                     generationMode === 'batch'
-                      ? 'bg-white text-blue-700 shadow-sm font-semibold'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-white dark:bg-[#2563eb] text-blue-700 dark:text-white shadow-sm font-semibold'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
                   }`}
                 >
                   <Archive className="w-3.5 h-3.5" />
@@ -1193,15 +1193,15 @@ function DocumentGeneratorContent() {
                                   setSelectedEmployeeIds((prev) => [...prev, emp.id]);
                                 }
                               }}
-                              className={`p-3 flex items-center justify-between gap-3 text-xs transition ${
+                              className={`p-3 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 sm:gap-3 text-xs transition ${
                                 exp.isExpired
                                   ? 'bg-rose-50/40 text-slate-400 cursor-not-allowed select-none'
                                   : isSelected
-                                  ? 'bg-blue-50/70 text-slate-900 cursor-pointer'
+                                  ? 'bg-blue-50/70 dark:bg-blue-500/20 text-slate-900 cursor-pointer'
                                   : 'hover:bg-slate-50 text-slate-800 cursor-pointer'
                               }`}
                             >
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
                                 <input
                                   type="checkbox"
                                   checked={isSelected}
@@ -1215,10 +1215,10 @@ function DocumentGeneratorContent() {
                                       setSelectedEmployeeIds((prev) => prev.filter((id) => id !== emp.id));
                                     }
                                   }}
-                                  className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
+                                  className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                                 />
-                                <div>
-                                  <div className="flex items-center gap-2">
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                                     <span className={`font-semibold ${exp.isExpired ? 'text-slate-500 line-through' : 'text-slate-900'}`}>
                                       {emp.lastName} {emp.firstName}
                                     </span>
@@ -1246,7 +1246,7 @@ function DocumentGeneratorContent() {
                                 </div>
                               </div>
 
-                              <div>
+                              <div className="shrink-0">
                                 <span className={`text-[10px] px-2 py-0.5 rounded-full border ${exp.badgeClass}`}>
                                   {exp.badgeText}
                                 </span>
@@ -1322,7 +1322,7 @@ function DocumentGeneratorContent() {
                   }}
                   className={`p-3 text-left rounded-lg border transition ${
                     hygieneScope === 'client'
-                      ? 'border-blue-600 bg-blue-50/60 ring-2 ring-blue-500/20'
+                      ? 'border-blue-600 bg-blue-50/60 dark:bg-blue-500/20 dark:border-blue-400 ring-2 ring-blue-500/20'
                       : 'border-slate-200 bg-white hover:border-slate-300'
                   }`}
                 >
@@ -1348,7 +1348,7 @@ function DocumentGeneratorContent() {
                   onClick={() => setHygieneScope('session')}
                   className={`p-3 text-left rounded-lg border transition ${
                     hygieneScope === 'session'
-                      ? 'border-blue-600 bg-blue-50/60 ring-2 ring-blue-500/20'
+                      ? 'border-blue-600 bg-blue-50/60 dark:bg-blue-500/20 dark:border-blue-400 ring-2 ring-blue-500/20'
                       : 'border-slate-200 bg-white hover:border-slate-300'
                   }`}
                 >
@@ -1495,19 +1495,20 @@ function DocumentGeneratorContent() {
                     <span>Câmpuri specifice de completat / ajustat pentru acest document ({manualFields.length}):</span>
                   </div>
                   {manualFields.length > 8 && (
-                    <div className="relative">
+                    <div className="relative w-full sm:w-auto">
                       <input
                         type="text"
                         value={manualFieldSearch}
                         onChange={(e) => setManualFieldSearch(e.target.value)}
                         placeholder="Filtrează câmpuri manuale..."
-                        className="text-xs border border-slate-300 rounded px-2.5 py-1 w-52 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                        className="min-h-[36px] text-xs border border-slate-300 rounded-lg pl-2.5 pr-8 py-1.5 w-full sm:w-56 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
                       />
                       {manualFieldSearch && (
                         <button
                           type="button"
                           onClick={() => setManualFieldSearch('')}
-                          className="absolute right-2 top-1 text-slate-400 hover:text-slate-600 text-xs"
+                          aria-label="Șterge filtrul"
+                          className="min-w-[26px] min-h-[26px] flex items-center justify-center absolute right-1.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 text-xs rounded"
                         >
                           ×
                         </button>
@@ -1652,7 +1653,7 @@ function DocumentGeneratorContent() {
                 <Archive className="w-6 h-6" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <h3 className="text-sm font-bold text-slate-900">
                     Generare Colectivă Finalizată cu Succes ({batchResult.totalGenerated} documente)
                   </h3>
@@ -1706,7 +1707,7 @@ function DocumentGeneratorContent() {
       {/* Generation Result Card (Single Mode) */}
       {generationResult && (
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4 animate-in fade-in duration-300">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg">
                 <CheckCircle2 className="w-6 h-6" />

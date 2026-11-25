@@ -116,8 +116,8 @@ export function TerminateEmployeeModal({
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[92dvh] flex flex-col overflow-hidden border border-slate-200">
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 bg-rose-900 text-white shrink-0">
               <div className="flex items-center gap-2">

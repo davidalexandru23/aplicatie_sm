@@ -184,7 +184,7 @@ export function OrganizationalDecisionsCard({
             <FileCheck2 className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-sm font-bold text-slate-900">
                 Decizii Organizatorice SSM & Situații de Urgență (01–09)
               </h2>
@@ -205,12 +205,12 @@ export function OrganizationalDecisionsCard({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {!isEditing ? (
             <button
               type="button"
               onClick={() => setIsEditing(true)}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+              className="min-h-[38px] inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
             >
               <Edit3 className="w-3.5 h-3.5" />
               <span>Editează Numiri</span>
@@ -228,7 +228,7 @@ export function OrganizationalDecisionsCard({
                 });
                 setIsEditing(false);
               }}
-              className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 px-3 py-2 rounded-lg transition"
+              className="min-h-[38px] inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 px-3 py-2 rounded-lg transition"
             >
               <X className="w-3.5 h-3.5" />
               <span>Anulează</span>
@@ -239,7 +239,7 @@ export function OrganizationalDecisionsCard({
             type="button"
             onClick={handleGenerate}
             disabled={isGenerating}
-            className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition disabled:opacity-50"
+            className="min-h-[38px] inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition disabled:opacity-50"
           >
             {isGenerating ? (
               <>

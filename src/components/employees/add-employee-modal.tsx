@@ -243,11 +243,11 @@ export function AddEmployeeModal({
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-150">
           <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[92dvh] sm:max-h-[88vh] flex flex-col overflow-hidden border border-slate-200">
             {/* Header */}
             <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-slate-900 text-white shrink-0">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 min-w-0">
                 <UserPlus className="w-5 h-5 text-blue-400 shrink-0" />
                 <div className="min-w-0">
                   <h3 className="text-sm font-bold truncate">Adăugare Salariat Nou (Statutar)</h3>
@@ -277,9 +277,9 @@ export function AddEmployeeModal({
                     key={t.id}
                     type="button"
                     onClick={() => setActiveTab(t.id as TabKey)}
-                    className={`flex items-center gap-1.5 py-2.5 sm:py-3 px-3 sm:px-3.5 border-b-2 text-xs font-semibold shrink-0 transition ${
+                    className={`min-h-[42px] flex items-center gap-1.5 py-2.5 sm:py-3 px-3 sm:px-3.5 border-b-2 text-xs font-semibold shrink-0 transition ${
                       activeTab === t.id
-                        ? 'border-blue-600 text-blue-600 bg-white'
+                        ? 'border-blue-600 text-blue-600 bg-white dark:bg-[#111a2e] dark:text-sky-400 dark:border-sky-400'
                         : 'border-transparent text-slate-500 hover:text-slate-800'
                     }`}
                   >
@@ -328,7 +328,7 @@ export function AddEmployeeModal({
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-1">Nume de Familie *</label>
                       <input
@@ -357,7 +357,7 @@ export function AddEmployeeModal({
 
                   {isSsm ? (
                     <>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">Sex</label>
                           <select
@@ -385,7 +385,7 @@ export function AddEmployeeModal({
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">Locul Nașterii</label>
                           <input
@@ -420,7 +420,7 @@ export function AddEmployeeModal({
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">Telefon</label>
                           <input
@@ -447,7 +447,7 @@ export function AddEmployeeModal({
                     </>
                   ) : (
                     <>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">
                             CNP (Cod Numeric Personal) <span className="text-slate-400 font-normal">(opțional)</span>
@@ -478,7 +478,7 @@ export function AddEmployeeModal({
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">
                             Data Nașterii <span className="text-slate-400 font-normal">(opțional)</span>
@@ -515,7 +515,7 @@ export function AddEmployeeModal({
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">Cetățenie</label>
                           <input
@@ -608,7 +608,7 @@ export function AddEmployeeModal({
                   </div>
 
                   {hideCim ? (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-semibold text-slate-700 mb-1">Data Angajării *</label>
                         <input
@@ -635,7 +635,7 @@ export function AddEmployeeModal({
                     </div>
                   ) : (
                     <>
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">Data Angajării *</label>
                           <input
@@ -670,7 +670,7 @@ export function AddEmployeeModal({
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-4 gap-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">Salariu Brut (RON)</label>
                           <input
@@ -716,7 +716,7 @@ export function AddEmployeeModal({
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">Cont IBAN</label>
                           <input
@@ -751,7 +751,7 @@ export function AddEmployeeModal({
                   {!isSsm && (
                     <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
                       <span className="text-xs font-bold text-slate-800">Act de Identitate</span>
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
                           <label className="block text-[11px] font-semibold text-slate-600 mb-1">Tip Document</label>
                           <select
@@ -790,7 +790,7 @@ export function AddEmployeeModal({
                           />
                         </div>
                       </div>
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
                           <label className="block text-[11px] font-semibold text-slate-600 mb-1">Eliberat De</label>
                           <input
@@ -828,7 +828,7 @@ export function AddEmployeeModal({
 
                   <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
                     <span className="text-xs font-bold text-slate-800">Adresă de Domiciliu</span>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-[11px] font-semibold text-slate-600 mb-1">Județ</label>
                         <input
@@ -852,8 +852,8 @@ export function AddEmployeeModal({
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-4 gap-3">
-                      <div className="col-span-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                      <div className="sm:col-span-3">
                         <label className="block text-[11px] font-semibold text-slate-600 mb-1">Stradă</label>
                         <input
                           type="text"
@@ -878,7 +878,7 @@ export function AddEmployeeModal({
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-5 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                       <div>
                         <label className="block text-[10px] text-slate-500 mb-1">Bloc</label>
                         <input
@@ -1050,7 +1050,7 @@ export function AddEmployeeModal({
                 <div className="space-y-4">
                   <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
                     <span className="text-xs font-bold text-slate-800">Echipament Individual de Protecție (EIP - HG 1048/2006)</span>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
                         <label className="block text-[11px] font-semibold text-slate-600 mb-1">Mărime Pantofi</label>
                         <input
@@ -1089,7 +1089,7 @@ export function AddEmployeeModal({
 
                   <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
                     <span className="text-xs font-bold text-slate-800">Profil Medical de Urgență & Traseu Navetă (HG 1425/2006)</span>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-[11px] font-semibold text-slate-600 mb-1">Grupă Sanguină</label>
                         <select

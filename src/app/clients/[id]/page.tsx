@@ -199,7 +199,7 @@ export default async function ClientDetailPage({
           <ClientEditModal client={client} />
           <a
             href={`/api/clients/${client.id}/export`}
-            className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600/90 dark:hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm transition"
+            className="min-h-[40px] flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600/90 dark:hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm transition"
             download
           >
             <Download className="w-4 h-4 text-emerald-100" />
@@ -207,7 +207,7 @@ export default async function ClientDetailPage({
           </a>
           <a
             href={`/api/clients/${client.id}/packages/dossier`}
-            className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:border dark:border-zinc-700/80 text-slate-800 dark:text-zinc-200 text-xs font-semibold px-4 py-2.5 rounded-lg transition"
+            className="min-h-[40px] flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#1d2c46] dark:hover:bg-[#263858] dark:border dark:border-[#2f4366] text-slate-800 dark:text-slate-200 text-xs font-semibold px-4 py-2.5 rounded-lg transition"
             download
             title="Descarcă dosarul complet de organizare SSM la nivel de companie (16 documente DOCX)"
           >
@@ -216,7 +216,7 @@ export default async function ClientDetailPage({
           </a>
           <a
             href={`/api/clients/${client.id}/packages/inspection-archive`}
-            className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:border dark:border-zinc-700/80 text-slate-800 dark:text-zinc-200 text-xs font-semibold px-4 py-2.5 rounded-lg transition"
+            className="min-h-[40px] flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#1d2c46] dark:hover:bg-[#263858] dark:border dark:border-[#2f4366] text-slate-800 dark:text-slate-200 text-xs font-semibold px-4 py-2.5 rounded-lg transition"
             download
             title="Descarcă arhiva completă structurată pe foldere pentru inspecția ITM / ISU"
           >
@@ -226,7 +226,7 @@ export default async function ClientDetailPage({
           {!isSsmRole && (
             <Link
               href={`/imports/new?clientId=${client.id}`}
-              className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:border dark:border-zinc-700/80 text-slate-800 dark:text-zinc-200 text-xs font-semibold px-4 py-2.5 rounded-lg transition"
+              className="min-h-[40px] flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#1d2c46] dark:hover:bg-[#263858] dark:border dark:border-[#2f4366] text-slate-800 dark:text-slate-200 text-xs font-semibold px-4 py-2.5 rounded-lg transition"
             >
               <UploadCloud className="w-4 h-4 text-blue-500 dark:text-blue-400" />
               <span>Import / Actualizare Excel</span>
@@ -234,7 +234,7 @@ export default async function ClientDetailPage({
           )}
           <Link
             href={`/documents/generate?clientId=${client.id}`}
-            className="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:border dark:border-zinc-700/80 text-slate-800 dark:text-zinc-200 text-xs font-semibold px-4 py-2.5 rounded-lg transition"
+            className="min-h-[40px] flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#1d2c46] dark:hover:bg-[#263858] dark:border dark:border-[#2f4366] text-slate-800 dark:text-slate-200 text-xs font-semibold px-4 py-2.5 rounded-lg transition"
           >
             <FileText className="w-4 h-4 text-slate-500 dark:text-slate-400" />
             <span>Generează Document</span>
@@ -267,54 +267,54 @@ export default async function ClientDetailPage({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
           {/* Stânga: Profil CAEN & Cerințe Legale */}
-          <div className="space-y-3 bg-slate-50 dark:bg-zinc-950/70 p-4 rounded-xl border border-slate-200 dark:border-zinc-800/80">
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-sm font-bold bg-blue-50 dark:bg-zinc-800 text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded-md border border-blue-200 dark:border-zinc-700">
+          <div className="space-y-3 bg-slate-50 dark:bg-[#162238] p-4 rounded-xl border border-slate-200 dark:border-[#253654]">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-sm font-bold bg-blue-50 dark:bg-[#1d2c46] text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded-md border border-blue-200 dark:border-[#2f4366]">
                 CAEN {client.caenCode || 'Nespecificat'}
               </span>
               {caenMeta?.riskClass && (
                 <span
                   className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
                     caenMeta.riskClass === 'LOW'
-                      ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60'
+                      ? 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/35'
                       : caenMeta.riskClass === 'MEDIUM'
-                      ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60'
-                      : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60'
+                      ? 'bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/35'
+                      : 'bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-500/35'
                   }`}
                 >
                   Clasă Risc {caenMeta.riskClass === 'LOW' ? 'Scăzut' : caenMeta.riskClass === 'MEDIUM' ? 'Mediu' : 'Ridicat'}
                 </span>
               )}
               {client.foundedYear && (
-                <span className="text-xs text-slate-500 dark:text-zinc-400">
+                <span className="text-xs text-slate-500 dark:text-slate-400">
                   • Înființată în {client.foundedYear}
                 </span>
               )}
             </div>
 
             <div>
-              <div className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400">Denumire Activitate:</div>
-              <div className="text-xs font-medium text-slate-900 dark:text-zinc-100 mt-0.5">
+              <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Denumire Activitate:</div>
+              <div className="text-xs font-medium text-slate-900 dark:text-slate-100 mt-0.5">
                 {client.caenActivity || caenMeta?.name || 'Activitate nespecificată în dosar.'}
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 border-t border-slate-200 dark:border-zinc-800 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 border-t border-slate-200 dark:border-[#253654] text-xs">
               <div>
-                <span className="text-slate-400 dark:text-zinc-400 block text-[10px] uppercase font-bold tracking-wider">Interval SSM Legal</span>
-                <span className="font-bold text-slate-800 dark:text-zinc-100">
+                <span className="text-slate-400 dark:text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Interval SSM Legal</span>
+                <span className="font-bold text-slate-800 dark:text-slate-100">
                   {caenMeta?.defaultSsmIntervalMonths || 6} luni
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 dark:text-zinc-400 block text-[10px] uppercase font-bold tracking-wider">Interval PSI Legal</span>
-                <span className="font-bold text-slate-800 dark:text-zinc-100">
+                <span className="text-slate-400 dark:text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Interval PSI Legal</span>
+                <span className="font-bold text-slate-800 dark:text-slate-100">
                   {caenMeta?.defaultPsiIntervalMonths || 6} luni
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 dark:text-zinc-400 block text-[10px] uppercase font-bold tracking-wider">Curs Igienă</span>
-                <span className={`font-bold ${caenMeta?.requiresHygieneCourse ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-zinc-400'}`}>
+                <span className="text-slate-400 dark:text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Curs Igienă</span>
+                <span className={`font-bold ${caenMeta?.requiresHygieneCourse ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'}`}>
                   {caenMeta?.requiresHygieneCourse ? 'Obligatoriu' : 'Neaplicabil'}
                 </span>
               </div>
@@ -322,47 +322,47 @@ export default async function ClientDetailPage({
           </div>
 
           {/* Dreapta: Serviciu Extern de Prevenire și Protecție (SEPP) */}
-          <div className="space-y-3 bg-slate-50 dark:bg-zinc-950/70 p-4 rounded-xl border border-slate-200 dark:border-zinc-800/80">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-800 pb-2">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-zinc-100">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <div className="space-y-3 bg-slate-50 dark:bg-[#162238] p-4 rounded-xl border border-slate-200 dark:border-[#253654]">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 dark:border-[#253654] pb-2">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-100">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span>Serviciu Extern de Prevenire și Protecție (SEPP)</span>
               </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/35 shrink-0">
                 {client.provider?.authorizationNumber ? `ITM: ${client.provider.authorizationNumber}` : 'ABILITAT ITM'}
               </span>
             </div>
 
             <div className="space-y-2.5 text-xs">
               <div>
-                <span className="text-slate-400 dark:text-zinc-400 block text-[10px] uppercase font-bold tracking-wider">Prestator Abilitat:</span>
-                <div className="font-semibold text-slate-900 dark:text-zinc-100 flex items-center gap-1.5 mt-0.5">
+                <span className="text-slate-400 dark:text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Prestator Abilitat:</span>
+                <div className="font-semibold text-slate-900 dark:text-slate-100 flex flex-wrap items-center gap-1.5 mt-0.5">
                   <span>{client.provider?.name || client.ssmProviderName || <span className="text-slate-400 italic">Nespecificat</span>}</span>
                   {client.provider?.cui && (
-                    <span className="font-mono text-[10px] text-slate-600 dark:text-zinc-300 bg-slate-200/60 dark:bg-zinc-800 px-1 rounded">
+                    <span className="font-mono text-[10px] text-slate-600 dark:text-slate-300 bg-slate-200/60 dark:bg-[#1d2c46] px-1 rounded">
                       {client.provider.cui}
                     </span>
                   )}
                 </div>
                 {client.provider?.address && (
-                  <div className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                     {client.provider.address}
                   </div>
                 )}
               </div>
 
               <div>
-                <span className="text-slate-400 dark:text-zinc-400 block text-[10px] uppercase font-bold tracking-wider">Specialist / Evaluator Desemnat:</span>
-                <div className="font-semibold text-slate-900 dark:text-zinc-100 mt-0.5 flex items-center gap-1.5">
+                <span className="text-slate-400 dark:text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Specialist / Evaluator Desemnat:</span>
+                <div className="font-semibold text-slate-900 dark:text-slate-100 mt-0.5 flex flex-wrap items-center gap-1.5">
                   <span>{client.specialist?.name || client.ssmSpecialistName || <span className="text-slate-400 italic">Nespecificat</span>}</span>
                   {client.specialist?.role && (
-                    <span className="text-[10px] font-medium text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800/60 px-1.5 py-0.2 rounded">
+                    <span className="text-[10px] font-medium text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/15 border border-blue-200 dark:border-blue-500/35 px-1.5 py-0.2 rounded">
                       {client.specialist.role}
                     </span>
                   )}
                 </div>
                 {(client.specialist?.phone || client.specialist?.email) && (
-                  <div className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5 flex gap-2">
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex flex-wrap gap-x-3 gap-y-1">
                     {client.specialist.phone && <span>Tel: {client.specialist.phone}</span>}
                     {client.specialist.email && <span>Email: {client.specialist.email}</span>}
                   </div>
@@ -370,8 +370,8 @@ export default async function ClientDetailPage({
               </div>
 
               <div>
-                <span className="text-slate-400 dark:text-zinc-400 block text-[10px] uppercase font-bold tracking-wider">Certificat Atestare / Abilitare:</span>
-                <span className="font-mono text-slate-700 dark:text-zinc-200 text-[11px] mt-0.5 block">
+                <span className="text-slate-400 dark:text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Certificat Atestare / Abilitare:</span>
+                <span className="font-mono text-slate-700 dark:text-slate-200 text-[11px] mt-0.5 block">
                   {client.specialist?.certificateNumber || client.ssmSpecialistCert || <span className="text-slate-400 italic font-sans">Nespecificat</span>}
                 </span>
               </div>
@@ -520,7 +520,7 @@ export default async function ClientDetailPage({
             <div className="divide-y divide-slate-100 text-xs">
               {client.jobs.map((j) => (
                 <div key={j.id} className="py-3 space-y-1.5">
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-wrap justify-between items-center gap-2">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-slate-800 text-sm">{j.title}</span>
                       {j.corCode && <span className="font-mono text-slate-400 text-[11px]">COR: {j.corCode}</span>}
@@ -612,7 +612,7 @@ export default async function ClientDetailPage({
 
       {/* 8. Generated Documents Archive for this Client */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/75">
+        <div className="px-6 py-4 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2 bg-slate-50/75">
           <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
             <FileText className="w-4 h-4 text-slate-500" />
             <span>Documente SSM Pregătite & Emise ({client.generatedDocuments.length})</span>
@@ -630,7 +630,7 @@ export default async function ClientDetailPage({
             Nu a fost generat niciun document pentru acest client.
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto overscroll-x-contain touch-pan-x">
             <table className="min-w-full divide-y divide-slate-100 text-left text-xs">
               <thead className="bg-white text-slate-400 font-semibold uppercase tracking-wider">
                 <tr>

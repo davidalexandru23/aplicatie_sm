@@ -355,7 +355,7 @@ function EmployeeRegistryInner({
             <button
               type="button"
               onClick={() => handleTabChange('ALL')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition ${
+              className={`min-h-[38px] px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition ${
                 activeTab === 'ALL'
                   ? 'bg-slate-900 text-white shadow-sm'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -366,7 +366,7 @@ function EmployeeRegistryInner({
             <button
               type="button"
               onClick={() => handleTabChange('VALID')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1.5 ${
+              className={`min-h-[38px] px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1.5 ${
                 activeTab === 'VALID'
                   ? 'bg-emerald-600 text-white shadow-sm'
                   : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
@@ -378,7 +378,7 @@ function EmployeeRegistryInner({
             <button
               type="button"
               onClick={() => handleTabChange('UPCOMING')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1.5 ${
+              className={`min-h-[38px] px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1.5 ${
                 activeTab === 'UPCOMING'
                   ? 'bg-amber-600 text-white shadow-sm'
                   : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
@@ -390,7 +390,7 @@ function EmployeeRegistryInner({
             <button
               type="button"
               onClick={() => handleTabChange('OVERDUE')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1.5 ${
+              className={`min-h-[38px] px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1.5 ${
                 activeTab === 'OVERDUE'
                   ? 'bg-red-600 text-white shadow-sm'
                   : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
@@ -402,7 +402,7 @@ function EmployeeRegistryInner({
             <button
               type="button"
               onClick={() => handleTabChange('MISSING')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1.5 ${
+              className={`min-h-[38px] px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1.5 ${
                 activeTab === 'MISSING'
                   ? 'bg-rose-700 text-white shadow-sm'
                   : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'
@@ -414,7 +414,7 @@ function EmployeeRegistryInner({
             <button
               type="button"
               onClick={() => handleTabChange('SUSPENDAT')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1.5 ${
+              className={`min-h-[38px] px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1.5 ${
                 activeTab === 'SUSPENDAT'
                   ? 'bg-amber-600 text-white shadow-sm'
                   : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
@@ -425,7 +425,7 @@ function EmployeeRegistryInner({
             <button
               type="button"
               onClick={() => handleTabChange('PLECAT')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1.5 ${
+              className={`min-h-[38px] px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1.5 ${
                 activeTab === 'PLECAT'
                   ? 'bg-slate-700 text-white shadow-sm'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'
@@ -439,13 +439,13 @@ function EmployeeRegistryInner({
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
             {/* Search Input */}
             <div className="relative flex-1 sm:w-64 min-w-[200px]">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Caută salariat, CNP, post..."
-                className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                className="w-full min-h-[38px] pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
               />
             </div>
 
@@ -455,7 +455,7 @@ function EmployeeRegistryInner({
               <select
                 value={selectedClientId}
                 onChange={(e) => setSelectedClientId(e.target.value)}
-                className="w-full sm:w-auto text-xs bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-2.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full sm:w-auto min-h-[38px] text-xs bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-2.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
               >
                 <option value="ALL">Toate companiile ({clients.length})</option>
                 {clients.map((c) => (
@@ -514,9 +514,15 @@ function EmployeeRegistryInner({
 
                   return (
                     <React.Fragment key={emp.id}>
-                      <tr className={`transition hover:bg-slate-50/70 ${isExpanded ? 'bg-blue-50/20' : ''}`}>
+                      <tr className={`group transition hover:bg-slate-50/70 ${isExpanded ? 'bg-blue-50/20' : ''}`}>
                       {/* 1. Salariat & Identitate (Sticky on tablet horizontal scroll) */}
-                      <td className="sticky left-0 z-10 bg-white group-hover:bg-slate-50/70 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] px-4 sm:px-5 py-3.5">
+                      <td
+                        className={`sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] px-4 sm:px-5 py-3.5 transition-colors ${
+                          isExpanded
+                            ? 'bg-blue-50 border-l-2 border-l-blue-500'
+                            : 'bg-white group-hover:bg-slate-50/70'
+                        }`}
+                      >
                         <div className="font-bold text-slate-900">
                           {emp.lastName} {emp.firstName}
                         </div>
@@ -635,7 +641,7 @@ function EmployeeRegistryInner({
                           <button
                             type="button"
                             onClick={() => toggleExpand(emp.id)}
-                            className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition shadow-2xs cursor-pointer ${
+                            className={`min-h-[36px] inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition shadow-2xs cursor-pointer ${
                               isExpanded
                                 ? 'bg-blue-600 text-white border-blue-600'
                                 : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300 hover:border-slate-400'
