@@ -73,6 +73,23 @@ export function Navbar({ currentUser }: NavbarProps) {
     setIsDropdownOpen(false);
   }, [pathname]);
 
+  // Blochează scroll-ul paginii și permite închiderea cu Escape când meniul mobil este deschis
+  useEffect(() => {
+    if (!isMobileDrawerOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsMobileDrawerOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isMobileDrawerOpen]);
+
   // Dacă utilizatorul este pe pagina de login, ascundem navbar-ul
   if (pathname === '/login') {
     return null;
@@ -213,7 +230,8 @@ export function Navbar({ currentUser }: NavbarProps) {
   ];
 
   return (
-    <header className="bg-[#0b1120]/95 backdrop-blur-md text-white shadow-md sticky top-0 z-40 border-b border-slate-800/90">
+    <>
+      <header className="bg-[#0b1120]/95 backdrop-blur-md text-white shadow-md sticky top-0 z-40 border-b border-slate-800/90">
       <div className="max-w-[1920px] 2xl:max-w-[98vw] mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between h-16">
         {/* Left Side: Mobile/Tablet Hamburger + Brand */}
         <div className="flex items-center gap-3">
@@ -313,11 +331,6 @@ export function Navbar({ currentUser }: NavbarProps) {
             </button>
 
             {isDropdownOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setIsDropdownOpen(false)}
-                />
                 <div className="absolute right-0 mt-2 w-72 max-w-[calc(100vw-2rem)] bg-[#111a2e] border border-slate-700/80 rounded-xl shadow-2xl py-2 z-50 text-xs animate-in fade-in duration-100">
                   <div className="px-3 py-2 border-b border-slate-800">
                     <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
@@ -382,25 +395,38 @@ export function Navbar({ currentUser }: NavbarProps) {
                     </button>
                   </div>
                 </div>
-              </>
             )}
           </div>
         </div>
       </div>
+      </header>
 
-      {/* Mobile & Tablet Slide-over Drawer (< xl) */}
+      {/* Backdrop pentru închiderea dropdown-ului de rol la click în afara header-ului */}
+      {isDropdownOpen && (
+        <div
+          className="fixed inset-0 z-30"
+          onClick={() => setIsDropdownOpen(false)}
+        />
+      )}
+
+      {/* Mobile & Tablet Slide-over Drawer (< xl) — randat în afara <header> pentru a evita containing block-ul creat de backdrop-blur */}
       {isMobileDrawerOpen && (
-        <div className="fixed inset-0 z-[60] xl:hidden">
+        <div
+          className="fixed inset-0 z-[60] xl:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Meniu principal"
+        >
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-slate-950/75 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs transition-opacity"
             onClick={() => setIsMobileDrawerOpen(false)}
           />
 
           {/* Drawer Panel */}
-          <div className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-[#0f172a] border-r border-slate-800 shadow-2xl flex flex-col z-[60]">
+          <aside className="fixed top-0 bottom-0 left-0 h-[100dvh] w-80 max-w-[85vw] bg-[#0f172a] text-white border-r border-slate-800 shadow-2xl flex flex-col z-[61] pb-[env(safe-area-inset-bottom)]">
             {/* Drawer Header */}
-            <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950/40">
+            <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950/60 shrink-0">
               <Link
                 href={role === 'IGIENA' ? '/hygiene' : '/'}
                 onClick={() => setIsMobileDrawerOpen(false)}
@@ -422,7 +448,7 @@ export function Navbar({ currentUser }: NavbarProps) {
             </div>
 
             {/* Current User Summary in Drawer */}
-            <div className="px-4 py-3 bg-slate-800/40 border-b border-slate-800 flex items-center justify-between gap-2">
+            <div className="px-4 py-3 bg-slate-800/50 border-b border-slate-800 flex items-center justify-between gap-2 shrink-0">
               <div className="min-w-0">
                 <div className="text-xs font-bold text-slate-200 truncate">
                   {currentUser?.name || 'Utilizator'}
@@ -437,7 +463,7 @@ export function Navbar({ currentUser }: NavbarProps) {
             </div>
 
             {/* Theme Switcher in Mobile Drawer */}
-            <div className="px-4 py-2.5 bg-slate-950/40 border-b border-slate-800 flex items-center justify-between gap-2">
+            <div className="px-4 py-2.5 bg-slate-950/60 border-b border-slate-800 flex items-center justify-between gap-2 shrink-0">
               <span className="text-xs font-medium text-slate-400 flex items-center gap-2">
                 {isDark ? <Moon className="w-3.5 h-3.5 text-blue-400" /> : <Sun className="w-3.5 h-3.5 text-amber-400" />}
                 <span>Temă interfață</span>
@@ -452,7 +478,7 @@ export function Navbar({ currentUser }: NavbarProps) {
             </div>
 
             {/* Drawer Nav Links */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-1">
+            <nav className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-3 space-y-1">
               <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1.5">
                 Meniu Principal
               </div>
@@ -487,10 +513,10 @@ export function Navbar({ currentUser }: NavbarProps) {
                   </Link>
                 </div>
               )}
-            </div>
+            </nav>
 
             {/* Drawer Footer Actions */}
-            <div className="p-3 border-t border-slate-800 bg-slate-950/40 space-y-1">
+            <div className="p-3 border-t border-slate-800 bg-slate-950/60 space-y-1 shrink-0">
               <button
                 type="button"
                 onClick={() => {
@@ -511,7 +537,7 @@ export function Navbar({ currentUser }: NavbarProps) {
                 <span>Deconectare</span>
               </button>
             </div>
-          </div>
+          </aside>
         </div>
       )}
 
@@ -601,6 +627,6 @@ export function Navbar({ currentUser }: NavbarProps) {
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 }
