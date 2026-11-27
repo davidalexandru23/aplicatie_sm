@@ -262,22 +262,14 @@ function EmployeeRegistryInner({
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <Users className="w-5 h-5 text-blue-600" />
-            <span>Registrul Centralizat al Salariaților — Monitorizare Scadențe SSM</span>
+            <span>Salariați</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Urmărirea conformității legale pe 4 dimensiuni normative: Medicină a Muncii (HG 355/2007), Instruire SSM (L319/2006), Instruire PSI (L307/2006) și Cursuri Igienă (Ord. 2209/2022).
+            Evidența salariaților și scadențelor pentru medicină, SSM, PSI și igienă.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <AddEmployeeModal clients={clients} userRole={userRole} isSsmRole={userRole === 'SSM'} />
-          {(userRole === 'ADMIN' || userRole === 'HR') && (
-            <Link
-              href="/imports/new"
-              className="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition"
-            >
-              <span>Import Registru Excel</span>
-            </Link>
-          )}
         </div>
       </div>
 

@@ -39,10 +39,10 @@ export default async function RiskAssessmentsPage() {
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <ShieldAlert className="w-5 h-5 text-amber-600" />
-            <span>Evaluări de Riscuri Profesionale & Planuri de Prevenire</span>
+            <span>Evaluări de riscuri</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Evidența evaluărilor structurate de risc conform Legii 319/2006 și HG 1425/2006. Metoda INCDPM (Pece) cu corelație automată a măsurilor de prevenire și protecție pe profiluri CAEN.
+            Evaluări de risc și planuri de prevenire conform Legii 319/2006 (metoda INCDPM).
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -52,14 +52,7 @@ export default async function RiskAssessmentsPage() {
             className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition shadow-sm"
           >
             <FileText className="w-4 h-4" />
-            <span>Generează Evaluare Risc DOCX</span>
-          </Link>
-          <Link
-            href="/documents/generate?templateCode=risk-plan-prevenire-tesa"
-            className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition shadow-sm"
-          >
-            <ShieldAlert className="w-4 h-4" />
-            <span>Generează Plan Prevenire DOCX</span>
+            <span>Generează DOCX</span>
           </Link>
         </div>
       </div>

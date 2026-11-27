@@ -160,43 +160,19 @@ export default async function DashboardPage() {
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Panou de Control Executiv — SSM & Igienă
+            Panou de control
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Centru de monitorizare proactivă a scadențelor legale (HG 355/2007, Legea 319/2006, Legea 307/2006, Ordinul 2209/2022) și generare documente.
+            Monitorizare scadențe medicale, instruiri SSM/PSI și cursuri de igienă.
           </p>
         </div>
         <div className="flex flex-wrap gap-2.5">
           <Link
-            href="/employees"
-            className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs px-4 py-2.5 rounded-lg shadow-sm transition"
+            href="/documents/generate"
+            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-4 py-2.5 rounded-lg shadow-sm transition"
           >
-            <Users className="w-4 h-4" />
-            <span>Registru Salariați</span>
-          </Link>
-          {!isSsmRole ? (
-            <Link
-              href="/imports/new"
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-4 py-2.5 rounded-lg shadow-sm transition"
-            >
-              <UploadCloud className="w-4 h-4" />
-              <span>Import Registru Excel</span>
-            </Link>
-          ) : (
-            <Link
-              href="/risk-assessments"
-              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 py-2.5 rounded-lg shadow-sm transition"
-            >
-              <ShieldCheck className="w-4 h-4" />
-              <span>Evaluare Riscuri SSM</span>
-            </Link>
-          )}
-          <Link
-            href="/templates"
-            className="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-4 py-2.5 rounded-lg transition"
-          >
-            <FileText className="w-4 h-4 text-slate-600" />
-            <span>Catalog 25 Șabloane</span>
+            <FileText className="w-4 h-4" />
+            <span>Generează document</span>
           </Link>
         </div>
       </div>
@@ -340,12 +316,12 @@ export default async function DashboardPage() {
           </span>
         </div>
         <div>
-          <span className="text-slate-400 block font-medium">Șabloane Oficiale:</span>
-          <span className="font-bold text-slate-800 text-sm">{templateCount} / 25 mapate</span>
+          <span className="text-slate-400 block font-medium">Șabloane disponibile:</span>
+          <span className="font-bold text-slate-800 text-sm">{templateCount} șabloane</span>
         </div>
         <div>
-          <span className="text-slate-400 block font-medium">Documente SSM Pregătite:</span>
-          <span className="font-bold text-slate-800 text-sm">{documentCount} documente emise</span>
+          <span className="text-slate-400 block font-medium">Documente emise:</span>
+          <span className="font-bold text-slate-800 text-sm">{documentCount} documente</span>
         </div>
       </div>
 
@@ -363,10 +339,10 @@ export default async function DashboardPage() {
           <div>
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <Building2 className="w-5 h-5 text-blue-600 shrink-0" />
-              <span>Portofoliu Firme Cliente — Scoruri de Conformitate SSM</span>
+              <span>Situație pe firmă</span>
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Sinteza nivelului de conformitate legală pe fiecare persoană juridică administrată
+              Scorul de conformitate și scadențele fiecărei firme active.
             </p>
           </div>
           <Link
@@ -381,11 +357,11 @@ export default async function DashboardPage() {
           <table className="min-w-full divide-y divide-slate-100 text-left text-xs">
             <thead className="bg-white text-slate-400 font-semibold uppercase tracking-wider">
               <tr>
-                <th className="px-6 py-3">Firmă Client</th>
-                <th className="px-4 py-3">Salariați Activi</th>
-                <th className="px-4 py-3">Scor Conformitate</th>
-                <th className="px-4 py-3">Restanțe (OVERDUE)</th>
-                <th className="px-4 py-3">Scadențe (&le; 30z)</th>
+                <th className="px-6 py-3">Firmă</th>
+                <th className="px-4 py-3">Salariați activi</th>
+                <th className="px-4 py-3">Conformitate</th>
+                <th className="px-4 py-3">Expirate</th>
+                <th className="px-4 py-3">Scadente (&le; 30z)</th>
                 <th className="px-4 py-3 text-right">Dosar</th>
               </tr>
             </thead>
@@ -497,7 +473,7 @@ export default async function DashboardPage() {
                           ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                           : 'bg-amber-50 text-amber-700 border border-amber-200'
                       }`}>
-                        {doc.status === 'approved_for_print' ? 'Aprobat Tipărire' : 'Draft / Lipsuri'}
+                        {doc.status === 'approved_for_print' ? 'Gata de tipărire' : 'Incomplet'}
                       </span>
                       <a
                         href={`/api/documents/${doc.id}/download`}
@@ -558,9 +534,8 @@ export default async function DashboardPage() {
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  <span>Panou Operațiuni SSM & Prevenire</span>
+                  <span>Operațiuni SSM</span>
                 </h2>
-                <span className="text-xs text-slate-400 font-mono">Modul SSM</span>
               </div>
               <div className="space-y-3">
                 <div className="p-3.5 bg-slate-50 rounded-lg border border-slate-200 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">

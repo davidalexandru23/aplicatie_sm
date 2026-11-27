@@ -35,41 +35,24 @@ export default async function ClientsPage() {
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <Building2 className="w-5 h-5 text-blue-600" />
-            <span>Registrul Clienților (Firme Partenere SSM)</span>
+            <span>Clienți</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Gestiunea dosarului complet per firmă: profil CAEN, numiri statutare, angajați, evaluări de risc și documente emise.
+            Firme active, profil CAEN, salariați și documente emise.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <ClientIntakeModal />
-          <Link
-            href="/imports/new"
-            className="min-h-[38px] inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-3.5 py-2 rounded-lg transition"
-          >
-            <UploadCloud className="w-4 h-4 text-slate-600" />
-            <span>Import din Excel</span>
-          </Link>
         </div>
       </div>
 
       {clients.length === 0 ? (
         <div className="bg-white rounded-xl border border-dashed border-slate-300 p-12 text-center">
           <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-sm font-semibold text-slate-800">Nu există firme cliente înregistrate</h3>
+          <h3 className="text-sm font-semibold text-slate-800">Nu există clienți înregistrați</h3>
           <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            Înregistrează un client nou prin formularul dedicat sau importă un fișier Excel cu registrul de salariați.
+            Adaugă o firmă din butonul de mai sus sau importă un registru Excel.
           </p>
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-            <ClientIntakeModal />
-            <Link
-              href="/imports/new"
-              className="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold px-4 py-2 rounded-lg transition"
-            >
-              <UploadCloud className="w-4 h-4 text-slate-600" />
-              <span>Încarcă Registrul Client</span>
-            </Link>
-          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

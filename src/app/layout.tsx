@@ -21,8 +21,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Sistem Intern SSM & Cursuri Igienă',
-  description: 'Gestiune dosar clienți, import registru și generare automată a celor 25 de documente SSM',
+  title: 'Gestiune SSM & Cursuri Igienă',
+  description: 'Gestiune clienți, salariați, scadențe SSM/PSI, cursuri de igienă și generare documente',
 };
 
 export default async function RootLayout({

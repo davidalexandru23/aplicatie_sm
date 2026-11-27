@@ -264,18 +264,13 @@ export default async function ClientDetailPage({
             </div>
             <div>
               <h2 className="text-sm font-bold text-slate-900">
-                Profil Activitate Economică (CAEN Rev. 2) & Serviciu Extern SSM (SEPP)
+                Profil CAEN &amp; Serviciu Extern SSM
               </h2>
               <p className="text-xs text-slate-500">
-                Parametrii legali de instruire și prestatorul abilitat ITM conform Legii 319/2006.
+                Periodicitatea instruirilor și prestatorul SSM desemnat.
               </p>
             </div>
           </div>
-          <ClientEditModal
-            client={client}
-            triggerClassName="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition"
-            triggerText="Editează CAEN / SEPP"
-          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
@@ -468,13 +463,10 @@ export default async function ClientDetailPage({
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-blue-600" />
             <h2 className="text-sm font-bold text-slate-900">
-              Registru Salariați & Monitorizare Scadențe ({client.employees.length})
+              Salariați ({client.employees.length})
             </h2>
           </div>
           <div className="flex items-center gap-3">
-            <div className="text-xs text-slate-500 hidden md:block">
-              {isSsmRole ? 'Modul SSM • Monitorizare Conformitate Salariați' : 'CNP mascat conform GDPR • Verificare automată HG 355/2007, Legea 319/2006'}
-            </div>
             <AddEmployeeModal clientId={client.id} jobs={client.jobs} worksites={client.worksites} userRole={userRole} isSsmRole={isSsmRole} />
           </div>
         </div>
@@ -628,7 +620,7 @@ export default async function ClientDetailPage({
         <div className="px-6 py-4 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2 bg-slate-50/75">
           <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
             <FileText className="w-4 h-4 text-slate-500" />
-            <span>Documente SSM Pregătite & Emise ({client.generatedDocuments.length})</span>
+            <span>Documente emise ({client.generatedDocuments.length})</span>
           </h2>
           <Link
             href={`/documents/generate?clientId=${client.id}`}
@@ -674,7 +666,7 @@ export default async function ClientDetailPage({
                             : 'bg-amber-50 text-amber-700 border border-amber-200'
                         }`}
                       >
-                        {doc.status === 'approved_for_print' ? 'Aprobat Tipărire' : 'Draft / Lipsuri'}
+                        {doc.status === 'approved_for_print' ? 'Gata de tipărire' : 'Incomplet'}
                       </span>
                     </td>
                     <td className="px-4 py-3.5 text-right">

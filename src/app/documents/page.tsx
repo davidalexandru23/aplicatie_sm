@@ -21,10 +21,10 @@ export default async function DocumentsPage() {
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <FileText className="w-5 h-5 text-blue-600" />
-            <span>Arhiva Documentelor SSM Emise</span>
+            <span>Documente emise</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Evidența tuturor fișierelor pregătite pentru tipărire, istoricul reviziilor și scanurile semnate olograf pe hârtie.
+            Arhiva documentelor generate pentru clienți și salariați.
           </p>
         </div>
         <Link
@@ -98,7 +98,7 @@ export default async function DocumentsPage() {
                           ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                           : 'bg-amber-50 text-amber-700 border border-amber-200'
                       }`}>
-                        {doc.status === 'approved_for_print' ? 'Aprobat Tipărire' : 'Draft / Câmpuri Lipsă'}
+                        {doc.status === 'approved_for_print' ? 'Gata de tipărire' : 'Incomplet'}
                       </span>
                     </td>
                     <td className="px-4 py-3.5 text-right">

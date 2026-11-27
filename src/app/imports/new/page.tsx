@@ -118,10 +118,10 @@ export default function NewImportPage() {
           <div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
               <FileSpreadsheet className="w-5 h-5 text-blue-600" />
-              <span>Import Registru Client SSM (Model_date_client_SSM.xlsx)</span>
+              <span>Import registru Excel</span>
             </h1>
             <p className="text-xs text-slate-500 mt-1">
-              Încarcă fișierul furnizat de client pentru a verifica datele firmei, lista angajaților (inclusiv act de identitate și domiciliu) și contextul posturilor.
+              Încarcă fișierul completat de client pentru a importa sau actualiza datele firmei și ale salariaților.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
@@ -131,7 +131,7 @@ export default function NewImportPage() {
               className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg shadow-sm transition"
             >
               <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-              <span>Descarcă Șablon Gol (.xlsx)</span>
+              <span>Șablon gol (.xlsx)</span>
             </a>
             <a
               href="/api/imports/template?type=sample"
@@ -139,7 +139,7 @@ export default function NewImportPage() {
               className="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg shadow-sm transition"
             >
               <FileSpreadsheet className="w-4 h-4 text-blue-600" />
-              <span>Descarcă Exemplu Completat (.xlsx)</span>
+              <span>Exemplu completat (.xlsx)</span>
             </a>
           </div>
         </div>
@@ -207,12 +207,11 @@ export default function NewImportPage() {
               <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3 text-amber-900 text-xs leading-relaxed shadow-sm">
                 <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-bold">Regim de Import Parțial Sigur:</span>{' '}
-                  Au fost identificate <strong>{previewResult.previewReport.summary.errorCount} rânduri cu erori de validare</strong> (marcate cu roșu).
-                  La confirmare, sistemul va salva exclusiv cele{' '}
+                  <span className="font-bold">Import parțial:</span>{' '}
+                  Au fost găsite <strong>{previewResult.previewReport.summary.errorCount} rânduri cu erori</strong>.
+                  La confirmare se vor salva doar cele{' '}
                   <strong>{previewResult.previewReport.summary.newCount + previewResult.previewReport.summary.modifiedCount} rânduri valide</strong>{' '}
-                  ({previewResult.previewReport.summary.newCount} noi, {previewResult.previewReport.summary.modifiedCount} modificate).
-                  Rândurile cu erori vor fi omise în siguranță, fără a corupe baza de date. Puteți descărca registrul, corecta erorile și reîncărca angajații omiși ulterior.
+                  ({previewResult.previewReport.summary.newCount} noi, {previewResult.previewReport.summary.modifiedCount} modificate), iar rândurile cu erori vor fi omise.
                 </div>
               </div>
           )}
@@ -222,9 +221,8 @@ export default function NewImportPage() {
               <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start gap-3 text-emerald-900 text-xs leading-relaxed shadow-sm">
                 <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-bold">Fișier 100% Validat cu Succes:</span>{' '}
-                  Toate cele <strong>{previewResult.previewReport.summary.totalRows} rânduri</strong> respectă cerințele de integritate
-                  (CNP valid, acte de identitate, domiciliu și post). Apăsați butonul de confirmare pentru a sincroniza datele în dosarul firmei.
+                  <span className="font-bold">Fișier validat:</span>{' '}
+                  Toate cele <strong>{previewResult.previewReport.summary.totalRows} rânduri</strong> sunt valide și pot fi salvate în dosarul firmei.
                 </div>
               </div>
           )}
@@ -233,11 +231,11 @@ export default function NewImportPage() {
             <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-3 text-rose-900 text-xs leading-relaxed shadow-sm">
               <AlertTriangle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
               <div>
-                <span className="font-bold">Import Blocat:</span>{' '}
+                <span className="font-bold">Nu există date de salvat:</span>{' '}
                 {previewResult.previewReport.summary.errorCount > 0 ? (
-                  <>Toate cele <strong>{previewResult.previewReport.summary.errorCount} rânduri</strong> conțin erori critice de validare. Nu există înregistrări valide de salvat. Consultați tab-ul <em>Erori</em> pentru detalii și remediați fișierul Excel înainte de reîncărcare.</>
+                  <>Toate cele <strong>{previewResult.previewReport.summary.errorCount} rânduri</strong> au erori de validare. Verifică tab-ul <em>Erori</em> și corectează fișierul înainte de reîncărcare.</>
                 ) : (
-                  <>Toate înregistrările din fișier sunt deja identice cu cele din baza de date. Nu au fost detectate modificări de salvat.</>
+                  <>Toate înregistrările din fișier sunt deja identice cu cele din baza de date.</>
                 )}
               </div>
             </div>

@@ -41,14 +41,14 @@ export default async function TemplatesPage() {
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-xl font-bold text-slate-900">
-              Catalogul Oficial al celor 25 de Șabloane SSM
+              Catalog șabloane
             </h1>
             <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-              {templates.length} / 25
+              {templates.length} șabloane
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Fiecare fișier original din folderul <code className="text-slate-700 bg-slate-100 px-1 py-0.5 rounded">sabloane_ssm</code> este inventariat, normalizat, asociat cu un manifest declarativ de date și un revizor desemnat.
+            Șabloanele disponibile pentru generare automată, grupate pe categorii.
           </p>
         </div>
         <Link
@@ -127,7 +127,7 @@ export default async function TemplatesPage() {
                         {tpl.status === 'mapped' ? (
                           <>
                             <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                            <span>Mapat (Activ)</span>
+                            <span>Activ</span>
                           </>
                         ) : (
                           <>

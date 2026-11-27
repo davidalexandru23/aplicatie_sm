@@ -67,10 +67,10 @@ export default async function TrainingsPage() {
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-indigo-600" />
-            <span>Instruiri SSM & Situații de Urgență (Legea 319/2006, OMAI 712/2005)</span>
+            <span>Instruiri SSM &amp; PSI</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Planificarea și consemnarea sesiunilor de instruire (introductiv-generală, la locul de muncă, periodică SSM și PSI), cu resetarea automată a scadențelor salariaților participanți.
+            Evidența sesiunilor de instruire SSM și PSI și actualizarea scadențelor.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -83,17 +83,8 @@ export default async function TrainingsPage() {
           <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
           <h3 className="text-sm font-semibold text-slate-800">Nu există sesiuni de instruire înregistrate</h3>
           <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            Înregistrează prima sesiune de instruire SSM sau PSI pentru a actualiza automat scadențele legale ale salariaților.
+            Folosește butonul de mai sus pentru a înregistra o sesiune de instruire SSM sau PSI.
           </p>
-          <div className="mt-4 flex items-center justify-center gap-3">
-            <TrainingPlannerModal clients={plannerClients} />
-            <Link
-              href="/templates"
-              className="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-4 py-2.5 rounded-lg transition"
-            >
-              <span>Vezi Șabloanele de Instruire</span>
-            </Link>
-          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

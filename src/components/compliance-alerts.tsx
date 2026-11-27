@@ -136,13 +136,13 @@ export function ComplianceAlerts({
                 </div>
                 <div className="min-w-0">
                   <h2 className="text-sm font-bold text-red-950 flex flex-wrap items-center gap-2">
-                    <span>Alerte Critice — Termene Depășite</span>
+                    <span>Termene depășite</span>
                     <span className="text-xs bg-red-600 text-white font-mono px-2 py-0.5 rounded-full shrink-0">
                       {filteredOverdue.length}
                     </span>
                   </h2>
                   <p className="text-[11px] text-red-700 mt-0.5">
-                    Risc contravențional la control ITM / ISU (Legea 319/2006, HG 355/2007)
+                    Examinări și instruiri expirate (Legea 319/2006, HG 355/2007)
                   </p>
                 </div>
               </div>
@@ -158,7 +158,7 @@ export function ComplianceAlerts({
             {filteredOverdue.length === 0 ? (
               <div className="p-8 text-center text-slate-400">
                 <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-2 opacity-80" />
-                <div className="text-xs font-semibold text-slate-700">Felicitări! Fără termene depășite.</div>
+                <div className="text-xs font-semibold text-slate-700">Nu există termene depășite.</div>
                 <div className="text-[11px] text-slate-400 mt-0.5">
                   Toate controalele medicale și instruirile sunt în termenul legal.
                 </div>
@@ -215,7 +215,7 @@ export function ComplianceAlerts({
                         className="text-[11px] text-red-700 hover:text-red-900 font-semibold bg-red-50 hover:bg-red-100 border border-red-200 px-2.5 py-1 rounded transition flex items-center gap-1"
                       >
                         <FileText className="w-3 h-3" />
-                        <span>Generează Fișă / Document</span>
+                        <span>Generează document</span>
                       </Link>
                     </div>
                   </div>
@@ -253,7 +253,7 @@ export function ComplianceAlerts({
                 </div>
                 <div className="min-w-0">
                   <h2 className="text-sm font-bold text-amber-950 flex flex-wrap items-center gap-2">
-                    <span>Scadențe Iminente (&le; 30 Zile)</span>
+                    <span>Expiră în 30 de zile</span>
                     <span className="text-xs bg-amber-500 text-white font-mono px-2 py-0.5 rounded-full shrink-0">
                       {filteredUpcoming.length}
                     </span>

@@ -145,23 +145,23 @@ export interface RoleGeneratorMeta {
 
 export const ROLE_GENERATOR_CONFIG: Record<UserRole, RoleGeneratorMeta> = {
   ADMIN: {
-    title: 'Generator Oficial SSM, HR & Igienă',
-    subtitle: 'Autocompletare conform cerințelor statutare a celor 34 de șabloane din datele firmei, salariaților și sesiunilor.',
+    title: 'Generator documente',
+    subtitle: 'Completează șabloane SSM, HR și Igienă din datele firmei și ale salariaților.',
     badge: 'Administrator',
   },
   SSM: {
-    title: 'Generator Oficial SSM, PSI & Instruiri',
-    subtitle: 'Autocompletare conform legii a șabloanelor de securitate în muncă (SSM), situații de urgență (PSI/SU) și evaluări de risc.',
+    title: 'Generator documente SSM & PSI',
+    subtitle: 'Completează fișe de instruire, evaluări de risc și documente SSM / PSI.',
     badge: 'Specialist SSM',
   },
   HR: {
-    title: 'Generator Oficial Resurse Umane (HR & CIM)',
-    subtitle: 'Autocompletare a contractelor individuale de muncă (CIM), actelor adiționale, fișelor de post și dosarelor de personal.',
+    title: 'Generator documente HR',
+    subtitle: 'Completează contracte de muncă, acte de angajare, fișe medicale și EIP.',
     badge: 'Resurse Umane',
   },
   IGIENA: {
-    title: 'Generator Oficial Cursuri & Adeverințe Igienă',
-    subtitle: 'Generare automată a adeverințelor DSP și cataloagelor oficiale conform Ordin MS/ME 2209/4469/2022.',
+    title: 'Generator documente igienă',
+    subtitle: 'Generează adeverințe și cataloage DSP conform Ord. MS/ME 2209/4469/2022.',
     badge: 'Inspector Igienă',
   },
 };

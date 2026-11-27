@@ -13,10 +13,10 @@ import type { UserRole } from '@/lib/auth';
 import { ROLE_CONFIG } from '@/lib/rbac';
 
 const ROLE_OPTIONS: Array<{ value: UserRole; label: string }> = [
-  { value: 'ADMIN', label: 'Admin Master' },
+  { value: 'ADMIN', label: 'Administrator' },
   { value: 'SSM', label: 'Specialist SSM' },
   { value: 'HR', label: 'Resurse Umane (HR)' },
-  { value: 'IGIENA', label: 'Inspector Igienă (Cursuri & Adeverințe)' },
+  { value: 'IGIENA', label: 'Inspector Igienă' },
 ];
 
 function LoginForm() {
@@ -69,13 +69,13 @@ function LoginForm() {
       <div className="text-center space-y-2">
         <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-800 px-3 py-1 rounded-full text-xs font-semibold border border-slate-200">
           <Building2 className="w-3.5 h-3.5 text-blue-600" />
-          <span>Sistem Integrat de Management SSM &amp; Igienă</span>
+          <span>Gestiune SSM &amp; Igienă</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-          Autentificare în Sistem
+          Autentificare
         </h1>
         <p className="text-sm text-slate-500">
-          Selectați rolul de acces și introduceți parola asociată.
+          Selectați rolul și introduceți parola.
         </p>
       </div>
 
@@ -87,11 +87,6 @@ function LoginForm() {
       )}
 
       <div className="w-full bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-        <div className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-5 flex items-center gap-2 border-b border-slate-100 pb-3">
-          <KeyRound className="w-4 h-4 text-blue-600" />
-          <span>Acces pe Rol</span>
-        </div>
-
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label
